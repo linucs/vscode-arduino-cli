@@ -37,6 +37,15 @@
   "contributes": {
     "commands": [
       {
+        "command": "arduinoCli.selectBoard",
+        "title": "%command.selectBoard%"
+      },
+      {
+        "command": "arduinoCli.compile",
+        "title": "%command.compile%",
+        "icon": "$(check)"
+      },
+      {
         "command": "arduinoCli.showVersion",
         "title": "%command.showVersion%"
       },
@@ -45,6 +54,15 @@
         "title": "%command.restartDaemon%"
       }
     ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "arduinoCli.compile",
+          "when": "resourceExtname == .ino",
+          "group": "navigation@1"
+        }
+      ]
+    },
     "configuration": {
       "title": "%config.title%",
       "properties": {

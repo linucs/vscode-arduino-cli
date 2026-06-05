@@ -4,6 +4,8 @@
   "config.title": "Arduino CLI",
   "config.path": "Percorso dell'eseguibile arduino-cli.",
   "config.daemonPort": "Porta TCP su cui resta in ascolto il daemon arduino-cli.",
+  "command.selectBoard": "Arduino CLI: Seleziona scheda",
+  "command.compile": "Arduino CLI: Compila",
   "command.showVersion": "Arduino CLI: Mostra versione del daemon",
   "command.restartDaemon": "Arduino CLI: Riavvia daemon"
 }

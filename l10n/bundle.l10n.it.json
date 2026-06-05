@@ -2,5 +2,22 @@
   "arduino-cli daemon v{0}": "daemon arduino-cli v{0}",
   "Arduino CLI: daemon restarted": "Arduino CLI: daemon riavviato",
   "Arduino CLI: {0}": "Arduino CLI: {0}",
-  "Arduino CLI: could not start daemon — {0}": "Arduino CLI: impossibile avviare il daemon — {0}"
+  "Arduino CLI: could not start daemon — {0}": "Arduino CLI: impossibile avviare il daemon — {0}",
+  "No board selected. Run “Arduino CLI: Select Board” first.": "Nessuna scheda selezionata. Esegui prima “Arduino CLI: Seleziona scheda”.",
+  "Unknown board — pick one manually": "Scheda sconosciuta — selezionane una manualmente",
+  "$(search) Choose a board manually…": "$(search) Scegli una scheda manualmente…",
+  "Select Arduino Board": "Seleziona scheda Arduino",
+  "Pick a connected board, or choose one manually": "Scegli una scheda collegata o selezionane una manualmente",
+  "Search installed boards by name": "Cerca le schede installate per nome",
+  "No board": "Nessuna scheda",
+  "Select an Arduino board": "Seleziona una scheda Arduino",
+  "Not a valid Arduino sketch: {0}": "Non è uno sketch Arduino valido: {0}",
+  "No Arduino sketch (.ino) found in the workspace.": "Nessuno sketch Arduino (.ino) trovato nel workspace.",
+  "Select Sketch": "Seleziona sketch",
+  "Multiple sketches found — pick one": "Trovati più sketch — selezionane uno",
+  "No board selected for this sketch.": "Nessuna scheda selezionata per questo sketch.",
+  "Select Board": "Seleziona scheda",
+  "Compiling {0}…": "Compilazione di {0}…",
+  "Compilation finished.": "Compilazione completata.",
+  "Compilation failed — see the Arduino CLI output.": "Compilazione fallita — consulta l'output di Arduino CLI."
 }

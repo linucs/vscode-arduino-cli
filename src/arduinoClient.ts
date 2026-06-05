@@ -1,18 +1,35 @@
 import * as path from "node:path";
 import * as grpc from "@grpc/grpc-js";
 import * as protoLoader from "@grpc/proto-loader";
+import { applyBuildMessage, type BuildStreamSinks } from "./buildStream";
+import type {
+  BoardListResponse,
+  BoardListAllResponse,
+  BoardListWatchResponse,
+  BuilderResult,
+  EnumerateMonitorPortSettingsResponse,
+  Instance,
+  ListProgrammersResponse,
+  LoadSketchResponse,
+  SetSketchDefaultsRequest,
+  SetSketchDefaultsResponse,
+  SupportedUserFieldsResponse,
+  UploadResult,
+} from "./proto/types";
+
+export type { BuildStreamSinks } from "./buildStream";
 
 /**
- * Thin wrapper around the arduino-cli ArduinoCoreService gRPC API.
+ * Thin wrapper around the arduino-cli ArduinoCoreService gRPC API — the single
+ * transport layer. It is the only module that touches grpc/proto-loader and the
+ * only holder of the `instance` handle; higher-level managers depend on it and
+ * never speak grpc directly.
  *
- * Responsibilities kept deliberately minimal (Phase 1):
- *  - load the proto definitions
- *  - open a channel to the daemon
- *  - manage the instance lifecycle (Create -> Init -> Destroy)
- *  - expose a couple of unary calls as proof of life (Version)
- *
- * Higher-level operations (Compile, Upload, Monitor, ...) are layered on top
- * in later phases — see .claude/docs.
+ * Three call shapes are exposed beyond the lifecycle:
+ *  - `unary` typed wrappers (boardList, loadSketch, ...)
+ *  - `serverStream` — callback-based server-streaming (BoardListWatch, indexes)
+ *  - `runBuildStream` — shared oneof demux for Compile and Upload
+ *  - `duplex` — bidirectional, event-shaped (Monitor; added in 1c)
  */
 
 // Path to the vendored proto tree. The root commands.proto pulls in the other
@@ -29,9 +46,7 @@ const COMMANDS_PROTO = path.join(
   "commands.proto",
 );
 
-export interface ArduinoInstance {
-  id: number;
-}
+export type ArduinoInstance = Instance;
 
 export class ArduinoClient {
   private client: grpc.Client | undefined;
@@ -86,6 +101,185 @@ export class ArduinoClient {
     return res.version;
   }
 
+  // ---------------------------------------------------------------------------
+  // Typed unary wrappers (instance injected automatically)
+  // ---------------------------------------------------------------------------
+
+  boardList(timeoutMs = 1000): Promise<BoardListResponse> {
+    return this.unary<BoardListResponse>("BoardList", {
+      instance: this.requireInstance(),
+      timeout: timeoutMs,
+    });
+  }
+
+  boardListAll(searchArgs: string[] = []): Promise<BoardListAllResponse> {
+    return this.unary<BoardListAllResponse>("BoardListAll", {
+      instance: this.requireInstance(),
+      search_args: searchArgs,
+    });
+  }
+
+  loadSketch(sketchPath: string): Promise<LoadSketchResponse> {
+    return this.unary<LoadSketchResponse>("LoadSketch", {
+      sketch_path: sketchPath,
+    });
+  }
+
+  /** Persist board/port defaults into the sketch's `sketch.yaml`. No instance needed. */
+  setSketchDefaults(
+    req: SetSketchDefaultsRequest,
+  ): Promise<SetSketchDefaultsResponse> {
+    return this.unary<SetSketchDefaultsResponse>("SetSketchDefaults", req);
+  }
+
+  supportedUserFields(
+    fqbn: string,
+    protocol: string,
+  ): Promise<SupportedUserFieldsResponse> {
+    return this.unary<SupportedUserFieldsResponse>("SupportedUserFields", {
+      instance: this.requireInstance(),
+      fqbn,
+      protocol,
+    });
+  }
+
+  listProgrammers(fqbn: string): Promise<ListProgrammersResponse> {
+    return this.unary<ListProgrammersResponse>(
+      "ListProgrammersAvailableForUpload",
+      { instance: this.requireInstance(), fqbn },
+    );
+  }
+
+  enumerateMonitorPortSettings(
+    portProtocol: string,
+    fqbn: string,
+  ): Promise<EnumerateMonitorPortSettingsResponse> {
+    return this.unary<EnumerateMonitorPortSettingsResponse>(
+      "EnumerateMonitorPortSettings",
+      { instance: this.requireInstance(), port_protocol: portProtocol, fqbn },
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Server-streaming
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Generic server-streaming call. `onData` is invoked synchronously per message
+   * (mirrors 1:1 onto OutputChannel/progress). Resolves on `end`, rejects on
+   * `error`. An aborted `signal` cancels the underlying call.
+   */
+  serverStream(
+    method: string,
+    request: object,
+    opts: { onData: (msg: any) => void; signal?: AbortSignal },
+  ): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      const call = this.service[method](request);
+      const onAbort = () => call.cancel();
+      opts.signal?.addEventListener("abort", onAbort, { once: true });
+
+      call.on("data", (msg: any) => {
+        try {
+          opts.onData(msg);
+        } catch (e) {
+          reject(e instanceof Error ? e : new Error(String(e)));
+        }
+      });
+      call.on("error", (err: grpc.ServiceError) => {
+        opts.signal?.removeEventListener("abort", onAbort);
+        // A user-cancelled call surfaces as CANCELLED — treat it as a clean end.
+        if (err.code === grpc.status.CANCELLED) {
+          resolve();
+        } else {
+          reject(err);
+        }
+      });
+      call.on("end", () => {
+        opts.signal?.removeEventListener("abort", onAbort);
+        resolve();
+      });
+    });
+  }
+
+  /**
+   * Watch for board connect/disconnect events. Long-lived; bound to the current
+   * instance, so it must be torn down and recreated across daemon restarts.
+   */
+  watchBoardList(opts: {
+    onEvent: (ev: BoardListWatchResponse) => void;
+    signal?: AbortSignal;
+  }): Promise<void> {
+    return this.serverStream(
+      "BoardListWatch",
+      { instance: this.requireInstance() },
+      { onData: opts.onEvent, signal: opts.signal },
+    );
+  }
+
+  /**
+   * Shared oneof demux for Compile and Upload. Pipes `out_stream`/`err_stream`
+   * (Buffers) to the sinks as UTF-8, reports `progress`, and returns the final
+   * `result` payload. Branches on the `message` discriminator (oneofs:true), not
+   * truthiness — empty Buffers are falsy-but-present.
+   */
+  async runBuildStream<R = BuilderResult | UploadResult>(
+    method: string,
+    request: object,
+    sinks: BuildStreamSinks,
+    signal?: AbortSignal,
+  ): Promise<R | undefined> {
+    let result: R | undefined;
+    await this.serverStream(method, request, {
+      signal,
+      onData: (msg) => {
+        const r = applyBuildMessage<R>(msg, sinks);
+        if (r !== undefined) {
+          result = r;
+        }
+      },
+    });
+    return result;
+  }
+
+  /** Compile a sketch. Streams output via `sinks`; resolves with the BuilderResult. */
+  compile(
+    req: { fqbn: string; sketch_path: string; verbose?: boolean },
+    sinks: BuildStreamSinks,
+    signal?: AbortSignal,
+  ): Promise<BuilderResult | undefined> {
+    return this.runBuildStream<BuilderResult>(
+      "Compile",
+      { instance: this.requireInstance(), ...req },
+      sinks,
+      signal,
+    );
+  }
+
+  /** Upload a compiled sketch to a board. Streams output via `sinks`. */
+  upload(
+    req: {
+      fqbn: string;
+      sketch_path: string;
+      port: object;
+      verbose?: boolean;
+      user_fields?: Record<string, string>;
+    },
+    sinks: BuildStreamSinks,
+    signal?: AbortSignal,
+  ): Promise<UploadResult | undefined> {
+    return this.runBuildStream<UploadResult>(
+      "Upload",
+      { instance: this.requireInstance(), ...req },
+      sinks,
+      signal,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Bidirectional streaming (Monitor) — added in milestone 1c.
+  // ---------------------------------------------------------------------------
+
   async destroy(): Promise<void> {
     if (this.instance) {
       await this.unary("Destroy", { instance: this.instance }).catch(
@@ -98,6 +292,19 @@ export class ArduinoClient {
   close(): void {
     this.client?.close();
     this.client = undefined;
+  }
+
+  /** True once Create+Init have completed and an instance handle is held. */
+  get ready(): boolean {
+    return this.instance !== undefined;
+  }
+
+  /** The current instance, or throw if the client has not been initialized. */
+  private requireInstance(): Instance {
+    if (!this.instance) {
+      throw new Error("arduino-cli instance not initialized");
+    }
+    return this.instance;
   }
 
   /** Promisified unary call helper. */
