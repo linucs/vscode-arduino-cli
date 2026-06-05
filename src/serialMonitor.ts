@@ -1,7 +1,9 @@
 import * as vscode from "vscode";
 import type { ArduinoClient, MonitorStream } from "./arduinoClient";
 import type { BoardManager } from "./boardManager";
+import { PlotterPanel } from "./plotterPanel";
 import { resolveSketch } from "./sketch";
+import { splitLines, parseTelemetryLine } from "./telemetryParser";
 import type { MonitorResponse, Port } from "./proto/types";
 
 interface Session {
@@ -15,6 +17,8 @@ interface Session {
   lineBuf: string;
   /** True when we closed the session ourselves (upload/dispose). */
   closing: boolean;
+  /** Raw rx log with timestamps for save/export. */
+  log: { ts: number; text: string }[];
 }
 
 /**
@@ -27,6 +31,8 @@ export class SerialMonitor {
   private session: Session | undefined;
   /** Saved monitor state while a debug session holds the port. */
   private debugSnapshot: { fqbn: string; portConfig?: object } | undefined;
+  /** Line buffer for parsing telemetry across rx chunk boundaries. */
+  private plotLineBuf = "";
 
   constructor(
     private readonly client: ArduinoClient,
@@ -49,6 +55,61 @@ export class SerialMonitor {
     }
     const portConfig = await this.pickConfiguration(target.port.protocol, target.fqbn);
     this.openSession(target.port, target.fqbn, portConfig);
+  }
+
+  /** Save the captured serial log to a file (plain text or CSV with timestamps). */
+  async saveLog(): Promise<void> {
+    if (!this.session || this.session.log.length === 0) {
+      vscode.window.showInformationMessage(
+        vscode.l10n.t("No serial data captured yet."),
+      );
+      return;
+    }
+
+    const format = await vscode.window.showQuickPick(
+      [
+        { label: "Plain text", id: "txt" },
+        { label: "CSV (timestamp, data)", id: "csv" },
+      ],
+      { title: vscode.l10n.t("Save Serial Log") },
+    );
+    if (!format) {
+      return;
+    }
+
+    const ext = format.id === "csv" ? "csv" : "txt";
+    const dest = await vscode.window.showSaveDialog({
+      filters: { [format.label]: [ext] },
+      defaultUri: vscode.Uri.file(`serial-log.${ext}`),
+    });
+    if (!dest) {
+      return;
+    }
+
+    let content: string;
+    if (format.id === "csv") {
+      const rows = ["timestamp,data"];
+      for (const entry of this.session.log) {
+        const escaped = entry.text.replace(/"/g, '""').replace(/\r?\n/g, "\\n");
+        rows.push(`${entry.ts},"${escaped}"`);
+      }
+      content = rows.join("\n");
+    } else {
+      content = this.session.log.map((e) => e.text).join("");
+    }
+
+    await vscode.workspace.fs.writeFile(dest, Buffer.from(content, "utf8"));
+    vscode.window.showInformationMessage(
+      vscode.l10n.t("Serial log saved to {0}", dest.fsPath),
+    );
+  }
+
+  /** Open (or reveal) the serial plotter webview panel. */
+  openPlotter(extensionUri: vscode.Uri): void {
+    const panel = PlotterPanel.show(extensionUri);
+    if (this.session) {
+      panel.notifyConnected();
+    }
   }
 
   /**
@@ -134,6 +195,7 @@ export class SerialMonitor {
       write,
       lineBuf: "",
       closing: false,
+      log: [],
     };
 
     const pty: vscode.Pseudoterminal = {
@@ -180,6 +242,7 @@ export class SerialMonitor {
     });
     this.session = session;
     session.terminal.show();
+    PlotterPanel.current()?.notifyConnected();
   }
 
   private closeSession(): void {
@@ -188,6 +251,8 @@ export class SerialMonitor {
       return;
     }
     s.closing = true;
+    this.plotLineBuf = "";
+    PlotterPanel.current()?.notifyDisconnected();
     try {
       s.stream?.close(); // graceful: daemon closes the port then the stream
     } catch {
@@ -205,9 +270,13 @@ export class SerialMonitor {
           vscode.l10n.t("Connected to {0}", session.port.address) + "\r\n",
         );
         break;
-      case "rx_data":
-        session.write.fire(toCRLF(Buffer.from(msg.rx_data ?? []).toString("utf8")));
+      case "rx_data": {
+        const text = Buffer.from(msg.rx_data ?? []).toString("utf8");
+        session.write.fire(toCRLF(text));
+        session.log.push({ ts: Date.now(), text });
+        this.feedPlotter(text);
         break;
+      }
       case "error":
         session.write.fire(`\r\n[error] ${msg.error}\r\n`);
         break;
@@ -234,6 +303,23 @@ export class SerialMonitor {
         session.lineBuf += ch;
         session.write.fire(ch); // local echo
       }
+    }
+  }
+
+  // --- plotter feed ----------------------------------------------------------
+
+  private feedPlotter(chunk: string): void {
+    const plotter = PlotterPanel.current();
+    if (!plotter?.alive) {
+      return;
+    }
+    const { lines, rest } = splitLines(this.plotLineBuf, chunk);
+    this.plotLineBuf = rest;
+    const points = lines
+      .map(parseTelemetryLine)
+      .filter((p): p is NonNullable<typeof p> => p !== undefined);
+    if (points.length > 0) {
+      plotter.postData(points);
     }
   }
 

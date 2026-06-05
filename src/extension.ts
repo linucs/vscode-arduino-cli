@@ -4,6 +4,7 @@ import { BoardManager } from "./boardManager";
 import { Compiler } from "./compile";
 import { DaemonManager } from "./daemon";
 import { DebugManager } from "./debug";
+import { IntelliSenseManager } from "./intellisense";
 import { Indexes } from "./indexes";
 import { LibraryManager } from "./libraryManager";
 import { LibraryTreeProvider } from "./libraryView";
@@ -32,6 +33,7 @@ let indexes: Indexes | undefined;
 let platforms: PlatformManager | undefined;
 let libraries: LibraryManager | undefined;
 let debugManager: DebugManager | undefined;
+let intellisense: IntelliSenseManager | undefined;
 let libraryView: LibraryTreeProvider | undefined;
 let output: vscode.OutputChannel;
 
@@ -136,17 +138,29 @@ export async function activate(ctx: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arduinoCli.debugShowConfig", () =>
       withReady((d) => d.debug.showDebugConfig()),
     ),
+    vscode.commands.registerCommand("arduinoCli.configureIntelliSense", () =>
+      withReady((d) => d.intellisense.configure()),
+    ),
+    vscode.commands.registerCommand("arduinoCli.openPlotter", () =>
+      withReady((d) => {
+        d.monitor.openPlotter(context.extensionUri);
+        return Promise.resolve();
+      }),
+    ),
+    vscode.commands.registerCommand("arduinoCli.saveSerialLog", () =>
+      withReady((d) => d.monitor.saveLog()),
+    ),
     vscode.commands.registerCommand("arduinoCli.addLibrary", () =>
       withReady(async (d) => {
         if (await d.libraries.addLibrary()) {
-          await libraryView?.refresh();
+          await afterLibraryChange(d);
         }
       }),
     ),
     vscode.commands.registerCommand("arduinoCli.upgradeLibraries", () =>
       withReady(async (d) => {
         if (await d.libraries.upgradeAll()) {
-          await libraryView?.refresh();
+          await afterLibraryChange(d);
         }
       }),
     ),
@@ -167,14 +181,14 @@ export async function activate(ctx: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arduinoCli.installLibraryZip", () =>
       withReady(async (d) => {
         if (await d.libraries.installFromZip()) {
-          await libraryView?.refresh();
+          await afterLibraryChange(d);
         }
       }),
     ),
     vscode.commands.registerCommand("arduinoCli.installLibraryGit", () =>
       withReady(async (d) => {
         if (await d.libraries.installFromGit()) {
-          await libraryView?.refresh();
+          await afterLibraryChange(d);
         }
       }),
     ),
@@ -185,7 +199,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
       withReady(async (d) => {
         if (node?.kind === "lib") {
           if (await d.libraries.uninstallByName(node.name)) {
-            await libraryView?.refresh();
+            await afterLibraryChange(d);
           }
         }
       }),
@@ -194,7 +208,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
       withReady(async (d) => {
         if (node?.kind === "lib") {
           if (await d.libraries.changeVersion(node.name, node.version)) {
-            await libraryView?.refresh();
+            await afterLibraryChange(d);
           }
         }
       }),
@@ -203,7 +217,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
       withReady(async (d) => {
         if (node?.kind === "lib") {
           if (await d.libraries.upgradeByName(node.name)) {
-            await libraryView?.refresh();
+            await afterLibraryChange(d);
           }
         }
       }),
@@ -227,6 +241,8 @@ export async function activate(ctx: vscode.ExtensionContext) {
         void monitor?.resumeAfterDebug();
       }
     }),
+    // Reconfigure IntelliSense when a sketch file's #include set changes.
+    vscode.workspace.onDidSaveTextDocument((doc) => intellisense?.onDidSave(doc)),
   );
 
   try {
@@ -249,6 +265,7 @@ export async function deactivate() {
   monitor?.dispose();
   boards?.dispose();
   compiler?.dispose();
+  intellisense?.dispose();
   await client?.destroy();
   client?.close();
   daemon?.stop();
@@ -264,6 +281,7 @@ interface Deps {
   platforms: PlatformManager;
   libraries: LibraryManager;
   debug: DebugManager;
+  intellisense: IntelliSenseManager;
 }
 
 /** Lazily starts the daemon, initializes the client, and wires the managers. */
@@ -299,14 +317,16 @@ async function ensureReady(): Promise<Deps> {
   if (!indexes) {
     indexes = new Indexes(client, output);
   }
+  if (!intellisense) {
+    intellisense = new IntelliSenseManager(client, boards, context, output);
+  }
   if (!debugManager) {
     debugManager = new DebugManager(client, boards, monitor, output);
-    // Gate debug affordances on the selected board (fires immediately too).
+    const dbg = debugManager;
+    const isense = intellisense;
     boards.onSelectionChanged((fqbn, port) => {
-      void debugManager!.updateDebugSupported(
-        fqbn,
-        port?.address ? port : undefined,
-      );
+      void dbg.updateDebugSupported(fqbn, port?.address ? port : undefined);
+      isense.scheduleConfigure();
     });
   }
   return {
@@ -319,7 +339,14 @@ async function ensureReady(): Promise<Deps> {
     platforms,
     libraries,
     debug: debugManager,
+    intellisense,
   };
+}
+
+/** Refresh the library view and reconfigure IntelliSense (installed set changed). */
+async function afterLibraryChange(d: Deps): Promise<void> {
+  await libraryView?.refresh();
+  d.intellisense.scheduleConfigure();
 }
 
 /** Run an action after ensuring the daemon/managers are ready, with error reporting. */
@@ -356,6 +383,8 @@ async function restartDaemon() {
     platforms = undefined;
     libraries = undefined;
     debugManager = undefined;
+    intellisense?.dispose();
+    intellisense = undefined;
     await client?.destroy();
     client?.close();
     client = undefined;

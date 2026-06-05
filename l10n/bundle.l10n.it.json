@@ -129,5 +129,14 @@
   "{0} — update available": "{0} — aggiornamento disponibile",
   "Debugging is not supported for {0}.": "Il debug non è supportato per {0}.",
   "Could not start the debug session.": "Impossibile avviare la sessione di debug.",
-  "No debug adapter found. Install the C/C++ or Cortex-Debug extension.": "Nessun adattatore di debug trovato. Installa l'estensione C/C++ o Cortex-Debug."
+  "No debug adapter found. Install the C/C++ or Cortex-Debug extension.": "Nessun adattatore di debug trovato. Installa l'estensione C/C++ o Cortex-Debug.",
+  "Select a board before configuring IntelliSense.": "Seleziona una scheda prima di configurare IntelliSense.",
+  "Configuring IntelliSense…": "Configurazione di IntelliSense…",
+  "Could not configure IntelliSense — see the Arduino CLI output.": "Impossibile configurare IntelliSense — consulta l'output di Arduino CLI.",
+  "IntelliSense configured for {0}.": "IntelliSense configurato per {0}.",
+  "IntelliSense uses the C/C++ extension, which isn't installed.": "IntelliSense usa l'estensione C/C++, che non è installata.",
+  "Data exported to {0}": "Dati esportati in {0}",
+  "No serial data captured yet.": "Nessun dato seriale ancora acquisito.",
+  "Save Serial Log": "Salva log seriale",
+  "Serial log saved to {0}": "Log seriale salvato in {0}"
 }

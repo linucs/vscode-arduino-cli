@@ -679,6 +679,8 @@ export class ArduinoClient {
       sketch_path: string;
       verbose?: boolean;
       optimize_for_debug?: boolean;
+      build_path?: string;
+      create_compilation_database_only?: boolean;
     },
     sinks: BuildStreamSinks,
     signal?: AbortSignal,

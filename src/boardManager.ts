@@ -36,6 +36,7 @@ export class BoardManager {
   private selectionListener:
     | ((fqbn: string | undefined, port: Port | undefined) => void)
     | undefined;
+  private dataForwardingActive = false;
 
   constructor(
     private readonly client: ArduinoClient,

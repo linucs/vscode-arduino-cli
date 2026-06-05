@@ -138,6 +138,19 @@
         "title": "%command.debugShowConfig%"
       },
       {
+        "command": "arduinoCli.configureIntelliSense",
+        "title": "%command.configureIntelliSense%"
+      },
+      {
+        "command": "arduinoCli.openPlotter",
+        "title": "%command.openPlotter%",
+        "icon": "$(graph-line)"
+      },
+      {
+        "command": "arduinoCli.saveSerialLog",
+        "title": "%command.saveSerialLog%"
+      },
+      {
         "command": "arduinoCli.addLibrary",
         "title": "%command.addLibrary%",
         "icon": "$(add)"
@@ -336,6 +349,11 @@
           "type": "string",
           "default": "",
           "description": "%config.debugInterpreter%"
+        },
+        "arduinoCli.intellisense.autoConfigure": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.intellisenseAutoConfigure%"
         }
       }
     },

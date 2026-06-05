@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'none'; style-src {{cspSource}} 'unsafe-inline'; script-src {{cspSource}};">
+  <link rel="stylesheet" href="{{uplotCss}}">
+  <link rel="stylesheet" href="{{plotterCss}}">
+  <title>Serial Plotter</title>
+</head>
+<body>
+  <div class="toolbar">
+    <button id="btn-pause" title="Pause">
+      <svg id="icon-pause" width="16" height="16" viewBox="0 0 16 16"><rect x="4" y="3" width="3" height="10" fill="currentColor"/><rect x="9" y="3" width="3" height="10" fill="currentColor"/></svg>
+      <svg id="icon-resume" width="16" height="16" viewBox="0 0 16 16" style="display:none"><polygon points="4,3 13,8 4,13" fill="currentColor"/></svg>
+    </button>
+    <button id="btn-clear" title="Clear">
+      <svg width="16" height="16" viewBox="0 0 16 16"><path d="M11 3H5l-1 1v8l1 1h6l1-1V4l-1-1zM6 12V5h1v7H6zm3 0V5h1v7H9zM5.5 2h5l.5.5V3h-6v-.5l.5-.5z" fill="currentColor"/></svg>
+    </button>
+    <button id="btn-export" title="Export CSV">
+      <svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 1v9M8 10L5 7M8 10l3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 11v2h10v-2" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <span class="separator"></span>
+    <select id="time-format" title="Time format">
+      <option value="seconds">Seconds</option>
+      <option value="elapsed">Elapsed</option>
+      <option value="clock">Clock</option>
+    </select>
+    <span class="spacer"></span>
+    <span id="status" class="status">0 pts</span>
+  </div>
+  <div class="disconnected" id="disconnected">Serial monitor disconnected</div>
+  <div id="charts" class="charts">
+    <div id="ts-chart" class="chart-container"></div>
+    <div id="xy-charts"></div>
+  </div>
+  <script src="{{uplotJs}}"></script>
+  <script src="{{plotterJs}}"></script>
+</body>
+</html>
