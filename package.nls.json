@@ -15,6 +15,7 @@
   "command.installPlatform": "Arduino CLI: Install Platform",
   "command.uninstallPlatform": "Arduino CLI: Uninstall Platform",
   "command.upgradePlatform": "Arduino CLI: Upgrade Platform",
+  "command.downloadPlatform": "Arduino CLI: Download Platform (cache only)…",
   "command.boardDetails": "Arduino CLI: Board Details",
   "command.addLibrary": "Arduino CLI: Add Library…",
   "command.upgradeLibraries": "Arduino CLI: Upgrade All Libraries",

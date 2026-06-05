@@ -120,6 +120,29 @@ export class PlatformManager {
     );
   }
 
+  /** Download a platform archive to the cache without installing it. */
+  async downloadInteractive(): Promise<void> {
+    const summary = await this.pickPlatform(
+      (s) => !s.installed_version && Boolean(s.latest_version),
+      vscode.l10n.t("Download Platform"),
+      vscode.l10n.t("Pick a platform to download (cache only)"),
+    );
+    if (!summary) {
+      return;
+    }
+    const [pkg, arch] = summary.metadata.id.split(":");
+    await this.withProgress(
+      vscode.l10n.t("Downloading {0}…", summary.metadata.id),
+      (onStatus, signal) =>
+        this.client.platformDownload(
+          { platform_package: pkg, architecture: arch, version: summary.latest_version },
+          onStatus,
+          signal,
+        ),
+      vscode.l10n.t("Downloaded {0} to the cache.", summary.metadata.id),
+    );
+  }
+
   private async install(
     pkg: string,
     arch: string,

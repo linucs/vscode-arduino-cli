@@ -21,6 +21,8 @@
   "Config options:": "Opzioni di configurazione:",
   "Default programmer": "Programmatore predefinito",
   "View Pinout": "Vedi pinout",
+  "Download Platform": "Scarica piattaforma",
+  "Pick a platform to download (cache only)": "Scegli una piattaforma da scaricare (solo cache)",
   "No board": "Nessuna scheda",
   "Select an Arduino board": "Seleziona una scheda Arduino",
   "Not a valid Arduino sketch: {0}": "Non è uno sketch Arduino valido: {0}",

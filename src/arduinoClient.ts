@@ -248,6 +248,14 @@ export class ArduinoClient {
     return this.progressStream("PlatformUpgrade", req, onStatus, signal);
   }
 
+  platformDownload(
+    req: { platform_package: string; architecture: string; version?: string },
+    onStatus: (message: string) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    return this.progressStream("PlatformDownload", req, onStatus, signal);
+  }
+
   // --- libraries ------------------------------------------------------------
 
   librarySearch(searchArgs = "", omitReleases = false): Promise<LibrarySearchResponse> {

@@ -76,6 +76,10 @@
         "title": "%command.upgradePlatform%"
       },
       {
+        "command": "arduinoCli.downloadPlatform",
+        "title": "%command.downloadPlatform%"
+      },
+      {
         "command": "arduinoCli.boardDetails",
         "title": "%command.boardDetails%"
       },
