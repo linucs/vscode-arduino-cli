@@ -4,6 +4,8 @@ import { BoardManager } from "./boardManager";
 import { Compiler } from "./compile";
 import { DaemonManager } from "./daemon";
 import { Indexes } from "./indexes";
+import { LibraryManager } from "./libraryManager";
+import { LibraryTreeProvider } from "./libraryView";
 import { PlatformManager } from "./platformManager";
 import { SerialMonitor } from "./serialMonitor";
 import { Uploader } from "./upload";
@@ -17,6 +19,8 @@ let uploader: Uploader | undefined;
 let monitor: SerialMonitor | undefined;
 let indexes: Indexes | undefined;
 let platforms: PlatformManager | undefined;
+let libraries: LibraryManager | undefined;
+let libraryView: LibraryTreeProvider | undefined;
 let output: vscode.OutputChannel;
 
 export async function activate(ctx: vscode.ExtensionContext) {
@@ -62,6 +66,78 @@ export async function activate(ctx: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arduinoCli.upgradePlatform", () =>
       withReady((d) => d.platforms.upgradeInteractive()),
     ),
+    vscode.commands.registerCommand("arduinoCli.addLibrary", () =>
+      withReady(async (d) => {
+        if (await d.libraries.addLibrary()) {
+          await libraryView?.refresh();
+        }
+      }),
+    ),
+    vscode.commands.registerCommand("arduinoCli.upgradeLibraries", () =>
+      withReady(async (d) => {
+        if (await d.libraries.upgradeAll()) {
+          await libraryView?.refresh();
+        }
+      }),
+    ),
+  );
+
+  // Libraries tree view — registered once; resolves the live LibraryManager
+  // lazily so it survives daemon restarts without re-registering the view.
+  libraryView = new LibraryTreeProvider(() =>
+    ensureReady().then((d) => d.libraries),
+  );
+  ctx.subscriptions.push(
+    vscode.window.createTreeView("arduinoCli.libraries", {
+      treeDataProvider: libraryView,
+    }),
+    vscode.commands.registerCommand("arduinoCli.refreshLibraries", () =>
+      libraryView?.refresh(),
+    ),
+    vscode.commands.registerCommand("arduinoCli.installLibraryZip", () =>
+      withReady(async (d) => {
+        if (await d.libraries.installFromZip()) {
+          await libraryView?.refresh();
+        }
+      }),
+    ),
+    vscode.commands.registerCommand("arduinoCli.installLibraryGit", () =>
+      withReady(async (d) => {
+        if (await d.libraries.installFromGit()) {
+          await libraryView?.refresh();
+        }
+      }),
+    ),
+    vscode.commands.registerCommand("arduinoCli.downloadLibrary", () =>
+      withReady((d) => d.libraries.downloadArchive()),
+    ),
+    vscode.commands.registerCommand("arduinoCli.lib.uninstall", (node) =>
+      withReady(async (d) => {
+        if (node?.kind === "lib") {
+          if (await d.libraries.uninstallByName(node.name)) {
+            await libraryView?.refresh();
+          }
+        }
+      }),
+    ),
+    vscode.commands.registerCommand("arduinoCli.lib.changeVersion", (node) =>
+      withReady(async (d) => {
+        if (node?.kind === "lib") {
+          if (await d.libraries.changeVersion(node.name, node.version)) {
+            await libraryView?.refresh();
+          }
+        }
+      }),
+    ),
+    vscode.commands.registerCommand("arduinoCli.lib.upgrade", (node) =>
+      withReady(async (d) => {
+        if (node?.kind === "lib") {
+          if (await d.libraries.upgradeByName(node.name)) {
+            await libraryView?.refresh();
+          }
+        }
+      }),
+    ),
   );
 
   try {
@@ -92,6 +168,7 @@ interface Deps {
   monitor: SerialMonitor;
   indexes: Indexes;
   platforms: PlatformManager;
+  libraries: LibraryManager;
 }
 
 /** Lazily starts the daemon, initializes the client, and wires the managers. */
@@ -112,6 +189,9 @@ async function ensureReady(): Promise<Deps> {
   if (!platforms) {
     platforms = new PlatformManager(client, output);
   }
+  if (!libraries) {
+    libraries = new LibraryManager(client, output);
+  }
   if (!compiler) {
     compiler = new Compiler(client, boards, platforms, output);
   }
@@ -124,7 +204,16 @@ async function ensureReady(): Promise<Deps> {
   if (!indexes) {
     indexes = new Indexes(client, output);
   }
-  return { client, boards, compiler, uploader, monitor, indexes, platforms };
+  return {
+    client,
+    boards,
+    compiler,
+    uploader,
+    monitor,
+    indexes,
+    platforms,
+    libraries,
+  };
 }
 
 /** Run an action after ensuring the daemon/managers are ready, with error reporting. */
@@ -159,6 +248,7 @@ async function restartDaemon() {
     monitor = undefined;
     indexes = undefined;
     platforms = undefined;
+    libraries = undefined;
     await client?.destroy();
     client?.close();
     client = undefined;

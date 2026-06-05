@@ -10,6 +10,9 @@ import type {
   DownloadProgress,
   EnumerateMonitorPortSettingsResponse,
   Instance,
+  LibraryListResponse,
+  LibraryResolveDependenciesResponse,
+  LibrarySearchResponse,
   ListProgrammersResponse,
   LoadSketchResponse,
   PlatformSearchResponse,
@@ -87,6 +90,11 @@ export class ArduinoClient {
     this.service = new ServiceCtor(
       this.address,
       grpc.credentials.createInsecure(),
+      {
+        // Some replies (large board/library/platform listings) can exceed
+        // gRPC's 4 MB default; raise the receive limit defensively.
+        "grpc.max_receive_message_length": 64 * 1024 * 1024,
+      },
     );
     this.client = this.service;
   }
@@ -189,7 +197,7 @@ export class ArduinoClient {
     onStatus: (message: string) => void,
     signal?: AbortSignal,
   ): Promise<void> {
-    return this.platformStream("PlatformInstall", req, onStatus, signal);
+    return this.progressStream("PlatformInstall", req, onStatus, signal);
   }
 
   platformUninstall(
@@ -197,7 +205,7 @@ export class ArduinoClient {
     onStatus: (message: string) => void,
     signal?: AbortSignal,
   ): Promise<void> {
-    return this.platformStream("PlatformUninstall", req, onStatus, signal);
+    return this.progressStream("PlatformUninstall", req, onStatus, signal);
   }
 
   platformUpgrade(
@@ -205,11 +213,100 @@ export class ArduinoClient {
     onStatus: (message: string) => void,
     signal?: AbortSignal,
   ): Promise<void> {
-    return this.platformStream("PlatformUpgrade", req, onStatus, signal);
+    return this.progressStream("PlatformUpgrade", req, onStatus, signal);
   }
 
-  /** Shared demux for the platform op streams (progress | task_progress | result). */
-  private platformStream(
+  // --- libraries ------------------------------------------------------------
+
+  librarySearch(searchArgs = "", omitReleases = false): Promise<LibrarySearchResponse> {
+    return this.unary<LibrarySearchResponse>("LibrarySearch", {
+      instance: this.requireInstance(),
+      search_args: searchArgs,
+      omit_releases_details: omitReleases,
+    });
+  }
+
+  libraryList(
+    opts: { all?: boolean; updatable?: boolean; fqbn?: string } = {},
+  ): Promise<LibraryListResponse> {
+    return this.unary<LibraryListResponse>("LibraryList", {
+      instance: this.requireInstance(),
+      all: opts.all ?? false,
+      updatable: opts.updatable ?? false,
+      fqbn: opts.fqbn ?? "",
+    });
+  }
+
+  libraryResolveDependencies(
+    name: string,
+    version = "",
+  ): Promise<LibraryResolveDependenciesResponse> {
+    return this.unary<LibraryResolveDependenciesResponse>(
+      "LibraryResolveDependencies",
+      { instance: this.requireInstance(), name, version },
+    );
+  }
+
+  libraryInstall(
+    req: { name: string; version?: string; no_deps?: boolean },
+    onStatus: (message: string) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    return this.progressStream("LibraryInstall", req, onStatus, signal);
+  }
+
+  libraryUninstall(
+    req: { name: string; version?: string },
+    onStatus: (message: string) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    return this.progressStream("LibraryUninstall", req, onStatus, signal);
+  }
+
+  libraryUpgrade(
+    req: { name: string },
+    onStatus: (message: string) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    return this.progressStream("LibraryUpgrade", req, onStatus, signal);
+  }
+
+  libraryUpgradeAll(
+    onStatus: (message: string) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    return this.progressStream("LibraryUpgradeAll", {}, onStatus, signal);
+  }
+
+  /** Install a library from a local .zip archive. */
+  zipLibraryInstall(
+    req: { path: string; overwrite?: boolean },
+    onStatus: (message: string) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    return this.progressStream("ZipLibraryInstall", req, onStatus, signal);
+  }
+
+  /** Install a library from a git repository URL. */
+  gitLibraryInstall(
+    req: { url: string; overwrite?: boolean },
+    onStatus: (message: string) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    return this.progressStream("GitLibraryInstall", req, onStatus, signal);
+  }
+
+  /** Download a library archive into the cache without installing it. */
+  libraryDownload(
+    req: { name: string; version?: string },
+    onStatus: (message: string) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    return this.progressStream("LibraryDownload", req, onStatus, signal);
+  }
+
+  /** Shared demux for platform/library op streams (progress | task_progress | result). */
+  private progressStream(
     method: string,
     req: object,
     onStatus: (message: string) => void,

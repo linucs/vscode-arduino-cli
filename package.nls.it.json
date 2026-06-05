@@ -15,6 +15,17 @@
   "command.installPlatform": "Arduino CLI: Installa piattaforma",
   "command.uninstallPlatform": "Arduino CLI: Disinstalla piattaforma",
   "command.upgradePlatform": "Arduino CLI: Aggiorna piattaforma",
+  "command.addLibrary": "Arduino CLI: Aggiungi libreria…",
+  "command.upgradeLibraries": "Arduino CLI: Aggiorna tutte le librerie",
+  "command.refreshLibraries": "Arduino CLI: Aggiorna elenco librerie",
+  "command.installLibraryZip": "Arduino CLI: Installa libreria da ZIP…",
+  "command.installLibraryGit": "Arduino CLI: Installa libreria da URL Git…",
+  "command.downloadLibrary": "Arduino CLI: Scarica archivio libreria (solo cache)…",
+  "command.libUninstall": "Disinstalla",
+  "command.libUpgrade": "Aggiorna",
+  "command.libChangeVersion": "Cambia versione…",
+  "viewContainer.arduino": "Arduino",
+  "view.libraries": "Librerie",
   "command.showVersion": "Arduino CLI: Mostra versione del daemon",
   "command.restartDaemon": "Arduino CLI: Riavvia daemon"
 }

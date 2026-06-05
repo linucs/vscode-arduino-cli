@@ -149,6 +149,67 @@ export interface PlatformStreamResponse {
   task_progress?: TaskProgress;
 }
 
+/** lib.proto — LibraryRelease (subset) */
+export interface LibraryRelease {
+  author: string;
+  version: string;
+  maintainer: string;
+  sentence: string;
+  paragraph: string;
+  website: string;
+  category: string;
+  license: string;
+}
+
+/** lib.proto — SearchedLibrary */
+export interface SearchedLibrary {
+  name: string;
+  releases: Record<string, LibraryRelease>;
+  latest?: LibraryRelease;
+  available_versions: string[];
+}
+
+/** lib.proto — LibrarySearchResponse */
+export interface LibrarySearchResponse {
+  libraries: SearchedLibrary[];
+  status: string;
+}
+
+/** lib.proto — Library (subset) */
+export interface Library {
+  name: string;
+  author: string;
+  sentence: string;
+  version: string;
+  install_dir: string;
+  types: string[];
+  /** Enum string, e.g. LIBRARY_LOCATION_USER. */
+  location: string;
+}
+
+/** lib.proto — InstalledLibrary */
+export interface InstalledLibrary {
+  library: Library;
+  release?: LibraryRelease;
+}
+
+/** lib.proto — LibraryListResponse */
+export interface LibraryListResponse {
+  installed_libraries: InstalledLibrary[];
+}
+
+/** lib.proto — LibraryDependencyStatus */
+export interface LibraryDependencyStatus {
+  name: string;
+  version_required: string;
+  version_installed: string;
+}
+
+/** lib.proto — LibraryResolveDependenciesResponse */
+export interface LibraryResolveDependenciesResponse {
+  dependencies: LibraryDependencyStatus[];
+}
+
 /** compile.proto — CompileDiagnostic and friends */
 export interface CompileDiagnosticRef {
   message: string;

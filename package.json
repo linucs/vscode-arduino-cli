@@ -76,6 +76,48 @@
         "title": "%command.upgradePlatform%"
       },
       {
+        "command": "arduinoCli.addLibrary",
+        "title": "%command.addLibrary%",
+        "icon": "$(add)"
+      },
+      {
+        "command": "arduinoCli.upgradeLibraries",
+        "title": "%command.upgradeLibraries%",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "arduinoCli.refreshLibraries",
+        "title": "%command.refreshLibraries%",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "arduinoCli.installLibraryZip",
+        "title": "%command.installLibraryZip%"
+      },
+      {
+        "command": "arduinoCli.installLibraryGit",
+        "title": "%command.installLibraryGit%"
+      },
+      {
+        "command": "arduinoCli.downloadLibrary",
+        "title": "%command.downloadLibrary%"
+      },
+      {
+        "command": "arduinoCli.lib.uninstall",
+        "title": "%command.libUninstall%",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "arduinoCli.lib.upgrade",
+        "title": "%command.libUpgrade%",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "arduinoCli.lib.changeVersion",
+        "title": "%command.libChangeVersion%",
+        "icon": "$(versions)"
+      },
+      {
         "command": "arduinoCli.showVersion",
         "title": "%command.showVersion%"
       },
@@ -84,7 +126,73 @@
         "title": "%command.restartDaemon%"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "arduinoCli",
+          "title": "%viewContainer.arduino%",
+          "icon": "$(circuit-board)"
+        }
+      ]
+    },
+    "views": {
+      "arduinoCli": [
+        {
+          "id": "arduinoCli.libraries",
+          "name": "%view.libraries%"
+        }
+      ]
+    },
     "menus": {
+      "view/title": [
+        {
+          "command": "arduinoCli.addLibrary",
+          "when": "view == arduinoCli.libraries",
+          "group": "navigation@0"
+        },
+        {
+          "command": "arduinoCli.refreshLibraries",
+          "when": "view == arduinoCli.libraries",
+          "group": "navigation@1"
+        },
+        {
+          "command": "arduinoCli.upgradeLibraries",
+          "when": "view == arduinoCli.libraries",
+          "group": "navigation@2"
+        },
+        {
+          "command": "arduinoCli.installLibraryZip",
+          "when": "view == arduinoCli.libraries",
+          "group": "1_install@1"
+        },
+        {
+          "command": "arduinoCli.installLibraryGit",
+          "when": "view == arduinoCli.libraries",
+          "group": "1_install@2"
+        },
+        {
+          "command": "arduinoCli.downloadLibrary",
+          "when": "view == arduinoCli.libraries",
+          "group": "1_install@3"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "arduinoCli.lib.upgrade",
+          "when": "view == arduinoCli.libraries && viewItem == arduinoLibInstalledUpdatable",
+          "group": "inline@1"
+        },
+        {
+          "command": "arduinoCli.lib.uninstall",
+          "when": "view == arduinoCli.libraries && viewItem =~ /^arduinoLibInstalled/",
+          "group": "inline@2"
+        },
+        {
+          "command": "arduinoCli.lib.changeVersion",
+          "when": "view == arduinoCli.libraries && viewItem =~ /^arduinoLibInstalled/",
+          "group": "1_lib@1"
+        }
+      ],
       "editor/title": [
         {
           "command": "arduinoCli.compile",
