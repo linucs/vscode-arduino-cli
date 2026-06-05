@@ -11,6 +11,9 @@ import type {
   BoardSearchResponse,
   BuilderResult,
   CheckForArduinoCLIUpdatesResponse,
+  ConfigurationGetResponse,
+  ConfigurationOpenResponse,
+  ConfigurationSaveResponse,
   DownloadProgress,
   EnumerateMonitorPortSettingsResponse,
   Instance,
@@ -21,8 +24,14 @@ import type {
   LoadSketchResponse,
   NewSketchResponse,
   PlatformSearchResponse,
+  ProfileLibAddResponse,
+  ProfileLibListResponse,
+  ProfileLibRemoveResponse,
+  ProfileLibraryReference,
   SetSketchDefaultsRequest,
   SetSketchDefaultsResponse,
+  SettingsEnumerateResponse,
+  SettingsGetValueResponse,
   SupportedUserFieldsResponse,
   UploadResult,
 } from "./proto/types";
@@ -226,6 +235,111 @@ export class ArduinoClient {
   cleanDownloadCache(): Promise<void> {
     return this.unary("CleanDownloadCacheDirectory", {
       instance: this.requireInstance(),
+    });
+  }
+
+  // --- settings / configuration ----------------------------------------------
+
+  configurationGet(): Promise<ConfigurationGetResponse> {
+    return this.unary<ConfigurationGetResponse>("ConfigurationGet", {});
+  }
+
+  configurationSave(format = "json"): Promise<ConfigurationSaveResponse> {
+    return this.unary<ConfigurationSaveResponse>("ConfigurationSave", {
+      settings_format: format,
+    });
+  }
+
+  configurationOpen(
+    encoded: string,
+    format = "json",
+  ): Promise<ConfigurationOpenResponse> {
+    return this.unary<ConfigurationOpenResponse>("ConfigurationOpen", {
+      encoded_settings: encoded,
+      settings_format: format,
+    });
+  }
+
+  settingsEnumerate(): Promise<SettingsEnumerateResponse> {
+    return this.unary<SettingsEnumerateResponse>("SettingsEnumerate", {});
+  }
+
+  settingsGetValue(key: string, format = "json"): Promise<SettingsGetValueResponse> {
+    return this.unary<SettingsGetValueResponse>("SettingsGetValue", {
+      key,
+      value_format: format,
+    });
+  }
+
+  settingsSetValue(key: string, encodedValue: string, format = "json"): Promise<void> {
+    return this.unary("SettingsSetValue", {
+      key,
+      encoded_value: encodedValue,
+      value_format: format,
+    });
+  }
+
+  // --- profiles --------------------------------------------------------------
+
+  profileCreate(
+    sketchPath: string,
+    profileName: string,
+    fqbn: string,
+    setDefault = false,
+  ): Promise<void> {
+    return this.unary("ProfileCreate", {
+      instance: this.requireInstance(),
+      sketch_path: sketchPath,
+      profile_name: profileName,
+      fqbn,
+      default_profile: setDefault,
+    });
+  }
+
+  profileLibAdd(
+    sketchPath: string,
+    profileName: string,
+    library: ProfileLibraryReference,
+    addDeps = true,
+  ): Promise<ProfileLibAddResponse> {
+    return this.unary<ProfileLibAddResponse>("ProfileLibAdd", {
+      instance: this.requireInstance(),
+      sketch_path: sketchPath,
+      profile_name: profileName,
+      library,
+      add_dependencies: addDeps,
+    });
+  }
+
+  profileLibRemove(
+    sketchPath: string,
+    profileName: string,
+    library: ProfileLibraryReference,
+    removeDeps = true,
+  ): Promise<ProfileLibRemoveResponse> {
+    return this.unary<ProfileLibRemoveResponse>("ProfileLibRemove", {
+      instance: this.requireInstance(),
+      sketch_path: sketchPath,
+      profile_name: profileName,
+      library,
+      remove_dependencies: removeDeps,
+    });
+  }
+
+  profileLibList(
+    sketchPath: string,
+    profileName: string,
+  ): Promise<ProfileLibListResponse> {
+    return this.unary<ProfileLibListResponse>("ProfileLibList", {
+      sketch_path: sketchPath,
+      profile_name: profileName,
+    });
+  }
+
+  profileSetDefault(sketchPath: string, profileName: string): Promise<void> {
+    return this.unary("ProfileSetDefault", {
+      sketch_path: sketchPath,
+      profile_name: profileName,
     });
   }
 

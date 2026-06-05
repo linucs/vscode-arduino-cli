@@ -8,7 +8,15 @@ import { LibraryManager } from "./libraryManager";
 import { LibraryTreeProvider } from "./libraryView";
 import { checkForUpdates, cleanDownloadCache } from "./maintenance";
 import { PlatformManager } from "./platformManager";
+import {
+  addLibraryToProfile,
+  createProfile,
+  listProfileLibraries,
+  removeLibraryFromProfile,
+  setDefaultProfile,
+} from "./profileManager";
 import { SerialMonitor } from "./serialMonitor";
+import { syncToDaemon, watchSettings } from "./settingsSync";
 import { archiveSketch, newSketch } from "./sketch";
 import { Uploader } from "./upload";
 
@@ -100,6 +108,21 @@ export async function activate(ctx: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arduinoCli.cleanDownloadCache", () =>
       withReady((d) => cleanDownloadCache(d.client, output)),
     ),
+    vscode.commands.registerCommand("arduinoCli.createProfile", () =>
+      withReady((d) => createProfile(d.client, d.boards)),
+    ),
+    vscode.commands.registerCommand("arduinoCli.setDefaultProfile", () =>
+      withReady((d) => setDefaultProfile(d.client)),
+    ),
+    vscode.commands.registerCommand("arduinoCli.addLibraryToProfile", () =>
+      withReady((d) => addLibraryToProfile(d.client)),
+    ),
+    vscode.commands.registerCommand("arduinoCli.removeLibraryFromProfile", () =>
+      withReady((d) => removeLibraryFromProfile(d.client)),
+    ),
+    vscode.commands.registerCommand("arduinoCli.listProfileLibraries", () =>
+      withReady((d) => listProfileLibraries(d.client, output)),
+    ),
     vscode.commands.registerCommand("arduinoCli.addLibrary", () =>
       withReady(async (d) => {
         if (await d.libraries.addLibrary()) {
@@ -177,6 +200,9 @@ export async function activate(ctx: vscode.ExtensionContext) {
   try {
     await ensureReady();
     output.appendLine("[extension] arduino-cli daemon ready");
+    // Sync VS Code settings → daemon, then watch for changes.
+    void syncToDaemon(client!, output).catch(() => {});
+    ctx.subscriptions.push(watchSettings(client!, output));
     // Fire-and-forget: notify if a newer arduino-cli is available.
     void checkForUpdates(client!, output, { quiet: true }).catch(() => {});
   } catch (err) {

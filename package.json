@@ -108,6 +108,26 @@
         "title": "%command.cleanDownloadCache%"
       },
       {
+        "command": "arduinoCli.createProfile",
+        "title": "%command.createProfile%"
+      },
+      {
+        "command": "arduinoCli.setDefaultProfile",
+        "title": "%command.setDefaultProfile%"
+      },
+      {
+        "command": "arduinoCli.addLibraryToProfile",
+        "title": "%command.addLibraryToProfile%"
+      },
+      {
+        "command": "arduinoCli.removeLibraryFromProfile",
+        "title": "%command.removeLibraryFromProfile%"
+      },
+      {
+        "command": "arduinoCli.listProfileLibraries",
+        "title": "%command.listProfileLibraries%"
+      },
+      {
         "command": "arduinoCli.addLibrary",
         "title": "%command.addLibrary%",
         "icon": "$(add)"
@@ -265,6 +285,27 @@
           "type": "boolean",
           "default": true,
           "description": "%config.autoInstallPlatform%"
+        },
+        "arduinoCli.boardManagerUrls": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "%config.boardManagerUrls%"
+        },
+        "arduinoCli.alwaysExportBinaries": {
+          "type": "boolean",
+          "default": false,
+          "description": "%config.alwaysExportBinaries%"
+        },
+        "arduinoCli.unsafeLibraryInstall": {
+          "type": "boolean",
+          "default": false,
+          "description": "%config.unsafeLibraryInstall%"
+        },
+        "arduinoCli.updateNotifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.updateNotifications%"
         }
       }
     }

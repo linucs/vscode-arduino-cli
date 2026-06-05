@@ -157,6 +157,82 @@ export interface CheckForArduinoCLIUpdatesResponse {
   newest_version: string;
 }
 
+// --- Settings / Configuration ------------------------------------------------
+
+/** settings.proto — Configuration (nested arduino-cli config) */
+export interface Configuration {
+  directories?: { data: string; user: string; downloads: string };
+  network?: { proxy?: string };
+  sketch?: { always_export_binaries: boolean };
+  board_manager?: { additional_urls: string[] };
+  logging?: { level: string; format: string };
+  library?: { enable_unsafe_install: boolean };
+  updater?: { enable_notification: boolean };
+  locale?: string;
+}
+
+/** settings.proto — ConfigurationGetResponse */
+export interface ConfigurationGetResponse {
+  configuration: Configuration;
+}
+
+/** settings.proto — ConfigurationSaveResponse */
+export interface ConfigurationSaveResponse {
+  encoded_settings: string;
+}
+
+/** settings.proto — ConfigurationOpenResponse */
+export interface ConfigurationOpenResponse {
+  warnings: string[];
+}
+
+/** settings.proto — SettingsEnumerate entry */
+export interface SettingsEntry {
+  key: string;
+  type: string;
+}
+
+/** settings.proto — SettingsEnumerateResponse */
+export interface SettingsEnumerateResponse {
+  entries: SettingsEntry[];
+}
+
+/** settings.proto — SettingsGetValueResponse */
+export interface SettingsGetValueResponse {
+  encoded_value: string;
+}
+
+// --- Profiles ----------------------------------------------------------------
+
+/** common.proto — ProfileLibraryReference (oneof index_library | local_library) */
+export interface ProfileLibraryReference {
+  index_library?: {
+    name: string;
+    version: string;
+    is_dependency: boolean;
+  };
+  local_library?: { path: string };
+}
+
+/** commands.proto — ProfileLibAddResponse */
+export interface ProfileLibAddResponse {
+  added_libraries: ProfileLibraryReference[];
+  skipped_libraries: ProfileLibraryReference[];
+  profile_name: string;
+}
+
+/** commands.proto — ProfileLibRemoveResponse */
+export interface ProfileLibRemoveResponse {
+  removed_libraries: ProfileLibraryReference[];
+  profile_name: string;
+}
+
+/** commands.proto — ProfileLibListResponse */
+export interface ProfileLibListResponse {
+  libraries: ProfileLibraryReference[];
+  profile_name: string;
+}
+
 /** commands.proto — SetSketchDefaultsRequest (writes sketch.yaml) */
 export interface SetSketchDefaultsRequest {
   sketch_path: string;
