@@ -107,6 +107,48 @@ export interface SetSketchDefaultsResponse {
   default_programmer: string;
 }
 
+/** common.proto — PlatformMetadata (subset) */
+export interface PlatformMetadata {
+  id: string;
+  maintainer: string;
+  deprecated: boolean;
+}
+
+/** common.proto — PlatformRelease (subset) */
+export interface PlatformRelease {
+  name: string;
+  version: string;
+  installed: boolean;
+  deprecated: boolean;
+  compatible: boolean;
+}
+
+/** common.proto — PlatformSummary */
+export interface PlatformSummary {
+  metadata: PlatformMetadata;
+  releases: Record<string, PlatformRelease>;
+  /** Empty string when not installed. */
+  installed_version: string;
+  /** Empty string when nothing installable. */
+  latest_version: string;
+}
+
+/** core.proto — PlatformSearchResponse */
+export interface PlatformSearchResponse {
+  search_output: PlatformSummary[];
+}
+
+/**
+ * Shared streaming shape for PlatformInstall/Uninstall/Upgrade. Branch on
+ * `message`: `progress` (download) and `task_progress` (stage) are status;
+ * `result` is terminal. (Uninstall has no download progress.)
+ */
+export interface PlatformStreamResponse {
+  message: "progress" | "task_progress" | "result";
+  progress?: DownloadProgress;
+  task_progress?: TaskProgress;
+}
+
 /** compile.proto — CompileDiagnostic and friends */
 export interface CompileDiagnosticRef {
   message: string;

@@ -12,6 +12,7 @@ import type {
   Instance,
   ListProgrammersResponse,
   LoadSketchResponse,
+  PlatformSearchResponse,
   SetSketchDefaultsRequest,
   SetSketchDefaultsResponse,
   SupportedUserFieldsResponse,
@@ -172,6 +173,72 @@ export class ArduinoClient {
     return this.unary<EnumerateMonitorPortSettingsResponse>(
       "EnumerateMonitorPortSettings",
       { instance: this.requireInstance(), port_protocol: portProtocol, fqbn },
+    );
+  }
+
+  platformSearch(searchArgs = ""): Promise<PlatformSearchResponse> {
+    return this.unary<PlatformSearchResponse>("PlatformSearch", {
+      instance: this.requireInstance(),
+      search_args: searchArgs,
+    });
+  }
+
+  /** Install a platform/core, reporting download + task status. */
+  platformInstall(
+    req: { platform_package: string; architecture: string; version?: string },
+    onStatus: (message: string) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    return this.platformStream("PlatformInstall", req, onStatus, signal);
+  }
+
+  platformUninstall(
+    req: { platform_package: string; architecture: string },
+    onStatus: (message: string) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    return this.platformStream("PlatformUninstall", req, onStatus, signal);
+  }
+
+  platformUpgrade(
+    req: { platform_package: string; architecture: string },
+    onStatus: (message: string) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    return this.platformStream("PlatformUpgrade", req, onStatus, signal);
+  }
+
+  /** Shared demux for the platform op streams (progress | task_progress | result). */
+  private platformStream(
+    method: string,
+    req: object,
+    onStatus: (message: string) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    return this.serverStream(
+      method,
+      { instance: this.requireInstance(), ...req },
+      {
+        signal,
+        onData: (msg) => {
+          if (msg.message === "progress") {
+            const dp = msg.progress;
+            if (dp.start) {
+              onStatus(dp.start.label || dp.start.url);
+            } else if (dp.update && dp.update.total_size > 0) {
+              const pct = Math.round(
+                (dp.update.downloaded / dp.update.total_size) * 100,
+              );
+              onStatus(`${pct}%`);
+            }
+          } else if (msg.message === "task_progress") {
+            const t = msg.task_progress;
+            if (t.message || t.name) {
+              onStatus(t.message || t.name);
+            }
+          }
+        },
+      },
     );
   }
 

@@ -4,6 +4,7 @@ import { BoardManager } from "./boardManager";
 import { Compiler } from "./compile";
 import { DaemonManager } from "./daemon";
 import { Indexes } from "./indexes";
+import { PlatformManager } from "./platformManager";
 import { SerialMonitor } from "./serialMonitor";
 import { Uploader } from "./upload";
 
@@ -15,6 +16,7 @@ let compiler: Compiler | undefined;
 let uploader: Uploader | undefined;
 let monitor: SerialMonitor | undefined;
 let indexes: Indexes | undefined;
+let platforms: PlatformManager | undefined;
 let output: vscode.OutputChannel;
 
 export async function activate(ctx: vscode.ExtensionContext) {
@@ -51,6 +53,15 @@ export async function activate(ctx: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arduinoCli.updateLibrariesIndex", () =>
       withReady((d) => d.indexes.updateLibrariesIndex()),
     ),
+    vscode.commands.registerCommand("arduinoCli.installPlatform", () =>
+      withReady((d) => d.platforms.installInteractive()),
+    ),
+    vscode.commands.registerCommand("arduinoCli.uninstallPlatform", () =>
+      withReady((d) => d.platforms.uninstallInteractive()),
+    ),
+    vscode.commands.registerCommand("arduinoCli.upgradePlatform", () =>
+      withReady((d) => d.platforms.upgradeInteractive()),
+    ),
   );
 
   try {
@@ -80,6 +91,7 @@ interface Deps {
   uploader: Uploader;
   monitor: SerialMonitor;
   indexes: Indexes;
+  platforms: PlatformManager;
 }
 
 /** Lazily starts the daemon, initializes the client, and wires the managers. */
@@ -97,8 +109,11 @@ async function ensureReady(): Promise<Deps> {
     boards = new BoardManager(client, context, output);
     boards.restartWatch();
   }
+  if (!platforms) {
+    platforms = new PlatformManager(client, output);
+  }
   if (!compiler) {
-    compiler = new Compiler(client, boards, output);
+    compiler = new Compiler(client, boards, platforms, output);
   }
   if (!uploader) {
     uploader = new Uploader(client, boards, output);
@@ -109,7 +124,7 @@ async function ensureReady(): Promise<Deps> {
   if (!indexes) {
     indexes = new Indexes(client, output);
   }
-  return { client, boards, compiler, uploader, monitor, indexes };
+  return { client, boards, compiler, uploader, monitor, indexes, platforms };
 }
 
 /** Run an action after ensuring the daemon/managers are ready, with error reporting. */
@@ -143,6 +158,7 @@ async function restartDaemon() {
     monitor?.dispose();
     monitor = undefined;
     indexes = undefined;
+    platforms = undefined;
     await client?.destroy();
     client?.close();
     client = undefined;

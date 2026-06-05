@@ -64,6 +64,18 @@
         "title": "%command.updateLibrariesIndex%"
       },
       {
+        "command": "arduinoCli.installPlatform",
+        "title": "%command.installPlatform%"
+      },
+      {
+        "command": "arduinoCli.uninstallPlatform",
+        "title": "%command.uninstallPlatform%"
+      },
+      {
+        "command": "arduinoCli.upgradePlatform",
+        "title": "%command.upgradePlatform%"
+      },
+      {
         "command": "arduinoCli.showVersion",
         "title": "%command.showVersion%"
       },
@@ -108,6 +120,11 @@
           "type": "boolean",
           "default": true,
           "description": "%config.monitorAutoReconnect%"
+        },
+        "arduinoCli.autoInstallPlatform": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.autoInstallPlatform%"
         }
       }
     }

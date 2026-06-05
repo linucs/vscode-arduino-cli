@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import type { ArduinoClient } from "./arduinoClient";
 import type { BoardManager } from "./boardManager";
+import type { PlatformManager } from "./platformManager";
 import { resolveSketch } from "./sketch";
 import type { CompileDiagnostic, CompileDiagnosticRef } from "./proto/types";
 
@@ -16,6 +17,7 @@ export class Compiler {
   constructor(
     private readonly client: ArduinoClient,
     private readonly boards: BoardManager,
+    private readonly platforms: PlatformManager,
     private readonly output: vscode.OutputChannel,
   ) {
     this.diagnostics = vscode.languages.createDiagnosticCollection("arduino");
@@ -36,6 +38,11 @@ export class Compiler {
       if (choice) {
         await this.boards.selectBoard();
       }
+      return false;
+    }
+
+    // Offer to install the board's platform if it's missing (FR2.4).
+    if (!(await this.platforms.ensurePlatformForFqbn(fqbn))) {
       return false;
     }
 
