@@ -1,7 +1,14 @@
 import * as vscode from "vscode";
 import type { ArduinoClient } from "./arduinoClient";
 import { resolveSketch } from "./sketch";
-import type { BoardListWatchResponse, DetectedPort, Port } from "./proto/types";
+import type {
+  BoardDetailsResponse,
+  BoardListItem,
+  BoardListWatchResponse,
+  ConfigOption,
+  DetectedPort,
+  Port,
+} from "./proto/types";
 
 const STATE_KEY = "arduinoCli.selectedBoard";
 
@@ -60,7 +67,7 @@ export class BoardManager {
     return this.selection;
   }
 
-  /** QuickPick over detected ports → matching boards; falls back to the full catalog. */
+  /** QuickPick over detected ports → matching boards; falls back to search or identify. */
   async selectBoard(): Promise<void> {
     const res = await this.client.boardList();
     type Item = vscode.QuickPickItem & {
@@ -108,11 +115,21 @@ export class BoardManager {
     }
 
     if (pick.manual || !pick.fqbn) {
-      const board = await this.pickFromCatalog();
+      let board: { fqbn: string; name: string } | undefined;
+
+      // Try auto-identifying the board from port properties first.
+      if (pick.port && Object.keys(pick.port.properties ?? {}).length > 0) {
+        board = await this.identifyBoard(pick.port);
+      }
+
+      if (!board) {
+        board = await this.pickBoardViaSearch();
+      }
       if (!board) {
         return;
       }
-      // Manual pick keeps the port if one was associated, else a bare port.
+
+      const fqbn = await this.configureBoardOptions(board.fqbn);
       const port =
         pick.port ??
         ({
@@ -123,33 +140,244 @@ export class BoardManager {
           properties: {},
           hardware_id: "",
         } satisfies Port);
-      await this.persist({ fqbn: board.fqbn, boardName: board.name, port });
+      await this.persist({ fqbn, boardName: board.name, port });
       return;
     }
 
+    const fqbn = await this.configureBoardOptions(pick.fqbn);
     await this.persist({
-      fqbn: pick.fqbn,
+      fqbn,
       boardName: pick.boardName ?? pick.fqbn,
       port: pick.port!,
     });
   }
 
-  private async pickFromCatalog(): Promise<{ fqbn: string; name: string } | undefined> {
-    const all = await this.client.boardListAll();
-    const pick = await vscode.window.showQuickPick(
-      (all.boards ?? []).map((b) => ({
-        label: b.name,
-        description: b.fqbn,
-        fqbn: b.fqbn,
-      })),
-      {
-        title: vscode.l10n.t("Select Arduino Board"),
-        placeHolder: vscode.l10n.t("Search installed boards by name"),
-        matchOnDescription: true,
-      },
+  // --- BoardIdentify ---------------------------------------------------------
+
+  /** Try to identify an unknown board from its port properties. */
+  private async identifyBoard(
+    port: Port,
+  ): Promise<{ fqbn: string; name: string } | undefined> {
+    this.output.appendLine(
+      `[boards] identifying board on ${port.label || port.address}…`,
     );
-    return pick ? { fqbn: pick.fqbn, name: pick.label } : undefined;
+    let boards: BoardListItem[];
+    try {
+      const res = await this.client.boardIdentify(port.properties, true);
+      boards = res.boards ?? [];
+    } catch (err) {
+      this.output.appendLine(
+        `[boards] identify failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      return undefined;
+    }
+    if (boards.length === 0) {
+      return undefined;
+    }
+
+    type IdItem = vscode.QuickPickItem & { fqbn?: string; boardName?: string };
+    const items: IdItem[] = boards.map((b) => ({
+      label: `$(circuit-board) ${b.name}`,
+      description: b.fqbn,
+      fqbn: b.fqbn,
+      boardName: b.name,
+      alwaysShow: true,
+    }));
+    items.push({
+      label: vscode.l10n.t("$(search) None of these — search manually"),
+      alwaysShow: true,
+    });
+
+    const pick = await vscode.window.showQuickPick(items, {
+      title: vscode.l10n.t("Board identified on {0}", port.label || port.address),
+      placeHolder: vscode.l10n.t("Select the matching board, or search manually"),
+      matchOnDescription: true,
+    });
+    if (!pick?.fqbn) {
+      return undefined;
+    }
+    return { fqbn: pick.fqbn, name: pick.boardName ?? pick.fqbn };
   }
+
+  // --- BoardSearch (search-as-you-type) --------------------------------------
+
+  /** Managed QuickPick with server-side board search. */
+  private pickBoardViaSearch(): Promise<
+    { fqbn: string; name: string } | undefined
+  > {
+    type Item = vscode.QuickPickItem & { fqbn: string; boardName: string };
+    return new Promise((resolve) => {
+      const qp = vscode.window.createQuickPick<Item>();
+      qp.title = vscode.l10n.t("Select Arduino Board");
+      qp.placeholder = vscode.l10n.t(
+        "Type to search all Arduino boards",
+      );
+      qp.matchOnDetail = true;
+
+      let seq = 0;
+      let timer: ReturnType<typeof setTimeout> | undefined;
+
+      const search = (raw: string): void => {
+        const query = raw.trim();
+        if (query.length < 2) {
+          qp.items = [];
+          qp.busy = false;
+          return;
+        }
+        const mySeq = ++seq;
+        qp.busy = true;
+        this.client
+          .boardSearch(query)
+          .then((res) => {
+            if (mySeq !== seq) {
+              return;
+            }
+            qp.items = (res.boards ?? []).map((b) => ({
+              label: b.name,
+              description:
+                b.platform?.release?.name ?? b.platform?.metadata?.id ?? "",
+              detail: b.fqbn,
+              alwaysShow: true,
+              fqbn: b.fqbn,
+              boardName: b.name,
+            }));
+            qp.busy = false;
+          })
+          .catch(() => {
+            if (mySeq === seq) {
+              qp.busy = false;
+            }
+          });
+      };
+
+      qp.onDidChangeValue((value) => {
+        if (timer) {
+          clearTimeout(timer);
+        }
+        timer = setTimeout(() => search(value), 250);
+      });
+      qp.onDidAccept(() => {
+        const sel = qp.selectedItems[0];
+        resolve(sel ? { fqbn: sel.fqbn, name: sel.boardName } : undefined);
+        qp.hide();
+      });
+      qp.onDidHide(() => {
+        if (timer) {
+          clearTimeout(timer);
+        }
+        qp.dispose();
+        resolve(undefined);
+      });
+      qp.show();
+    });
+  }
+
+  // --- BoardDetails (config options) -----------------------------------------
+
+  /**
+   * Fetch config options for a board and let the user choose values. Returns an
+   * FQBN with selected options appended (e.g. `arduino:avr:mega:cpu=atmega2560`).
+   */
+  private async configureBoardOptions(fqbn: string): Promise<string> {
+    const baseFqbn = fqbn.split(":").slice(0, 3).join(":");
+    let details: BoardDetailsResponse;
+    try {
+      details = await this.client.boardDetails(baseFqbn);
+    } catch {
+      return fqbn;
+    }
+
+    const options = (details.config_options ?? []).filter(
+      (o) => o.values.length > 1,
+    );
+    if (options.length === 0) {
+      return baseFqbn;
+    }
+
+    const selected: string[] = [];
+    for (const opt of options) {
+      const defaultVal = opt.values.find((v) => v.selected) ?? opt.values[0];
+      const pick = await this.pickConfigOption(opt, defaultVal.value);
+      selected.push(`${opt.option}=${pick ?? defaultVal.value}`);
+    }
+
+    return `${baseFqbn}:${selected.join(",")}`;
+  }
+
+  private async pickConfigOption(
+    opt: ConfigOption,
+    activeValue: string,
+  ): Promise<string | undefined> {
+    type Item = vscode.QuickPickItem & { optValue: string };
+    const items: Item[] = opt.values.map((v) => ({
+      label: v.value_label,
+      description: v.value,
+      picked: v.value === activeValue,
+      alwaysShow: true,
+      optValue: v.value,
+    }));
+
+    const pick = await vscode.window.showQuickPick(items, {
+      title: opt.option_label,
+      placeHolder: vscode.l10n.t(
+        "Select a value for {0}",
+        opt.option_label,
+      ),
+    });
+    return pick?.optValue;
+  }
+
+  // --- Board Details command -------------------------------------------------
+
+  /** Show board details for the currently selected board. */
+  async showBoardDetails(): Promise<void> {
+    const sel = this.requireSelection();
+    const baseFqbn = sel.fqbn.split(":").slice(0, 3).join(":");
+
+    const details = await this.client.boardDetails(baseFqbn);
+
+    const lines: string[] = [
+      `${details.name} (${details.fqbn})`,
+      "",
+      `${vscode.l10n.t("Platform")}: ${details.platform?.name ?? "—"} ${details.version || ""}`.trim(),
+      `${vscode.l10n.t("Official")}: ${details.official ? vscode.l10n.t("Yes") : vscode.l10n.t("No")}`,
+    ];
+
+    if (details.config_options?.length) {
+      lines.push("", vscode.l10n.t("Config options:"));
+      for (const opt of details.config_options) {
+        const cur = opt.values.find((v) => v.selected);
+        lines.push(
+          `  ${opt.option_label}: ${cur?.value_label ?? "—"}`,
+        );
+      }
+    }
+
+    if (details.programmers?.length) {
+      lines.push(
+        "",
+        `${vscode.l10n.t("Default programmer")}: ${
+          details.programmers.find((p) => p.id === details.default_programmer_id)
+            ?.name ?? (details.default_programmer_id || "—")
+        }`,
+      );
+    }
+
+    const actions: string[] = [];
+    if (details.pinout) {
+      actions.push(vscode.l10n.t("View Pinout"));
+    }
+    const picked = await vscode.window.showInformationMessage(
+      lines.join("\n"),
+      { modal: true },
+      ...actions,
+    );
+    if (picked === vscode.l10n.t("View Pinout") && details.pinout) {
+      await vscode.env.openExternal(vscode.Uri.parse(details.pinout));
+    }
+  }
+
+  // --- Persist ---------------------------------------------------------------
 
   /**
    * Persist a selection. The authoritative store is the sketch's `sketch.yaml`
@@ -170,14 +398,12 @@ export class BoardManager {
     try {
       sketch = await resolveSketch(this.client, { silent: true });
     } catch {
-      return; // resolution failure is non-fatal; the workspaceState cache stands.
+      return;
     }
     if (!sketch) {
       return;
     }
     try {
-      // Only write port fields when we actually have a connected port, so a
-      // manual board pick doesn't clobber an existing port in sketch.yaml.
       const hasPort = Boolean(sel.port.address);
       await this.client.setSketchDefaults({
         sketch_path: sketch.location_path,
@@ -226,7 +452,6 @@ export class BoardManager {
           signal,
           onEvent: (ev) => this.onWatchEvent(ev),
         });
-        // Clean end (e.g. instance torn down) — stop unless we were aborted.
         if (signal.aborted) {
           return;
         }
@@ -238,7 +463,6 @@ export class BoardManager {
           `[boards] watch error: ${err instanceof Error ? err.message : String(err)}`,
         );
       }
-      // Backoff before reconnecting.
       await new Promise((r) => setTimeout(r, 2000));
     }
   }

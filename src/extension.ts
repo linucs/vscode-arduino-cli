@@ -66,6 +66,9 @@ export async function activate(ctx: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arduinoCli.upgradePlatform", () =>
       withReady((d) => d.platforms.upgradeInteractive()),
     ),
+    vscode.commands.registerCommand("arduinoCli.boardDetails", () =>
+      withReady((d) => d.boards.showBoardDetails()),
+    ),
     vscode.commands.registerCommand("arduinoCli.addLibrary", () =>
       withReady(async (d) => {
         if (await d.libraries.addLibrary()) {

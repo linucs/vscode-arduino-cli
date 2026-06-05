@@ -76,6 +76,10 @@
         "title": "%command.upgradePlatform%"
       },
       {
+        "command": "arduinoCli.boardDetails",
+        "title": "%command.boardDetails%"
+      },
+      {
         "command": "arduinoCli.addLibrary",
         "title": "%command.addLibrary%",
         "icon": "$(add)"

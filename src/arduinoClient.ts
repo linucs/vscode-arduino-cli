@@ -3,9 +3,12 @@ import * as grpc from "@grpc/grpc-js";
 import * as protoLoader from "@grpc/proto-loader";
 import { applyBuildMessage, type BuildStreamSinks } from "./buildStream";
 import type {
+  BoardDetailsResponse,
+  BoardIdentifyResponse,
   BoardListResponse,
   BoardListAllResponse,
   BoardListWatchResponse,
+  BoardSearchResponse,
   BuilderResult,
   DownloadProgress,
   EnumerateMonitorPortSettingsResponse,
@@ -140,6 +143,35 @@ export class ArduinoClient {
     return this.unary<BoardListAllResponse>("BoardListAll", {
       instance: this.requireInstance(),
       search_args: searchArgs,
+    });
+  }
+
+  boardSearch(
+    query: string,
+    includeHidden = false,
+  ): Promise<BoardSearchResponse> {
+    return this.unary<BoardSearchResponse>("BoardSearch", {
+      instance: this.requireInstance(),
+      search_args: query,
+      include_hidden_boards: includeHidden,
+    });
+  }
+
+  boardIdentify(
+    properties: Record<string, string>,
+    useCloud = false,
+  ): Promise<BoardIdentifyResponse> {
+    return this.unary<BoardIdentifyResponse>("BoardIdentify", {
+      instance: this.requireInstance(),
+      properties,
+      use_cloud_api_for_unknown_board_detection: useCloud,
+    });
+  }
+
+  boardDetails(fqbn: string): Promise<BoardDetailsResponse> {
+    return this.unary<BoardDetailsResponse>("BoardDetails", {
+      instance: this.requireInstance(),
+      fqbn,
     });
   }
 

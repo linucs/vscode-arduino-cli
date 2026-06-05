@@ -46,6 +46,10 @@ export interface BoardListItem {
   name: string;
   fqbn: string;
   is_hidden: boolean;
+  platform?: {
+    metadata?: { id: string };
+    release?: { name: string; installed: boolean };
+  };
 }
 
 /** board.proto — DetectedPort */
@@ -63,6 +67,59 @@ export interface BoardListResponse {
 /** board.proto — BoardListAllResponse */
 export interface BoardListAllResponse {
   boards: BoardListItem[];
+}
+
+/** board.proto — BoardSearchResponse */
+export interface BoardSearchResponse {
+  boards: BoardListItem[];
+}
+
+/** board.proto — BoardIdentifyResponse */
+export interface BoardIdentifyResponse {
+  boards: BoardListItem[];
+}
+
+/** board.proto — ConfigValue */
+export interface ConfigValue {
+  value: string;
+  value_label: string;
+  selected: boolean;
+}
+
+/** board.proto — ConfigOption */
+export interface ConfigOption {
+  option: string;
+  option_label: string;
+  values: ConfigValue[];
+}
+
+/** board.proto — BoardPackage (Package message) */
+export interface BoardPackage {
+  name: string;
+  maintainer: string;
+  url: string;
+  website_url: string;
+}
+
+/** board.proto — BoardPlatform (subset) */
+export interface BoardPlatformDetail {
+  architecture: string;
+  name: string;
+}
+
+/** board.proto — BoardDetailsResponse */
+export interface BoardDetailsResponse {
+  fqbn: string;
+  name: string;
+  version: string;
+  properties_id: string;
+  official: boolean;
+  pinout: string;
+  package?: BoardPackage;
+  platform?: BoardPlatformDetail;
+  config_options: ConfigOption[];
+  programmers: Programmer[];
+  default_programmer_id: string;
 }
 
 /**
