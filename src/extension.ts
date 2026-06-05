@@ -3,12 +3,14 @@ import { ArduinoClient } from "./arduinoClient";
 import { BoardManager } from "./boardManager";
 import { Compiler } from "./compile";
 import { DaemonManager } from "./daemon";
+import { Uploader } from "./upload";
 
 let context: vscode.ExtensionContext;
 let daemon: DaemonManager | undefined;
 let client: ArduinoClient | undefined;
 let boards: BoardManager | undefined;
 let compiler: Compiler | undefined;
+let uploader: Uploader | undefined;
 let output: vscode.OutputChannel;
 
 export async function activate(ctx: vscode.ExtensionContext) {
@@ -26,6 +28,14 @@ export async function activate(ctx: vscode.ExtensionContext) {
     ),
     vscode.commands.registerCommand("arduinoCli.compile", () =>
       withReady((d) => d.compiler.run()),
+    ),
+    vscode.commands.registerCommand("arduinoCli.upload", () =>
+      withReady(async (d) => {
+        // Arduino-style: compile first, upload only if it succeeds.
+        if (await d.compiler.run()) {
+          await d.uploader.run();
+        }
+      }),
     ),
   );
 
@@ -52,6 +62,7 @@ interface Deps {
   client: ArduinoClient;
   boards: BoardManager;
   compiler: Compiler;
+  uploader: Uploader;
 }
 
 /** Lazily starts the daemon, initializes the client, and wires the managers. */
@@ -72,7 +83,10 @@ async function ensureReady(): Promise<Deps> {
   if (!compiler) {
     compiler = new Compiler(client, boards, output);
   }
-  return { client, boards, compiler };
+  if (!uploader) {
+    uploader = new Uploader(client, boards, output);
+  }
+  return { client, boards, compiler, uploader };
 }
 
 /** Run an action after ensuring the daemon/managers are ready, with error reporting. */
@@ -102,6 +116,7 @@ async function restartDaemon() {
     boards = undefined;
     compiler?.dispose();
     compiler = undefined;
+    uploader = undefined;
     await client?.destroy();
     client?.close();
     client = undefined;

@@ -19,5 +19,10 @@
   "Select Board": "Seleziona scheda",
   "Compiling {0}…": "Compilazione di {0}…",
   "Compilation finished.": "Compilazione completata.",
-  "Compilation failed — see the Arduino CLI output.": "Compilazione fallita — consulta l'output di Arduino CLI."
+  "Compilation failed — see the Arduino CLI output.": "Compilazione fallita — consulta l'output di Arduino CLI.",
+  "No port selected. Pick a board on a connected port.": "Nessuna porta selezionata. Scegli una scheda su una porta collegata.",
+  "Uploading to {0}…": "Caricamento su {0}…",
+  "Upload to {0}": "Carica su {0}",
+  "Upload complete.": "Caricamento completato.",
+  "Upload failed — see the Arduino CLI output.": "Caricamento fallito — consulta l'output di Arduino CLI."
 }

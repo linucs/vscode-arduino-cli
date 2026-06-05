@@ -46,6 +46,11 @@
         "icon": "$(check)"
       },
       {
+        "command": "arduinoCli.upload",
+        "title": "%command.upload%",
+        "icon": "$(arrow-up)"
+      },
+      {
         "command": "arduinoCli.showVersion",
         "title": "%command.showVersion%"
       },
@@ -60,6 +65,11 @@
           "command": "arduinoCli.compile",
           "when": "resourceExtname == .ino",
           "group": "navigation@1"
+        },
+        {
+          "command": "arduinoCli.upload",
+          "when": "resourceExtname == .ino",
+          "group": "navigation@2"
         }
       ]
     },

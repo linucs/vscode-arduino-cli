@@ -6,6 +6,7 @@
   "config.daemonPort": "TCP port the arduino-cli daemon listens on.",
   "command.selectBoard": "Arduino CLI: Select Board",
   "command.compile": "Arduino CLI: Compile",
+  "command.upload": "Arduino CLI: Upload",
   "command.showVersion": "Arduino CLI: Show Daemon Version",
   "command.restartDaemon": "Arduino CLI: Restart Daemon"
 }
