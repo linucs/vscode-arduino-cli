@@ -3,6 +3,7 @@ import { ArduinoClient } from "./arduinoClient";
 import { BoardManager } from "./boardManager";
 import { Compiler } from "./compile";
 import { DaemonManager } from "./daemon";
+import { DebugManager } from "./debug";
 import { Indexes } from "./indexes";
 import { LibraryManager } from "./libraryManager";
 import { LibraryTreeProvider } from "./libraryView";
@@ -30,6 +31,7 @@ let monitor: SerialMonitor | undefined;
 let indexes: Indexes | undefined;
 let platforms: PlatformManager | undefined;
 let libraries: LibraryManager | undefined;
+let debugManager: DebugManager | undefined;
 let libraryView: LibraryTreeProvider | undefined;
 let output: vscode.OutputChannel;
 
@@ -123,6 +125,17 @@ export async function activate(ctx: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arduinoCli.listProfileLibraries", () =>
       withReady((d) => listProfileLibraries(d.client, output)),
     ),
+    vscode.commands.registerCommand("arduinoCli.debug", () =>
+      withReady(async (d) => {
+        // Debug needs a fresh, debug-optimized .elf.
+        if (await d.compiler.run({ optimizeForDebug: true })) {
+          await d.debug.startDebug();
+        }
+      }),
+    ),
+    vscode.commands.registerCommand("arduinoCli.debugShowConfig", () =>
+      withReady((d) => d.debug.showDebugConfig()),
+    ),
     vscode.commands.registerCommand("arduinoCli.addLibrary", () =>
       withReady(async (d) => {
         if (await d.libraries.addLibrary()) {
@@ -197,6 +210,25 @@ export async function activate(ctx: vscode.ExtensionContext) {
     ),
   );
 
+  // Debug: a stable config provider that lazily resolves the live DebugManager,
+  // plus a terminate handler that reopens the monitor only for OUR sessions.
+  ctx.subscriptions.push(
+    vscode.debug.registerDebugConfigurationProvider("arduino", {
+      provideDebugConfigurations: () => [
+        { type: "arduino", request: "launch", name: "Arduino Debug" },
+      ],
+      resolveDebugConfiguration: async (folder, config) => {
+        const d = await ensureReady();
+        return d.debug.resolveDebugConfiguration(folder, config);
+      },
+    }),
+    vscode.debug.onDidTerminateDebugSession((session) => {
+      if (session.configuration?.__arduino) {
+        void monitor?.resumeAfterDebug();
+      }
+    }),
+  );
+
   try {
     await ensureReady();
     output.appendLine("[extension] arduino-cli daemon ready");
@@ -231,6 +263,7 @@ interface Deps {
   indexes: Indexes;
   platforms: PlatformManager;
   libraries: LibraryManager;
+  debug: DebugManager;
 }
 
 /** Lazily starts the daemon, initializes the client, and wires the managers. */
@@ -266,6 +299,16 @@ async function ensureReady(): Promise<Deps> {
   if (!indexes) {
     indexes = new Indexes(client, output);
   }
+  if (!debugManager) {
+    debugManager = new DebugManager(client, boards, monitor, output);
+    // Gate debug affordances on the selected board (fires immediately too).
+    boards.onSelectionChanged((fqbn, port) => {
+      void debugManager!.updateDebugSupported(
+        fqbn,
+        port?.address ? port : undefined,
+      );
+    });
+  }
   return {
     client,
     boards,
@@ -275,6 +318,7 @@ async function ensureReady(): Promise<Deps> {
     indexes,
     platforms,
     libraries,
+    debug: debugManager,
   };
 }
 
@@ -311,6 +355,7 @@ async function restartDaemon() {
     indexes = undefined;
     platforms = undefined;
     libraries = undefined;
+    debugManager = undefined;
     await client?.destroy();
     client?.close();
     client = undefined;

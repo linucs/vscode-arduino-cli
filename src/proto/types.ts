@@ -445,3 +445,53 @@ export interface MonitorResponse {
   applied_settings?: { settings: { setting_id: string; value: string }[] };
   success?: boolean;
 }
+
+// --- Debug -------------------------------------------------------------------
+
+/** debug.proto — IsDebugSupportedResponse */
+export interface IsDebugSupportedResponse {
+  debugging_supported: boolean;
+  /** FQBN cleaned of options that don't affect the debugger config. */
+  debug_fqbn: string;
+}
+
+/**
+ * debug.proto — google.protobuf.Any. proto-loader does NOT auto-unpack Any:
+ * it arrives as the raw `{ type_url, value }` pair and must be decoded by hand.
+ */
+export interface ProtoAny {
+  type_url: string;
+  value: Buffer;
+}
+
+/** debug.proto — GetDebugConfigResponse */
+export interface GetDebugConfigResponse {
+  executable: string;
+  toolchain: string;
+  toolchain_path: string;
+  toolchain_prefix: string;
+  server: string;
+  server_path: string;
+  toolchain_configuration?: ProtoAny;
+  server_configuration?: ProtoAny;
+  custom_configs: Record<string, string>;
+  svd_file: string;
+  programmer: string;
+}
+
+/** debug.proto — DebugOpenOCDServerConfiguration (the only known server config type) */
+export interface OpenOCDServerConfig {
+  path: string;
+  scripts_dir: string;
+  scripts: string[];
+}
+
+/**
+ * debug.proto — DebugResponse (oneof data | result). Branch on `message`.
+ * Only used by the (currently unconsumed) Debug bidi stream.
+ */
+export interface DebugResponse {
+  message: "data" | "result";
+  data?: Buffer;
+  result?: { error: string };
+}

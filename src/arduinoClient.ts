@@ -28,6 +28,8 @@ import type {
   ProfileLibListResponse,
   ProfileLibRemoveResponse,
   ProfileLibraryReference,
+  GetDebugConfigResponse,
+  IsDebugSupportedResponse,
   SetSketchDefaultsRequest,
   SetSketchDefaultsResponse,
   SettingsEnumerateResponse,
@@ -78,6 +80,22 @@ export interface MonitorStream {
   /** Hard-cancel the underlying gRPC call. */
   cancel(): void;
   /** `"data"` → MonitorResponse, `"error"` → Error, `"end"` → void. */
+  on(event: "data" | "error" | "end", cb: (...args: any[]) => void): void;
+}
+
+/**
+ * Event-shaped handle over the bidirectional Debug stream (raw GDB I/O).
+ * Wrapped for API completeness; the debug flow delegates to external debug
+ * adapters via GetDebugConfig, so this is not consumed today.
+ */
+export interface DebugStream {
+  /** Send bytes (a GDB command) to the debugger. */
+  sendData(data: Buffer): void;
+  /** Send an interrupt (Ctrl-C) to the debugger process. */
+  sendInterrupt(): void;
+  /** Hard-cancel the underlying gRPC call. */
+  cancel(): void;
+  /** `"data"` → DebugResponse, `"error"` → Error, `"end"` → void. */
   on(event: "data" | "error" | "end", cb: (...args: any[]) => void): void;
 }
 
@@ -656,7 +674,12 @@ export class ArduinoClient {
 
   /** Compile a sketch. Streams output via `sinks`; resolves with the BuilderResult. */
   compile(
-    req: { fqbn: string; sketch_path: string; verbose?: boolean },
+    req: {
+      fqbn: string;
+      sketch_path: string;
+      verbose?: boolean;
+      optimize_for_debug?: boolean;
+    },
     sinks: BuildStreamSinks,
     signal?: AbortSignal,
   ): Promise<BuilderResult | undefined> {
@@ -782,6 +805,64 @@ export class ArduinoClient {
           ? { port_configuration: req.port_configuration }
           : {}),
       },
+    });
+    return stream;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Debug
+  // ---------------------------------------------------------------------------
+
+  isDebugSupported(req: {
+    fqbn: string;
+    port?: object;
+    interpreter?: string;
+    programmer?: string;
+  }): Promise<IsDebugSupportedResponse> {
+    return this.unary<IsDebugSupportedResponse>("IsDebugSupported", {
+      instance: this.requireInstance(),
+      fqbn: req.fqbn,
+      ...(req.port ? { port: req.port } : {}),
+      ...(req.interpreter ? { interpreter: req.interpreter } : {}),
+      ...(req.programmer ? { programmer: req.programmer } : {}),
+    });
+  }
+
+  getDebugConfig(req: {
+    fqbn: string;
+    sketch_path: string;
+    port?: object;
+    interpreter?: string;
+    import_dir?: string;
+    programmer?: string;
+  }): Promise<GetDebugConfigResponse> {
+    return this.unary<GetDebugConfigResponse>("GetDebugConfig", {
+      instance: this.requireInstance(),
+      ...req,
+    });
+  }
+
+  /**
+   * Open the bidirectional Debug stream (raw GDB I/O). The first message must
+   * carry the GetDebugConfigRequest. Wrapped for completeness; the debug flow
+   * delegates to external debug adapters and does not use this today.
+   */
+  startDebug(req: {
+    fqbn: string;
+    sketch_path: string;
+    port?: object;
+    interpreter?: string;
+    programmer?: string;
+  }): DebugStream {
+    const call = this.service.Debug();
+    const stream: DebugStream = {
+      sendData: (data: Buffer) => call.write({ data }),
+      sendInterrupt: () => call.write({ send_interrupt: true }),
+      cancel: () => call.cancel(),
+      on: (event: string, cb: (...args: any[]) => void) => call.on(event, cb),
+    };
+    call.write({
+      debug_request: { instance: this.requireInstance(), ...req },
     });
     return stream;
   }

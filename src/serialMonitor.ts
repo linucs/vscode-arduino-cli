@@ -25,6 +25,8 @@ interface Session {
  */
 export class SerialMonitor {
   private session: Session | undefined;
+  /** Saved monitor state while a debug session holds the port. */
+  private debugSnapshot: { fqbn: string; portConfig?: object } | undefined;
 
   constructor(
     private readonly client: ArduinoClient,
@@ -78,6 +80,41 @@ export class SerialMonitor {
           this.openSession(target.port, snapshot.fqbn, snapshot.portConfig);
         }
       }
+    }
+  }
+
+  /**
+   * Close the monitor for the duration of a debug session and remember its
+   * state. Unlike `runWithMonitorSuspended`, resume is a separate call because a
+   * debug session outlives the function that starts it (it ends on a VS Code
+   * event, not when `startDebugging` resolves). Pair with `resumeAfterDebug`.
+   */
+  suspendForDebug(): void {
+    if (this.session) {
+      this.debugSnapshot = {
+        fqbn: this.session.fqbn,
+        portConfig: this.session.portConfig,
+      };
+      this.closeSession();
+    }
+  }
+
+  /** Reopen the monitor closed by `suspendForDebug`, if auto-reconnect is on. */
+  async resumeAfterDebug(): Promise<void> {
+    const snapshot = this.debugSnapshot;
+    this.debugSnapshot = undefined;
+    if (!snapshot) {
+      return;
+    }
+    const reconnect = vscode.workspace
+      .getConfiguration("arduinoCli")
+      .get<boolean>("monitor.autoReconnect", true);
+    if (!reconnect) {
+      return;
+    }
+    const target = await this.resolveTarget(true);
+    if (target?.port.address) {
+      this.openSession(target.port, snapshot.fqbn, snapshot.portConfig);
     }
   }
 

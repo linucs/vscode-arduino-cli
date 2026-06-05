@@ -128,6 +128,16 @@
         "title": "%command.listProfileLibraries%"
       },
       {
+        "command": "arduinoCli.debug",
+        "title": "%command.debug%",
+        "icon": "$(debug-alt)",
+        "enablement": "arduinoCli.debugSupported"
+      },
+      {
+        "command": "arduinoCli.debugShowConfig",
+        "title": "%command.debugShowConfig%"
+      },
+      {
         "command": "arduinoCli.addLibrary",
         "title": "%command.addLibrary%",
         "icon": "$(add)"
@@ -260,6 +270,11 @@
           "command": "arduinoCli.openMonitor",
           "when": "resourceExtname == .ino",
           "group": "navigation@3"
+        },
+        {
+          "command": "arduinoCli.debug",
+          "when": "resourceExtname == .ino && arduinoCli.debugSupported",
+          "group": "navigation@4"
         }
       ]
     },
@@ -306,21 +321,75 @@
           "type": "boolean",
           "default": true,
           "description": "%config.updateNotifications%"
+        },
+        "arduinoCli.debug.adapter": {
+          "type": "string",
+          "default": "auto",
+          "description": "%config.debugAdapter%"
+        },
+        "arduinoCli.debug.adapterConfig": {
+          "type": "object",
+          "default": {},
+          "description": "%config.debugAdapterConfig%"
+        },
+        "arduinoCli.debug.interpreter": {
+          "type": "string",
+          "default": "",
+          "description": "%config.debugInterpreter%"
         }
       }
-    }
+    },
+    "debuggers": [
+      {
+        "type": "arduino",
+        "label": "Arduino Debug",
+        "configurationAttributes": {
+          "launch": {
+            "properties": {
+              "fqbn": {
+                "type": "string",
+                "description": "%debug.fqbn%"
+              },
+              "programmer": {
+                "type": "string",
+                "description": "%debug.programmer%"
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "arduino",
+            "request": "launch",
+            "name": "Arduino Debug"
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "%debug.snippetLabel%",
+            "description": "%debug.snippetDescription%",
+            "body": {
+              "type": "arduino",
+              "request": "launch",
+              "name": "Arduino Debug"
+            }
+          }
+        ]
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "yarn run package",
-    "compile": "yarn run check-types && yarn run lint && node esbuild.js",
+    "compile": "yarn run check-types && yarn run lint && yarn run check-l10n && node esbuild.js",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "package": "yarn run check-types && yarn run lint && node esbuild.js --production",
+    "package": "yarn run check-types && yarn run lint && yarn run check-l10n && node esbuild.js --production",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
     "check-types": "tsc --noEmit",
+    "check-l10n": "node scripts/check-l10n.js",
     "lint": "eslint src",
     "test": "vscode-test",
     "vsix": "vsce package --no-dependencies",

@@ -24,7 +24,7 @@ export class Compiler {
   }
 
   /** Compile the resolved sketch for the selected board. Returns true on success. */
-  async run(): Promise<boolean> {
+  async run(opts: { optimizeForDebug?: boolean } = {}): Promise<boolean> {
     const sketch = await resolveSketch(this.client);
     if (!sketch) {
       return false;
@@ -61,7 +61,11 @@ export class Compiler {
         token.onCancellationRequested(() => ac.abort());
         try {
           const result = await this.client.compile(
-            { fqbn, sketch_path: sketch.location_path },
+            {
+              fqbn,
+              sketch_path: sketch.location_path,
+              ...(opts.optimizeForDebug ? { optimize_for_debug: true } : {}),
+            },
             {
               out: (s) => this.output.append(s),
               err: (s) => this.output.append(s),

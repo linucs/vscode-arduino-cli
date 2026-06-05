@@ -32,6 +32,10 @@ export class BoardManager {
   private disposed = false;
   /** Live ports keyed by address, maintained from the watch stream. */
   private readonly livePorts = new Map<string, DetectedPort>();
+  /** Notified when the board/port selection changes (e.g. to gate debug). */
+  private selectionListener:
+    | ((fqbn: string | undefined, port: Port | undefined) => void)
+    | undefined;
 
   constructor(
     private readonly client: ArduinoClient,
@@ -389,8 +393,20 @@ export class BoardManager {
   private async persist(sel: Selection): Promise<void> {
     this.selection = sel;
     this.render();
+    this.selectionListener?.(sel.fqbn, sel.port);
     await this.context.workspaceState.update(STATE_KEY, sel);
     await this.pinToSketch(sel);
+  }
+
+  /**
+   * Register a callback fired on every selection change (and immediately with
+   * the current selection). Used to gate debug affordances per board.
+   */
+  onSelectionChanged(
+    cb: (fqbn: string | undefined, port: Port | undefined) => void,
+  ): void {
+    this.selectionListener = cb;
+    cb(this.selection?.fqbn, this.selection?.port);
   }
 
   private async pinToSketch(sel: Selection): Promise<void> {
