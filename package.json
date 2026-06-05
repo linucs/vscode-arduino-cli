@@ -51,6 +51,19 @@
         "icon": "$(arrow-up)"
       },
       {
+        "command": "arduinoCli.openMonitor",
+        "title": "%command.openMonitor%",
+        "icon": "$(plug)"
+      },
+      {
+        "command": "arduinoCli.updateIndex",
+        "title": "%command.updateIndex%"
+      },
+      {
+        "command": "arduinoCli.updateLibrariesIndex",
+        "title": "%command.updateLibrariesIndex%"
+      },
+      {
         "command": "arduinoCli.showVersion",
         "title": "%command.showVersion%"
       },
@@ -70,6 +83,11 @@
           "command": "arduinoCli.upload",
           "when": "resourceExtname == .ino",
           "group": "navigation@2"
+        },
+        {
+          "command": "arduinoCli.openMonitor",
+          "when": "resourceExtname == .ino",
+          "group": "navigation@3"
         }
       ]
     },
@@ -85,6 +103,11 @@
           "type": "number",
           "default": 50051,
           "description": "%config.daemonPort%"
+        },
+        "arduinoCli.monitor.autoReconnect": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.monitorAutoReconnect%"
         }
       }
     }

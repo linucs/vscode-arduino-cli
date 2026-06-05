@@ -7,6 +7,7 @@ import type {
   BoardListAllResponse,
   BoardListWatchResponse,
   BuilderResult,
+  DownloadProgress,
   EnumerateMonitorPortSettingsResponse,
   Instance,
   ListProgrammersResponse,
@@ -47,6 +48,20 @@ const COMMANDS_PROTO = path.join(
 );
 
 export type ArduinoInstance = Instance;
+
+/** Event-shaped handle over the bidirectional Monitor stream. */
+export interface MonitorStream {
+  /** Send bytes to the port. */
+  sendData(data: Buffer): void;
+  /** Apply a new MonitorPortConfiguration (e.g. baud rate). */
+  sendConfiguration(configuration: object): void;
+  /** Gracefully close the port (daemon closes the stream after the port is closed). */
+  close(): void;
+  /** Hard-cancel the underlying gRPC call. */
+  cancel(): void;
+  /** `"data"` → MonitorResponse, `"error"` → Error, `"end"` → void. */
+  on(event: "data" | "error" | "end", cb: (...args: any[]) => void): void;
+}
 
 export class ArduinoClient {
   private client: grpc.Client | undefined;
@@ -202,6 +217,44 @@ export class ArduinoClient {
     });
   }
 
+  /** Update the platform (package) index, reporting download progress. */
+  updateIndex(
+    onProgress: (p: DownloadProgress) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    return this.serverStream(
+      "UpdateIndex",
+      { instance: this.requireInstance() },
+      {
+        signal,
+        onData: (msg) => {
+          if (msg.message === "download_progress") {
+            onProgress(msg.download_progress);
+          }
+        },
+      },
+    );
+  }
+
+  /** Update the libraries index, reporting download progress. */
+  updateLibrariesIndex(
+    onProgress: (p: DownloadProgress) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    return this.serverStream(
+      "UpdateLibrariesIndex",
+      { instance: this.requireInstance() },
+      {
+        signal,
+        onData: (msg) => {
+          if (msg.message === "download_progress") {
+            onProgress(msg.download_progress);
+          }
+        },
+      },
+    );
+  }
+
   /**
    * Watch for board connect/disconnect events. Long-lived; bound to the current
    * instance, so it must be torn down and recreated across daemon restarts.
@@ -277,8 +330,41 @@ export class ArduinoClient {
   }
 
   // ---------------------------------------------------------------------------
-  // Bidirectional streaming (Monitor) — added in milestone 1c.
+  // Bidirectional streaming (Monitor)
   // ---------------------------------------------------------------------------
+
+  /**
+   * Open a serial monitor on `port`. Sends the mandatory `open_request` (with the
+   * instance injected) as the first message and returns an event-shaped duplex
+   * for subsequent tx/config/close writes and rx reads. The caller attaches
+   * listeners immediately after this returns.
+   */
+  startMonitor(req: {
+    port: object;
+    fqbn?: string;
+    port_configuration?: object;
+  }): MonitorStream {
+    const call = this.service.Monitor();
+    const stream: MonitorStream = {
+      sendData: (data: Buffer) => call.write({ tx_data: data }),
+      sendConfiguration: (configuration: object) =>
+        call.write({ updated_configuration: configuration }),
+      close: () => call.write({ close: true }),
+      cancel: () => call.cancel(),
+      on: (event: string, cb: (...args: any[]) => void) => call.on(event, cb),
+    };
+    call.write({
+      open_request: {
+        instance: this.requireInstance(),
+        port: req.port,
+        fqbn: req.fqbn ?? "",
+        ...(req.port_configuration
+          ? { port_configuration: req.port_configuration }
+          : {}),
+      },
+    });
+    return stream;
+  }
 
   async destroy(): Promise<void> {
     if (this.instance) {

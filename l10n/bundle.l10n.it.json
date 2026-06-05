@@ -24,5 +24,13 @@
   "Uploading to {0}…": "Caricamento su {0}…",
   "Upload to {0}": "Carica su {0}",
   "Upload complete.": "Caricamento completato.",
-  "Upload failed — see the Arduino CLI output.": "Caricamento fallito — consulta l'output di Arduino CLI."
+  "Upload failed — see the Arduino CLI output.": "Caricamento fallito — consulta l'output di Arduino CLI.",
+  "Connecting to {0}…": "Connessione a {0}…",
+  "Connected to {0}": "Connesso a {0}",
+  "[disconnected]": "[disconnesso]",
+  "Baud Rate": "Velocità (baud)",
+  "Updating package index…": "Aggiornamento indice pacchetti…",
+  "Updating libraries index…": "Aggiornamento indice librerie…",
+  "Downloading…{0}": "Download…{0}",
+  "Index update failed — see the Arduino CLI output.": "Aggiornamento indice fallito — consulta l'output di Arduino CLI."
 }

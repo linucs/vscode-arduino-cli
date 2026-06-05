@@ -3,6 +3,8 @@ import { ArduinoClient } from "./arduinoClient";
 import { BoardManager } from "./boardManager";
 import { Compiler } from "./compile";
 import { DaemonManager } from "./daemon";
+import { Indexes } from "./indexes";
+import { SerialMonitor } from "./serialMonitor";
 import { Uploader } from "./upload";
 
 let context: vscode.ExtensionContext;
@@ -11,6 +13,8 @@ let client: ArduinoClient | undefined;
 let boards: BoardManager | undefined;
 let compiler: Compiler | undefined;
 let uploader: Uploader | undefined;
+let monitor: SerialMonitor | undefined;
+let indexes: Indexes | undefined;
 let output: vscode.OutputChannel;
 
 export async function activate(ctx: vscode.ExtensionContext) {
@@ -31,11 +35,21 @@ export async function activate(ctx: vscode.ExtensionContext) {
     ),
     vscode.commands.registerCommand("arduinoCli.upload", () =>
       withReady(async (d) => {
-        // Arduino-style: compile first, upload only if it succeeds.
+        // Arduino-style: compile first, upload only if it succeeds. The monitor
+        // holds the port, so release it for the duration of the upload.
         if (await d.compiler.run()) {
-          await d.uploader.run();
+          await d.monitor.runWithMonitorSuspended(() => d.uploader.run());
         }
       }),
+    ),
+    vscode.commands.registerCommand("arduinoCli.openMonitor", () =>
+      withReady((d) => d.monitor.openOrFocus()),
+    ),
+    vscode.commands.registerCommand("arduinoCli.updateIndex", () =>
+      withReady((d) => d.indexes.updatePackageIndex()),
+    ),
+    vscode.commands.registerCommand("arduinoCli.updateLibrariesIndex", () =>
+      withReady((d) => d.indexes.updateLibrariesIndex()),
     ),
   );
 
@@ -51,6 +65,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
 }
 
 export async function deactivate() {
+  monitor?.dispose();
   boards?.dispose();
   compiler?.dispose();
   await client?.destroy();
@@ -63,6 +78,8 @@ interface Deps {
   boards: BoardManager;
   compiler: Compiler;
   uploader: Uploader;
+  monitor: SerialMonitor;
+  indexes: Indexes;
 }
 
 /** Lazily starts the daemon, initializes the client, and wires the managers. */
@@ -86,7 +103,13 @@ async function ensureReady(): Promise<Deps> {
   if (!uploader) {
     uploader = new Uploader(client, boards, output);
   }
-  return { client, boards, compiler, uploader };
+  if (!monitor) {
+    monitor = new SerialMonitor(client, boards, output);
+  }
+  if (!indexes) {
+    indexes = new Indexes(client, output);
+  }
+  return { client, boards, compiler, uploader, monitor, indexes };
 }
 
 /** Run an action after ensuring the daemon/managers are ready, with error reporting. */
@@ -117,6 +140,9 @@ async function restartDaemon() {
     compiler?.dispose();
     compiler = undefined;
     uploader = undefined;
+    monitor?.dispose();
+    monitor = undefined;
+    indexes = undefined;
     await client?.destroy();
     client?.close();
     client = undefined;
