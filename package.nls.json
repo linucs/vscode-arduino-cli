@@ -1,0 +1,9 @@
+{
+  "displayName": "Arduino CLI (gRPC)",
+  "description": "A lightweight VS Code extension that wraps the arduino-cli gRPC daemon (ArduinoCoreService) — compile, upload, and monitor without leaving the editor.",
+  "config.title": "Arduino CLI",
+  "config.path": "Path to the arduino-cli executable.",
+  "config.daemonPort": "TCP port the arduino-cli daemon listens on.",
+  "command.showVersion": "Arduino CLI: Show Daemon Version",
+  "command.restartDaemon": "Arduino CLI: Restart Daemon"
+}

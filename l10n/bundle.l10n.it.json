@@ -1,0 +1,6 @@
+{
+  "arduino-cli daemon v{0}": "daemon arduino-cli v{0}",
+  "Arduino CLI: daemon restarted": "Arduino CLI: daemon riavviato",
+  "Arduino CLI: {0}": "Arduino CLI: {0}",
+  "Arduino CLI: could not start daemon — {0}": "Arduino CLI: impossibile avviare il daemon — {0}"
+}
