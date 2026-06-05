@@ -145,6 +145,192 @@ export class Uploader {
     return values;
   }
 
+  /** Upload via an external programmer (compile first is the caller's responsibility). */
+  async runWithProgrammer(): Promise<boolean> {
+    const sketch = await resolveSketch(this.client);
+    if (!sketch) {
+      return false;
+    }
+
+    const fqbn = this.boards.fqbn || sketch.default_fqbn;
+    if (!fqbn) {
+      await this.promptSelectBoard(
+        vscode.l10n.t("No board selected for this sketch."),
+      );
+      return false;
+    }
+
+    const port = this.resolvePort(sketch.default_port, sketch.default_protocol);
+    if (!port) {
+      await this.promptSelectBoard(
+        vscode.l10n.t("No port selected. Pick a board on a connected port."),
+      );
+      return false;
+    }
+
+    const programmer = await this.pickProgrammer(fqbn);
+    if (!programmer) {
+      return false;
+    }
+
+    const userFields = await this.collectUserFields(fqbn, port.protocol);
+    if (userFields === undefined) {
+      return false;
+    }
+
+    this.output.show(true);
+    this.output.appendLine(
+      `\n[upload-programmer] ${fqbn} → ${port.address} (${programmer})`,
+    );
+
+    return vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: vscode.l10n.t(
+          "Uploading to {0} using programmer…",
+          port.label || port.address,
+        ),
+        cancellable: true,
+      },
+      async (_progress, token) => {
+        const ac = new AbortController();
+        token.onCancellationRequested(() => ac.abort());
+        try {
+          await this.client.uploadUsingProgrammer(
+            {
+              fqbn,
+              sketch_path: sketch.location_path,
+              port,
+              programmer,
+              user_fields: userFields,
+            },
+            {
+              out: (s) => this.output.append(s),
+              err: (s) => this.output.append(s),
+            },
+            ac.signal,
+          );
+          vscode.window.showInformationMessage(
+            vscode.l10n.t("Upload complete."),
+          );
+          return true;
+        } catch (err) {
+          if (ac.signal.aborted) {
+            this.output.appendLine("[upload-programmer] cancelled");
+            return false;
+          }
+          this.output.appendLine(
+            `[upload-programmer] failed: ${err instanceof Error ? err.message : String(err)}`,
+          );
+          vscode.window.showErrorMessage(
+            vscode.l10n.t("Upload failed — see the Arduino CLI output."),
+          );
+          return false;
+        }
+      },
+    );
+  }
+
+  /** Burn the bootloader onto the board via a programmer. */
+  async burnBootloader(): Promise<boolean> {
+    const fqbn = this.boards.fqbn;
+    if (!fqbn) {
+      await this.promptSelectBoard(
+        vscode.l10n.t("No board selected for this sketch."),
+      );
+      return false;
+    }
+
+    const port = this.boards.port;
+    if (!port?.address) {
+      await this.promptSelectBoard(
+        vscode.l10n.t("No port selected. Pick a board on a connected port."),
+      );
+      return false;
+    }
+
+    const programmer = await this.pickProgrammer(fqbn);
+    if (!programmer) {
+      return false;
+    }
+
+    const userFields = await this.collectUserFields(fqbn, port.protocol);
+    if (userFields === undefined) {
+      return false;
+    }
+
+    this.output.show(true);
+    this.output.appendLine(
+      `\n[burn-bootloader] ${fqbn} → ${port.address} (${programmer})`,
+    );
+
+    return vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: vscode.l10n.t("Burning bootloader on {0}…", port.label || port.address),
+        cancellable: true,
+      },
+      async (_progress, token) => {
+        const ac = new AbortController();
+        token.onCancellationRequested(() => ac.abort());
+        try {
+          await this.client.burnBootloader(
+            {
+              fqbn,
+              port,
+              programmer,
+              user_fields: userFields,
+            },
+            {
+              out: (s) => this.output.append(s),
+              err: (s) => this.output.append(s),
+            },
+            ac.signal,
+          );
+          vscode.window.showInformationMessage(
+            vscode.l10n.t("Bootloader burned successfully."),
+          );
+          return true;
+        } catch (err) {
+          if (ac.signal.aborted) {
+            this.output.appendLine("[burn-bootloader] cancelled");
+            return false;
+          }
+          this.output.appendLine(
+            `[burn-bootloader] failed: ${err instanceof Error ? err.message : String(err)}`,
+          );
+          vscode.window.showErrorMessage(
+            vscode.l10n.t("Burn bootloader failed — see the Arduino CLI output."),
+          );
+          return false;
+        }
+      },
+    );
+  }
+
+  private async pickProgrammer(fqbn: string): Promise<string | undefined> {
+    const res = await this.client.listProgrammers(fqbn);
+    const programmers = res.programmers ?? [];
+    if (programmers.length === 0) {
+      vscode.window.showWarningMessage(
+        vscode.l10n.t("No programmers available for this board."),
+      );
+      return undefined;
+    }
+    const pick = await vscode.window.showQuickPick(
+      programmers.map((p) => ({
+        label: p.name,
+        description: p.id,
+        id: p.id,
+      })),
+      {
+        title: vscode.l10n.t("Select Programmer"),
+        placeHolder: vscode.l10n.t("Pick a programmer for this board"),
+      },
+    );
+    return pick?.id;
+  }
+
   private async promptSelectBoard(message: string): Promise<void> {
     const choice = await vscode.window.showWarningMessage(
       message,

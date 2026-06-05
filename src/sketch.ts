@@ -3,6 +3,69 @@ import * as vscode from "vscode";
 import type { ArduinoClient } from "./arduinoClient";
 import type { Sketch } from "./proto/types";
 
+/** Scaffold a new sketch: prompt for name and directory, then open the main file. */
+export async function newSketch(client: ArduinoClient): Promise<void> {
+  const name = await vscode.window.showInputBox({
+    title: vscode.l10n.t("New Arduino Sketch"),
+    prompt: vscode.l10n.t("Sketch name"),
+    placeHolder: "MySketch",
+    validateInput: (v) =>
+      v.trim().length === 0
+        ? vscode.l10n.t("Name cannot be empty")
+        : undefined,
+  });
+  if (!name) {
+    return;
+  }
+
+  const defaultDir =
+    vscode.workspace.workspaceFolders?.[0]?.uri ?? vscode.Uri.file("");
+  const dirs = await vscode.window.showOpenDialog({
+    title: vscode.l10n.t("Parent folder for the new sketch"),
+    canSelectFiles: false,
+    canSelectFolders: true,
+    canSelectMany: false,
+    defaultUri: defaultDir,
+    openLabel: vscode.l10n.t("Select"),
+  });
+  const dir = dirs?.[0]?.fsPath;
+  if (!dir) {
+    return;
+  }
+
+  const res = await client.newSketch(name.trim(), dir);
+  const doc = await vscode.workspace.openTextDocument(res.main_file);
+  await vscode.window.showTextDocument(doc);
+  vscode.window.showInformationMessage(
+    vscode.l10n.t("Created sketch {0}", name.trim()),
+  );
+}
+
+/** Archive the current sketch as a .zip file. */
+export async function archiveSketch(client: ArduinoClient): Promise<void> {
+  const sketch = await resolveSketch(client);
+  if (!sketch) {
+    return;
+  }
+
+  const defaultName = path.basename(sketch.location_path) + ".zip";
+  const dest = await vscode.window.showSaveDialog({
+    title: vscode.l10n.t("Archive Sketch"),
+    defaultUri: vscode.Uri.file(
+      path.join(sketch.location_path, "..", defaultName),
+    ),
+    filters: { "Zip archive": ["zip"] },
+  });
+  if (!dest) {
+    return;
+  }
+
+  await client.archiveSketch(sketch.location_path, dest.fsPath);
+  vscode.window.showInformationMessage(
+    vscode.l10n.t("Sketch archived to {0}", path.basename(dest.fsPath)),
+  );
+}
+
 /**
  * Resolves which sketch to act on and validates it via `LoadSketch`.
  *

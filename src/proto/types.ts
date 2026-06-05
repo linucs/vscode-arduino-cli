@@ -147,6 +147,16 @@ export interface LoadSketchResponse {
   sketch: Sketch;
 }
 
+/** commands.proto — NewSketchResponse */
+export interface NewSketchResponse {
+  main_file: string;
+}
+
+/** commands.proto — CheckForArduinoCLIUpdatesResponse */
+export interface CheckForArduinoCLIUpdatesResponse {
+  newest_version: string;
+}
+
 /** commands.proto — SetSketchDefaultsRequest (writes sketch.yaml) */
 export interface SetSketchDefaultsRequest {
   sketch_path: string;

@@ -10,6 +10,7 @@ import type {
   BoardListWatchResponse,
   BoardSearchResponse,
   BuilderResult,
+  CheckForArduinoCLIUpdatesResponse,
   DownloadProgress,
   EnumerateMonitorPortSettingsResponse,
   Instance,
@@ -18,6 +19,7 @@ import type {
   LibrarySearchResponse,
   ListProgrammersResponse,
   LoadSketchResponse,
+  NewSketchResponse,
   PlatformSearchResponse,
   SetSketchDefaultsRequest,
   SetSketchDefaultsResponse,
@@ -186,6 +188,45 @@ export class ArduinoClient {
     req: SetSketchDefaultsRequest,
   ): Promise<SetSketchDefaultsResponse> {
     return this.unary<SetSketchDefaultsResponse>("SetSketchDefaults", req);
+  }
+
+  newSketch(
+    name: string,
+    dir?: string,
+    overwrite = false,
+  ): Promise<NewSketchResponse> {
+    return this.unary<NewSketchResponse>("NewSketch", {
+      sketch_name: name,
+      ...(dir ? { sketch_dir: dir } : {}),
+      overwrite,
+    });
+  }
+
+  archiveSketch(
+    sketchPath: string,
+    archivePath?: string,
+    includeBuildDir = false,
+    overwrite = true,
+  ): Promise<void> {
+    return this.unary("ArchiveSketch", {
+      sketch_path: sketchPath,
+      ...(archivePath ? { archive_path: archivePath } : {}),
+      include_build_dir: includeBuildDir,
+      overwrite,
+    });
+  }
+
+  checkForUpdates(forceCheck = true): Promise<CheckForArduinoCLIUpdatesResponse> {
+    return this.unary<CheckForArduinoCLIUpdatesResponse>(
+      "CheckForArduinoCLIUpdates",
+      { force_check: forceCheck },
+    );
+  }
+
+  cleanDownloadCache(): Promise<void> {
+    return this.unary("CleanDownloadCacheDirectory", {
+      instance: this.requireInstance(),
+    });
   }
 
   supportedUserFields(
@@ -531,6 +572,67 @@ export class ArduinoClient {
       sinks,
       signal,
     );
+  }
+
+  /** Upload via an external programmer. Stream has only out/err (no progress). */
+  uploadUsingProgrammer(
+    req: {
+      fqbn: string;
+      sketch_path: string;
+      port: object;
+      programmer: string;
+      user_fields?: Record<string, string>;
+    },
+    sinks: { out: (s: string) => void; err: (s: string) => void },
+    signal?: AbortSignal,
+  ): Promise<void> {
+    return this.outputStream(
+      "UploadUsingProgrammer",
+      { instance: this.requireInstance(), ...req },
+      sinks,
+      signal,
+    );
+  }
+
+  /** Burn a bootloader to the board via a programmer. */
+  burnBootloader(
+    req: {
+      fqbn: string;
+      port: object;
+      programmer: string;
+      user_fields?: Record<string, string>;
+    },
+    sinks: { out: (s: string) => void; err: (s: string) => void },
+    signal?: AbortSignal,
+  ): Promise<void> {
+    return this.outputStream(
+      "BurnBootloader",
+      { instance: this.requireInstance(), ...req },
+      sinks,
+      signal,
+    );
+  }
+
+  /**
+   * Lightweight server-stream consumer for RPCs that only emit out_stream/err_stream
+   * (no progress or result oneofs). Used by UploadUsingProgrammer and BurnBootloader.
+   */
+  private outputStream(
+    method: string,
+    request: object,
+    sinks: { out: (s: string) => void; err: (s: string) => void },
+    signal?: AbortSignal,
+  ): Promise<void> {
+    return this.serverStream(method, request, {
+      signal,
+      onData: (msg: { message?: string; out_stream?: Buffer; err_stream?: Buffer }) => {
+        if (msg.message === "out_stream" && msg.out_stream) {
+          sinks.out(Buffer.from(msg.out_stream).toString("utf-8"));
+        } else if (msg.message === "err_stream" && msg.err_stream) {
+          sinks.err(Buffer.from(msg.err_stream).toString("utf-8"));
+        }
+      },
+    });
   }
 
   // ---------------------------------------------------------------------------

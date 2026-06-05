@@ -84,6 +84,30 @@
         "title": "%command.boardDetails%"
       },
       {
+        "command": "arduinoCli.uploadUsingProgrammer",
+        "title": "%command.uploadUsingProgrammer%"
+      },
+      {
+        "command": "arduinoCli.burnBootloader",
+        "title": "%command.burnBootloader%"
+      },
+      {
+        "command": "arduinoCli.newSketch",
+        "title": "%command.newSketch%"
+      },
+      {
+        "command": "arduinoCli.archiveSketch",
+        "title": "%command.archiveSketch%"
+      },
+      {
+        "command": "arduinoCli.checkForUpdates",
+        "title": "%command.checkForUpdates%"
+      },
+      {
+        "command": "arduinoCli.cleanDownloadCache",
+        "title": "%command.cleanDownloadCache%"
+      },
+      {
         "command": "arduinoCli.addLibrary",
         "title": "%command.addLibrary%",
         "icon": "$(add)"

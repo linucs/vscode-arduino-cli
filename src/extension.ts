@@ -6,8 +6,10 @@ import { DaemonManager } from "./daemon";
 import { Indexes } from "./indexes";
 import { LibraryManager } from "./libraryManager";
 import { LibraryTreeProvider } from "./libraryView";
+import { checkForUpdates, cleanDownloadCache } from "./maintenance";
 import { PlatformManager } from "./platformManager";
 import { SerialMonitor } from "./serialMonitor";
+import { archiveSketch, newSketch } from "./sketch";
 import { Uploader } from "./upload";
 
 let context: vscode.ExtensionContext;
@@ -71,6 +73,32 @@ export async function activate(ctx: vscode.ExtensionContext) {
     ),
     vscode.commands.registerCommand("arduinoCli.boardDetails", () =>
       withReady((d) => d.boards.showBoardDetails()),
+    ),
+    vscode.commands.registerCommand("arduinoCli.uploadUsingProgrammer", () =>
+      withReady(async (d) => {
+        if (await d.compiler.run()) {
+          await d.monitor.runWithMonitorSuspended(() =>
+            d.uploader.runWithProgrammer(),
+          );
+        }
+      }),
+    ),
+    vscode.commands.registerCommand("arduinoCli.burnBootloader", () =>
+      withReady((d) =>
+        d.monitor.runWithMonitorSuspended(() => d.uploader.burnBootloader()),
+      ),
+    ),
+    vscode.commands.registerCommand("arduinoCli.newSketch", () =>
+      withReady((d) => newSketch(d.client)),
+    ),
+    vscode.commands.registerCommand("arduinoCli.archiveSketch", () =>
+      withReady((d) => archiveSketch(d.client)),
+    ),
+    vscode.commands.registerCommand("arduinoCli.checkForUpdates", () =>
+      withReady((d) => checkForUpdates(d.client, output)),
+    ),
+    vscode.commands.registerCommand("arduinoCli.cleanDownloadCache", () =>
+      withReady((d) => cleanDownloadCache(d.client, output)),
     ),
     vscode.commands.registerCommand("arduinoCli.addLibrary", () =>
       withReady(async (d) => {
@@ -149,6 +177,8 @@ export async function activate(ctx: vscode.ExtensionContext) {
   try {
     await ensureReady();
     output.appendLine("[extension] arduino-cli daemon ready");
+    // Fire-and-forget: notify if a newer arduino-cli is available.
+    void checkForUpdates(client!, output, { quiet: true }).catch(() => {});
   } catch (err) {
     output.appendLine(`[extension] startup failed: ${asMessage(err)}`);
     vscode.window.showErrorMessage(
