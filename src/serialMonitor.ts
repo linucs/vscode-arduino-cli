@@ -41,8 +41,8 @@ export class SerialMonitor {
   ) {}
 
   /** Open a monitor on the selected port, or focus the existing one. */
-  async openOrFocus(): Promise<void> {
-    const target = await this.resolveTarget();
+  async openOrFocus(sketchTarget?: vscode.Uri | string): Promise<void> {
+    const target = await this.resolveTarget(false, sketchTarget);
     if (!target) {
       return;
     }
@@ -327,8 +327,12 @@ export class SerialMonitor {
 
   private async resolveTarget(
     silent = false,
+    sketchTarget?: vscode.Uri | string,
   ): Promise<{ port: Port; fqbn: string } | undefined> {
-    const sketch = await resolveSketch(this.client, { silent: true });
+    const sketch = await resolveSketch(this.client, {
+      silent: true,
+      target: sketchTarget,
+    });
     const fqbn = this.boards.fqbn || sketch?.default_fqbn || "";
     const selected = this.boards.port;
     if (selected?.address) {

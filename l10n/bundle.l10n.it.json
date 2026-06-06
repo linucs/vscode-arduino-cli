@@ -3,6 +3,8 @@
   "Arduino CLI: daemon restarted": "Arduino CLI: daemon riavviato",
   "Arduino CLI: {0}": "Arduino CLI: {0}",
   "Arduino CLI: could not start daemon — {0}": "Arduino CLI: impossibile avviare il daemon — {0}",
+  "arduino-cli not found at \"{0}\". Set \"arduinoCli.path\" or install arduino-cli.": "arduino-cli non trovato in \"{0}\". Imposta \"arduinoCli.path\" o installa arduino-cli.",
+  "Failed to start arduino-cli daemon ({0}): {1}": "Impossibile avviare il daemon arduino-cli ({0}): {1}",
   "No board selected. Run “Arduino CLI: Select Board” first.": "Nessuna scheda selezionata. Esegui prima “Arduino CLI: Seleziona scheda”.",
   "Unknown board — pick one manually": "Scheda sconosciuta — selezionane una manualmente",
   "$(search) Choose a board manually…": "$(search) Scegli una scheda manualmente…",

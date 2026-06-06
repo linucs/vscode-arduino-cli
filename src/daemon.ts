@@ -65,14 +65,24 @@ export class DaemonManager {
         this.output.append(chunk.toString());
       });
 
-      proc.on("error", (err) => {
+      proc.on("error", (err: NodeJS.ErrnoException) => {
         if (!settled) {
           settled = true;
-          reject(
-            new Error(
-              `Failed to start arduino-cli daemon (${this.cliPath}): ${err.message}`,
-            ),
-          );
+          // ENOENT = the executable isn't on PATH (or `arduinoCli.path` is wrong):
+          // the common case when arduino-cli simply isn't installed. Give one
+          // actionable message instead of a raw spawn error.
+          const message =
+            err.code === "ENOENT"
+              ? vscode.l10n.t(
+                  'arduino-cli not found at "{0}". Set "arduinoCli.path" or install arduino-cli.',
+                  this.cliPath,
+                )
+              : vscode.l10n.t(
+                  "Failed to start arduino-cli daemon ({0}): {1}",
+                  this.cliPath,
+                  err.message,
+                );
+          reject(new Error(message));
         }
       });
 

@@ -20,8 +20,8 @@ export class Uploader {
   ) {}
 
   /** Upload the resolved sketch to the selected board/port. Returns true on success. */
-  async run(): Promise<boolean> {
-    const sketch = await resolveSketch(this.client);
+  async run(target?: vscode.Uri | string): Promise<boolean> {
+    const sketch = await resolveSketch(this.client, { target });
     if (!sketch) {
       return false;
     }
@@ -146,8 +146,8 @@ export class Uploader {
   }
 
   /** Upload via an external programmer (compile first is the caller's responsibility). */
-  async runWithProgrammer(): Promise<boolean> {
-    const sketch = await resolveSketch(this.client);
+  async runWithProgrammer(target?: vscode.Uri | string): Promise<boolean> {
+    const sketch = await resolveSketch(this.client, { target });
     if (!sketch) {
       return false;
     }

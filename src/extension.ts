@@ -36,6 +36,8 @@ let debugManager: DebugManager | undefined;
 let intellisense: IntelliSenseManager | undefined;
 let libraryView: LibraryTreeProvider | undefined;
 let output: vscode.OutputChannel;
+/** One-time daemon-dependent startup (settings sync + update check), run on first ready. */
+let firstReadyHooksRun = false;
 
 export async function activate(ctx: vscode.ExtensionContext) {
   context = ctx;
@@ -50,20 +52,21 @@ export async function activate(ctx: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arduinoCli.selectBoard", () =>
       withReady((d) => d.boards.selectBoard()),
     ),
-    vscode.commands.registerCommand("arduinoCli.compile", () =>
-      withReady((d) => d.compiler.run()),
+    vscode.commands.registerCommand("arduinoCli.compile", (arg) =>
+      withReady((d) => d.compiler.run({ target: targetUri(arg) })),
     ),
-    vscode.commands.registerCommand("arduinoCli.upload", () =>
+    vscode.commands.registerCommand("arduinoCli.upload", (arg) =>
       withReady(async (d) => {
         // Arduino-style: compile first, upload only if it succeeds. The monitor
         // holds the port, so release it for the duration of the upload.
-        if (await d.compiler.run()) {
-          await d.monitor.runWithMonitorSuspended(() => d.uploader.run());
+        const target = targetUri(arg);
+        if (await d.compiler.run({ target })) {
+          await d.monitor.runWithMonitorSuspended(() => d.uploader.run(target));
         }
       }),
     ),
-    vscode.commands.registerCommand("arduinoCli.openMonitor", () =>
-      withReady((d) => d.monitor.openOrFocus()),
+    vscode.commands.registerCommand("arduinoCli.openMonitor", (arg) =>
+      withReady((d) => d.monitor.openOrFocus(targetUri(arg))),
     ),
     vscode.commands.registerCommand("arduinoCli.updateIndex", () =>
       withReady((d) => d.indexes.updatePackageIndex()),
@@ -86,11 +89,12 @@ export async function activate(ctx: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arduinoCli.boardDetails", () =>
       withReady((d) => d.boards.showBoardDetails()),
     ),
-    vscode.commands.registerCommand("arduinoCli.uploadUsingProgrammer", () =>
+    vscode.commands.registerCommand("arduinoCli.uploadUsingProgrammer", (arg) =>
       withReady(async (d) => {
-        if (await d.compiler.run()) {
+        const target = targetUri(arg);
+        if (await d.compiler.run({ target })) {
           await d.monitor.runWithMonitorSuspended(() =>
-            d.uploader.runWithProgrammer(),
+            d.uploader.runWithProgrammer(target),
           );
         }
       }),
@@ -127,11 +131,12 @@ export async function activate(ctx: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arduinoCli.listProfileLibraries", () =>
       withReady((d) => listProfileLibraries(d.client, output)),
     ),
-    vscode.commands.registerCommand("arduinoCli.debug", () =>
+    vscode.commands.registerCommand("arduinoCli.debug", (arg) =>
       withReady(async (d) => {
         // Debug needs a fresh, debug-optimized .elf.
-        if (await d.compiler.run({ optimizeForDebug: true })) {
-          await d.debug.startDebug();
+        const target = targetUri(arg);
+        if (await d.compiler.run({ optimizeForDebug: true, target })) {
+          await d.debug.startDebug(target);
         }
       }),
     ),
@@ -245,20 +250,10 @@ export async function activate(ctx: vscode.ExtensionContext) {
     vscode.workspace.onDidSaveTextDocument((doc) => intellisense?.onDidSave(doc)),
   );
 
-  try {
-    await ensureReady();
-    output.appendLine("[extension] arduino-cli daemon ready");
-    // Sync VS Code settings → daemon, then watch for changes.
-    void syncToDaemon(client!, output).catch(() => {});
-    ctx.subscriptions.push(watchSettings(client!, output));
-    // Fire-and-forget: notify if a newer arduino-cli is available.
-    void checkForUpdates(client!, output, { quiet: true }).catch(() => {});
-  } catch (err) {
-    output.appendLine(`[extension] startup failed: ${asMessage(err)}`);
-    vscode.window.showErrorMessage(
-      vscode.l10n.t("Arduino CLI: could not start daemon — {0}", asMessage(err)),
-    );
-  }
+  // The daemon is NOT started here: spawning it requires arduino-cli on PATH and
+  // is pointless until the user runs a command. It starts lazily on first use
+  // (see ensureReady / withReady), so users without arduino-cli — or who only use
+  // another toolchain — pay no cost and get no spawn error at activation.
 }
 
 export async function deactivate() {
@@ -328,6 +323,16 @@ async function ensureReady(): Promise<Deps> {
       void dbg.updateDebugSupported(fqbn, port?.address ? port : undefined);
       isense.scheduleConfigure();
     });
+  }
+  // First successful start only: sync settings → daemon, watch for changes, and
+  // check for a newer arduino-cli. Deferred from activation so it runs once the
+  // daemon is actually up (on first command), not eagerly.
+  if (!firstReadyHooksRun) {
+    firstReadyHooksRun = true;
+    output.appendLine("[extension] arduino-cli daemon ready");
+    void syncToDaemon(client, output).catch(() => {});
+    context.subscriptions.push(watchSettings(client, output));
+    void checkForUpdates(client, output, { quiet: true }).catch(() => {});
   }
   return {
     client,
@@ -400,4 +405,14 @@ async function restartDaemon() {
 
 function asMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
+}
+
+/**
+ * The first argument VS Code passes to a command invoked from an `editor/title`
+ * button is the active document's URI — including over a custom editor (the
+ * resource is the underlying file). Narrow it so handlers can target that exact
+ * sketch; Command Palette / keybinding invocations pass `undefined`.
+ */
+function targetUri(arg: unknown): vscode.Uri | undefined {
+  return arg instanceof vscode.Uri ? arg : undefined;
 }

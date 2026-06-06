@@ -79,9 +79,9 @@ export async function archiveSketch(client: ArduinoClient): Promise<void> {
  */
 export async function resolveSketch(
   client: ArduinoClient,
-  opts: { silent?: boolean } = {},
+  opts: { silent?: boolean; target?: vscode.Uri | string } = {},
 ): Promise<Sketch | undefined> {
-  const candidate = await pickCandidatePath(opts.silent ?? false);
+  const candidate = await pickCandidatePath(opts.silent ?? false, opts.target);
   if (!candidate) {
     return undefined;
   }
@@ -102,7 +102,17 @@ export async function resolveSketch(
 }
 
 /** Determine the filesystem path to hand to `LoadSketch` (a file or folder). */
-async function pickCandidatePath(silent: boolean): Promise<string | undefined> {
+async function pickCandidatePath(
+  silent: boolean,
+  target?: vscode.Uri | string,
+): Promise<string | undefined> {
+  // Explicit target wins (e.g. the document URI VS Code passes to an editor/title
+  // command, or a path from any programmatic caller). LoadSketch validates it and
+  // resolves the enclosing sketch folder.
+  if (target) {
+    return target instanceof vscode.Uri ? target.fsPath : target;
+  }
+
   const active = vscode.window.activeTextEditor?.document.uri;
   if (active?.scheme === "file" && active.fsPath.endsWith(".ino")) {
     return active.fsPath;

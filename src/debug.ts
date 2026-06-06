@@ -285,8 +285,8 @@ export class DebugManager implements vscode.DebugConfigurationProvider {
   ) {}
 
   /** Command entry point: resolve config, suspend monitor, launch the session. */
-  async startDebug(): Promise<void> {
-    const built = await this.buildConfiguration();
+  async startDebug(target?: vscode.Uri | string): Promise<void> {
+    const built = await this.buildConfiguration({ target });
     if (!built) {
       return;
     }
@@ -375,8 +375,9 @@ export class DebugManager implements vscode.DebugConfigurationProvider {
   private async resolveContext(overrides?: {
     fqbn?: string;
     programmer?: string;
+    target?: vscode.Uri | string;
   }): Promise<TranslatorContext | undefined> {
-    const sketch = await resolveSketch(this.client);
+    const sketch = await resolveSketch(this.client, { target: overrides?.target });
     if (!sketch) {
       return undefined;
     }
@@ -425,6 +426,7 @@ export class DebugManager implements vscode.DebugConfigurationProvider {
   private async buildConfiguration(overrides?: {
     fqbn?: string;
     programmer?: string;
+    target?: vscode.Uri | string;
   }): Promise<vscode.DebugConfiguration | undefined> {
     const ctx = await this.resolveContext(overrides);
     if (!ctx) {

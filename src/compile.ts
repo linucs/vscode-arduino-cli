@@ -24,8 +24,10 @@ export class Compiler {
   }
 
   /** Compile the resolved sketch for the selected board. Returns true on success. */
-  async run(opts: { optimizeForDebug?: boolean } = {}): Promise<boolean> {
-    const sketch = await resolveSketch(this.client);
+  async run(
+    opts: { optimizeForDebug?: boolean; target?: vscode.Uri | string } = {},
+  ): Promise<boolean> {
+    const sketch = await resolveSketch(this.client, { target: opts.target });
     if (!sketch) {
       return false;
     }
