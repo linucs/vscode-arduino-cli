@@ -5,6 +5,11 @@
   "version": "0.0.1",
   "license": "MIT",
   "publisher": "linucs",
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#1E1E2E",
+    "theme": "dark"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/linucs/vscode-arduino-cli"
@@ -16,16 +21,23 @@
   "keywords": [
     "arduino",
     "arduino-cli",
-    "grpc",
     "embedded",
     "microcontroller",
     "esp32",
-    "avr"
+    "avr",
+    "stm32",
+    "serial-monitor",
+    "serial-plotter",
+    "debugger",
+    "iot",
+    "blockly"
   ],
   "engines": {
     "vscode": "^1.120.0"
   },
   "categories": [
+    "Programming Languages",
+    "Debuggers",
     "Other"
   ],
   "activationEvents": [

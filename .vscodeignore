@@ -1,6 +1,7 @@
 .vscode/**
 .vscode-test/**
 .vscode-test.mjs
+.github/**
 out/**
 node_modules/**
 src/**
@@ -15,6 +16,8 @@ eslint.config.mjs
 **/*.map
 **/*.ts
 CLAUDE.md
-README.md
+PUBLISHING.md
+images/icon.svg
 yarn.lock
 *.vsix
+*.code-workspace
