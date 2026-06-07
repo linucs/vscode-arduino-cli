@@ -1,7 +1,9 @@
 import * as vscode from "vscode";
-import type { ArduinoClient } from "./arduinoClient";
+import type { ArduinoClient, ArduinoInstance } from "./arduinoClient";
 import type { BoardManager } from "./boardManager";
+import type { PlatformManager } from "./platformManager";
 import { resolveSketch } from "./sketch";
+import { prepareExecution } from "./profileMode";
 import type { Port } from "./proto/types";
 
 /**
@@ -16,6 +18,7 @@ export class Uploader {
   constructor(
     private readonly client: ArduinoClient,
     private readonly boards: BoardManager,
+    private readonly platforms: PlatformManager,
     private readonly output: vscode.OutputChannel,
   ) {}
 
@@ -26,7 +29,13 @@ export class Uploader {
       return false;
     }
 
-    const fqbn = this.boards.fqbn || sketch.default_fqbn;
+    const exec = await prepareExecution(
+      this.client, this.boards, sketch, this.platforms, this.output, "upload",
+    );
+    if (!exec) {
+      return false;
+    }
+    const fqbn = exec.fqbn;
     if (!fqbn) {
       await this.promptSelectBoard(
         vscode.l10n.t("No board selected for this sketch."),
@@ -34,6 +43,7 @@ export class Uploader {
       return false;
     }
 
+    // Port stays physical/per-machine even in profile mode.
     const port = this.resolvePort(sketch.default_port, sketch.default_protocol);
     if (!port) {
       await this.promptSelectBoard(
@@ -42,13 +52,17 @@ export class Uploader {
       return false;
     }
 
-    const userFields = await this.collectUserFields(fqbn, port.protocol);
+    const userFields = await this.collectUserFields(
+      fqbn,
+      port.protocol,
+      exec.instance,
+    );
     if (userFields === undefined) {
       return false; // user cancelled a required field
     }
 
     this.output.show(true);
-    this.output.appendLine(`\n[upload] ${fqbn} → ${port.address}`);
+    this.output.appendLine(`\n[upload] ${fqbn} -> ${port.address}`);
 
     return vscode.window.withProgress(
       {
@@ -65,7 +79,9 @@ export class Uploader {
               fqbn,
               sketch_path: sketch.location_path,
               port,
+              ...(this.verbose() ? { verbose: true } : {}),
               user_fields: userFields,
+              ...(exec.instance ? { instance: exec.instance } : {}),
             },
             {
               out: (s) => this.output.append(s),
@@ -126,8 +142,9 @@ export class Uploader {
   private async collectUserFields(
     fqbn: string,
     protocol: string,
+    instance?: ArduinoInstance,
   ): Promise<Record<string, string> | undefined> {
-    const res = await this.client.supportedUserFields(fqbn, protocol);
+    const res = await this.client.supportedUserFields(fqbn, protocol, instance);
     const fields = res.user_fields ?? [];
     const values: Record<string, string> = {};
     for (const f of fields) {
@@ -152,7 +169,13 @@ export class Uploader {
       return false;
     }
 
-    const fqbn = this.boards.fqbn || sketch.default_fqbn;
+    const exec = await prepareExecution(
+      this.client, this.boards, sketch, this.platforms, this.output, "upload",
+    );
+    if (!exec) {
+      return false;
+    }
+    const fqbn = exec.fqbn;
     if (!fqbn) {
       await this.promptSelectBoard(
         vscode.l10n.t("No board selected for this sketch."),
@@ -168,19 +191,23 @@ export class Uploader {
       return false;
     }
 
-    const programmer = await this.pickProgrammer(fqbn);
+    const programmer = await this.pickProgrammer(fqbn, exec.instance);
     if (!programmer) {
       return false;
     }
 
-    const userFields = await this.collectUserFields(fqbn, port.protocol);
+    const userFields = await this.collectUserFields(
+      fqbn,
+      port.protocol,
+      exec.instance,
+    );
     if (userFields === undefined) {
       return false;
     }
 
     this.output.show(true);
     this.output.appendLine(
-      `\n[upload-programmer] ${fqbn} → ${port.address} (${programmer})`,
+      `\n[upload-programmer] ${fqbn} -> ${port.address} (${programmer})`,
     );
 
     return vscode.window.withProgress(
@@ -202,7 +229,9 @@ export class Uploader {
               sketch_path: sketch.location_path,
               port,
               programmer,
+              ...(this.verbose() ? { verbose: true } : {}),
               user_fields: userFields,
+              ...(exec.instance ? { instance: exec.instance } : {}),
             },
             {
               out: (s) => this.output.append(s),
@@ -261,7 +290,7 @@ export class Uploader {
 
     this.output.show(true);
     this.output.appendLine(
-      `\n[burn-bootloader] ${fqbn} → ${port.address} (${programmer})`,
+      `\n[burn-bootloader] ${fqbn} -> ${port.address} (${programmer})`,
     );
 
     return vscode.window.withProgress(
@@ -279,6 +308,7 @@ export class Uploader {
               fqbn,
               port,
               programmer,
+              ...(this.verbose() ? { verbose: true } : {}),
               user_fields: userFields,
             },
             {
@@ -308,8 +338,15 @@ export class Uploader {
     );
   }
 
-  private async pickProgrammer(fqbn: string): Promise<string | undefined> {
-    const res = await this.client.listProgrammers(fqbn);
+  private verbose(): boolean {
+    return vscode.workspace.getConfiguration("arduinoCli").get<boolean>("verbose", false);
+  }
+
+  private async pickProgrammer(
+    fqbn: string,
+    instance?: ArduinoInstance,
+  ): Promise<string | undefined> {
+    const res = await this.client.listProgrammers(fqbn, instance);
     const programmers = res.programmers ?? [];
     if (programmers.length === 0) {
       vscode.window.showWarningMessage(

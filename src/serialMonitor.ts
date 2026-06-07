@@ -1,8 +1,13 @@
 import * as vscode from "vscode";
-import type { ArduinoClient, MonitorStream } from "./arduinoClient";
+import type {
+  ArduinoClient,
+  ArduinoInstance,
+  MonitorStream,
+} from "./arduinoClient";
 import type { BoardManager } from "./boardManager";
 import { PlotterPanel } from "./plotterPanel";
 import { resolveSketch } from "./sketch";
+import { resolveExecution } from "./profileMode";
 import { splitLines, parseTelemetryLine } from "./telemetryParser";
 import type { MonitorResponse, Port } from "./proto/types";
 
@@ -11,6 +16,8 @@ interface Session {
   port: Port;
   fqbn: string;
   portConfig?: object;
+  /** Profile-bound instance when the sketch is in profile mode. */
+  instance?: ArduinoInstance;
   stream?: MonitorStream;
   write: vscode.EventEmitter<string>;
   /** Line-buffered input, sent on Enter. */
@@ -53,8 +60,12 @@ export class SerialMonitor {
       }
       this.closeSession();
     }
-    const portConfig = await this.pickConfiguration(target.port.protocol, target.fqbn);
-    this.openSession(target.port, target.fqbn, portConfig);
+    const portConfig = await this.pickConfiguration(
+      target.port.protocol,
+      target.fqbn,
+      target.instance,
+    );
+    this.openSession(target.port, target.fqbn, portConfig, target.instance);
   }
 
   /** Save the captured serial log to a file (plain text or CSV with timestamps). */
@@ -138,7 +149,12 @@ export class SerialMonitor {
         await new Promise((r) => setTimeout(r, 1500));
         const target = await this.resolveTarget(true);
         if (target?.port.address) {
-          this.openSession(target.port, snapshot.fqbn, snapshot.portConfig);
+          this.openSession(
+            target.port,
+            snapshot.fqbn,
+            snapshot.portConfig,
+            target.instance,
+          );
         }
       }
     }
@@ -175,7 +191,12 @@ export class SerialMonitor {
     }
     const target = await this.resolveTarget(true);
     if (target?.port.address) {
-      this.openSession(target.port, snapshot.fqbn, snapshot.portConfig);
+      this.openSession(
+        target.port,
+        snapshot.fqbn,
+        snapshot.portConfig,
+        target.instance,
+      );
     }
   }
 
@@ -185,13 +206,19 @@ export class SerialMonitor {
 
   // --- session lifecycle ----------------------------------------------------
 
-  private openSession(port: Port, fqbn: string, portConfig?: object): void {
+  private openSession(
+    port: Port,
+    fqbn: string,
+    portConfig?: object,
+    instance?: ArduinoInstance,
+  ): void {
     const write = new vscode.EventEmitter<string>();
     const session: Session = {
       terminal: undefined as unknown as vscode.Terminal,
       port,
       fqbn,
       portConfig,
+      instance,
       write,
       lineBuf: "",
       closing: false,
@@ -207,6 +234,7 @@ export class SerialMonitor {
             port,
             fqbn,
             port_configuration: portConfig,
+            ...(instance ? { instance } : {}),
           });
           session.stream = stream;
           stream.on("data", (msg: MonitorResponse) => this.onData(session, msg));
@@ -328,15 +356,27 @@ export class SerialMonitor {
   private async resolveTarget(
     silent = false,
     sketchTarget?: vscode.Uri | string,
-  ): Promise<{ port: Port; fqbn: string } | undefined> {
+  ): Promise<
+    { port: Port; fqbn: string; instance?: ArduinoInstance } | undefined
+  > {
     const sketch = await resolveSketch(this.client, {
       silent: true,
       target: sketchTarget,
     });
-    const fqbn = this.boards.fqbn || sketch?.default_fqbn || "";
+    // Profile mode: board + instance come from the profile. Global mode: keep
+    // today's behavior (status-bar selection or default_fqbn).
+    // Opening the monitor must not trigger the profile's platform download; use
+    // the profile instance only if it is already built, else fall back below.
+    const exec = sketch
+      ? await resolveExecution(this.client, this.boards, sketch, {
+          create: false,
+        })
+      : undefined;
+    const fqbn = exec?.fqbn ?? this.boards.fqbn ?? "";
+    const instance = exec?.instance;
     const selected = this.boards.port;
     if (selected?.address) {
-      return { port: selected, fqbn };
+      return { port: selected, fqbn, instance };
     }
     if (sketch?.default_port) {
       return {
@@ -349,6 +389,7 @@ export class SerialMonitor {
           hardware_id: "",
         },
         fqbn,
+        instance,
       };
     }
     if (!silent) {
@@ -367,10 +408,15 @@ export class SerialMonitor {
   private async pickConfiguration(
     protocol: string,
     fqbn: string,
+    instance?: ArduinoInstance,
   ): Promise<object | undefined> {
     let res;
     try {
-      res = await this.client.enumerateMonitorPortSettings(protocol, fqbn);
+      res = await this.client.enumerateMonitorPortSettings(
+        protocol,
+        fqbn,
+        instance,
+      );
     } catch {
       // Monitor settings unavailable (e.g. platform not installed) — open with defaults.
       return undefined;

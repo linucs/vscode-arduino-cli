@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import type { ArduinoClient } from "./arduinoClient";
 import type { SearchedLibrary } from "./proto/types";
+import { promptVersion } from "./versionPick";
 
 /**
  * Library operations: search/list (reads) and install/uninstall/upgrade
@@ -44,16 +45,23 @@ export class LibraryManager {
    * the whole index. Picking a library previews dependencies and installs the
    * latest version.
    */
-  async addLibrary(): Promise<boolean> {
+  /**
+   * Returns the installed `{name, version}` on success (so callers can offer to
+   * pin it to a profile), or `undefined` if cancelled or the install failed.
+   * `version` may be empty when the user chose "latest".
+   */
+  async addLibrary(): Promise<{ name: string; version: string } | undefined> {
     const lib = await this.pickLibraryViaSearch();
     if (!lib) {
-      return false;
+      return undefined;
     }
     const version = await this.pickVersion(lib);
     if (version === undefined) {
-      return false; // version step cancelled
+      return undefined; // version step cancelled
     }
-    return this.installByName(lib.name, version);
+    return (await this.installByName(lib.name, version))
+      ? { name: lib.name, version }
+      : undefined;
   }
 
   /**
@@ -82,32 +90,17 @@ export class LibraryManager {
     return this.installByName(lib.name, version);
   }
 
-  /** Pick a version (newest first; latest/installed annotated). Returns latest's
-   * version directly when there's only one, or undefined if cancelled. */
-  private async pickVersion(
+  private pickVersion(
     lib: SearchedLibrary,
     installedVersion?: string,
   ): Promise<string | undefined> {
-    const versions = lib.available_versions ?? [];
-    if (versions.length <= 1) {
-      return versions[0] ?? lib.latest?.version ?? "";
-    }
-    const latest = lib.latest?.version;
-    const items = [...versions].reverse().map((v) => {
-      const tags: string[] = [];
-      if (v === latest) {
-        tags.push(vscode.l10n.t("latest"));
-      }
-      if (v === installedVersion) {
-        tags.push(vscode.l10n.t("installed"));
-      }
-      return { label: v, description: tags.join(" · ") || undefined };
+    // available_versions is oldest-first from the daemon; reverse to newest-first.
+    return promptVersion({
+      versions: [...(lib.available_versions ?? [])].reverse(),
+      latest: lib.latest?.version,
+      installed: installedVersion,
+      title: lib.name,
     });
-    const pick = await vscode.window.showQuickPick(items, {
-      title: vscode.l10n.t("Version of {0}", lib.name),
-      placeHolder: vscode.l10n.t("Select a version (newest first)"),
-    });
-    return pick?.label;
   }
 
   private pickLibraryViaSearch(): Promise<SearchedLibrary | undefined> {
@@ -326,7 +319,9 @@ export class LibraryManager {
         token.onCancellationRequested(() => ac.abort());
         try {
           await call((message) => {
-            this.output.appendLine(`[library] ${message}`);
+            if (this.verbose()) {
+              this.output.appendLine(`[library] ${message}`);
+            }
             progress.report({ message });
           }, ac.signal);
           vscode.window.showInformationMessage(successMessage);
@@ -345,6 +340,10 @@ export class LibraryManager {
         }
       },
     );
+  }
+
+  private verbose(): boolean {
+    return vscode.workspace.getConfiguration("arduinoCli").get<boolean>("verbose", false);
   }
 
   private showError(err: unknown): void {

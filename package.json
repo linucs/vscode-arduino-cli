@@ -65,7 +65,8 @@
       },
       {
         "command": "arduinoCli.installPlatform",
-        "title": "%command.installPlatform%"
+        "title": "%command.installPlatform%",
+        "icon": "$(add)"
       },
       {
         "command": "arduinoCli.uninstallPlatform",
@@ -78,6 +79,31 @@
       {
         "command": "arduinoCli.downloadPlatform",
         "title": "%command.downloadPlatform%"
+      },
+      {
+        "command": "arduinoCli.refreshPlatforms",
+        "title": "%command.refreshPlatforms%",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "arduinoCli.upgradePlatforms",
+        "title": "%command.upgradePlatforms%",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "arduinoCli.platform.uninstall",
+        "title": "%command.platformUninstall%",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "arduinoCli.platform.upgrade",
+        "title": "%command.platformUpgrade%",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "arduinoCli.platform.changeVersion",
+        "title": "%command.platformChangeVersion%",
+        "icon": "$(versions)"
       },
       {
         "command": "arduinoCli.boardDetails",
@@ -193,6 +219,21 @@
         "icon": "$(versions)"
       },
       {
+        "command": "arduinoCli.lib.addToProfile",
+        "title": "%command.libAddToProfile%",
+        "icon": "$(pin)"
+      },
+      {
+        "command": "arduinoCli.profileLib.remove",
+        "title": "%command.profileLibRemove%",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "arduinoCli.refreshProfileLibraries",
+        "title": "%command.refreshProfileLibraries%",
+        "icon": "$(refresh)"
+      },
+      {
         "command": "arduinoCli.showVersion",
         "title": "%command.showVersion%"
       },
@@ -213,8 +254,17 @@
     "views": {
       "arduinoCli": [
         {
+          "id": "arduinoCli.platforms",
+          "name": "%view.platforms%"
+        },
+        {
           "id": "arduinoCli.libraries",
           "name": "%view.libraries%"
+        },
+        {
+          "id": "arduinoCli.profileLibraries",
+          "name": "%view.profileLibraries%",
+          "when": "arduinoCli.profileMode"
         }
       ]
     },
@@ -249,9 +299,54 @@
           "command": "arduinoCli.downloadLibrary",
           "when": "view == arduinoCli.libraries",
           "group": "1_install@3"
+        },
+        {
+          "command": "arduinoCli.refreshProfileLibraries",
+          "when": "view == arduinoCli.profileLibraries",
+          "group": "navigation@0"
+        },
+        {
+          "command": "arduinoCli.installPlatform",
+          "when": "view == arduinoCli.platforms",
+          "group": "navigation@0"
+        },
+        {
+          "command": "arduinoCli.refreshPlatforms",
+          "when": "view == arduinoCli.platforms",
+          "group": "navigation@1"
+        },
+        {
+          "command": "arduinoCli.upgradePlatforms",
+          "when": "view == arduinoCli.platforms",
+          "group": "navigation@2"
+        },
+        {
+          "command": "arduinoCli.downloadPlatform",
+          "when": "view == arduinoCli.platforms",
+          "group": "1_install@1"
         }
       ],
       "view/item/context": [
+        {
+          "command": "arduinoCli.platform.upgrade",
+          "when": "view == arduinoCli.platforms && viewItem == arduinoPlatformInstalledUpdatable",
+          "group": "inline@1"
+        },
+        {
+          "command": "arduinoCli.platform.uninstall",
+          "when": "view == arduinoCli.platforms && viewItem =~ /^arduinoPlatformInstalled/",
+          "group": "inline@2"
+        },
+        {
+          "command": "arduinoCli.platform.changeVersion",
+          "when": "view == arduinoCli.platforms && viewItem =~ /^arduinoPlatformInstalled/",
+          "group": "1_platform@1"
+        },
+        {
+          "command": "arduinoCli.lib.addToProfile",
+          "when": "view == arduinoCli.libraries && arduinoCli.profileMode && viewItem =~ /^arduinoLibInstalled/",
+          "group": "inline@0"
+        },
         {
           "command": "arduinoCli.lib.upgrade",
           "when": "view == arduinoCli.libraries && viewItem == arduinoLibInstalledUpdatable",
@@ -266,6 +361,11 @@
           "command": "arduinoCli.lib.changeVersion",
           "when": "view == arduinoCli.libraries && viewItem =~ /^arduinoLibInstalled/",
           "group": "1_lib@1"
+        },
+        {
+          "command": "arduinoCli.profileLib.remove",
+          "when": "view == arduinoCli.profileLibraries && viewItem == arduinoProfileLib",
+          "group": "inline@0"
         }
       ],
       "editor/title": [
@@ -349,6 +449,11 @@
           "type": "string",
           "default": "",
           "description": "%config.debugInterpreter%"
+        },
+        "arduinoCli.verbose": {
+          "type": "boolean",
+          "default": false,
+          "description": "%config.verbose%"
         },
         "arduinoCli.intellisense.autoConfigure": {
           "type": "boolean",

@@ -4,6 +4,7 @@ import type { ArduinoClient } from "./arduinoClient";
 import type { BoardManager } from "./boardManager";
 import type { SerialMonitor } from "./serialMonitor";
 import { resolveSketch } from "./sketch";
+import { resolveExecution } from "./profileMode";
 import type {
   GetDebugConfigResponse,
   OpenOCDServerConfig,
@@ -381,17 +382,37 @@ export class DebugManager implements vscode.DebugConfigurationProvider {
     if (!sketch) {
       return undefined;
     }
-    const fqbn = overrides?.fqbn || this.boards.fqbn || sketch.default_fqbn;
+    // Profile mode: board + instance come from the profile (overrides still win
+    // when explicitly passed). Global mode: status-bar selection or default_fqbn.
+    // Don't let debugging silently start the profile's platform download — that
+    // belongs to Compile (with progress). Require the profile to be built first.
+    const exec = await resolveExecution(this.client, this.boards, sketch, {
+      create: false,
+    });
+    const fqbn = overrides?.fqbn || exec.fqbn;
     if (!fqbn) {
       vscode.window.showWarningMessage(
         vscode.l10n.t("No board selected for this sketch."),
       );
       return undefined;
     }
+    if (exec.profileMode && !exec.profileReady) {
+      vscode.window.showWarningMessage(
+        vscode.l10n.t(
+          "Compile the sketch once to set up its profile before debugging.",
+        ),
+      );
+      return undefined;
+    }
 
     const port = this.boards.port?.address ? this.boards.port : undefined;
+    const instance = exec.instance;
 
-    const support = await this.client.isDebugSupported({ fqbn, port });
+    const support = await this.client.isDebugSupported({
+      fqbn,
+      port,
+      ...(instance ? { instance } : {}),
+    });
     if (!support.debugging_supported) {
       vscode.window.showErrorMessage(
         vscode.l10n.t("Debugging is not supported for {0}.", fqbn),
@@ -404,6 +425,7 @@ export class DebugManager implements vscode.DebugConfigurationProvider {
       sketch_path: sketch.location_path,
       port,
       programmer: overrides?.programmer,
+      ...(instance ? { instance } : {}),
     });
 
     return {

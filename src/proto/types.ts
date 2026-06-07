@@ -31,6 +31,28 @@ export interface DownloadProgress {
   end?: { success: boolean; message: string };
 }
 
+/** google/rpc/status.proto — Status { code, message, details } */
+export interface Status {
+  code: number;
+  message: string;
+  details: unknown[];
+}
+
+/**
+ * commands.proto — InitResponse (server stream). Branch on `message`:
+ * `init_progress` (download/stage status) and `profile` (selected profile info)
+ * are non-terminal; `error` carries a `google.rpc.Status` and means the init
+ * FAILED — it arrives as a normal stream message, NOT a gRPC transport error.
+ */
+export interface InitResponse {
+  message: "init_progress" | "error" | "profile";
+  init_progress?: {
+    download_progress?: DownloadProgress;
+    task_progress?: TaskProgress;
+  };
+  error?: Status;
+}
+
 /** port.proto — Port */
 export interface Port {
   address: string;
@@ -132,7 +154,24 @@ export interface BoardListWatchResponse {
   error: string;
 }
 
-/** common.proto — Sketch (subset used by Phase 1) */
+/** common.proto — ProfilePlatformReference */
+export interface ProfilePlatformReference {
+  id: string;
+  version?: string;
+  index_url?: string;
+}
+
+/** common.proto — SketchProfile. */
+export interface SketchProfile {
+  name: string;
+  fqbn: string;
+  programmer?: string;
+  port?: string;
+  protocol?: string;
+  platforms?: ProfilePlatformReference[];
+}
+
+/** common.proto — Sketch (subset). `default_profile`/`profiles` drive profile mode. */
 export interface Sketch {
   main_file: string;
   location_path: string;
@@ -140,6 +179,10 @@ export interface Sketch {
   default_fqbn: string;
   default_port: string;
   default_protocol: string;
+  /** Present when sketch.yaml sets `default_profile` — triggers profile mode. */
+  default_profile?: SketchProfile;
+  /** All profiles declared in sketch.yaml. */
+  profiles?: SketchProfile[];
 }
 
 /** commands.proto — LoadSketchResponse */

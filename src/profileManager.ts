@@ -1,12 +1,132 @@
 import * as vscode from "vscode";
 import type { ArduinoClient } from "./arduinoClient";
 import type { BoardManager } from "./boardManager";
+import type { PlatformManager } from "./platformManager";
+import type { ProfileLibraryReference } from "./proto/types";
+import type { LibNode } from "./libraryView";
+import type { ProfileContext, ProfileLibNode } from "./profileLibraryView";
 import { resolveSketch } from "./sketch";
+
+/**
+ * ProfileLibAdd + consistent reporting (added and already-present). The single
+ * add path shared by the command-palette flow and the inline tree action, so
+ * both report the same way. Refresh of any view is left to the caller.
+ */
+export async function applyProfileLibAdd(
+  client: ArduinoClient,
+  sketchPath: string,
+  profileName: string,
+  library: ProfileLibraryReference,
+): Promise<void> {
+  const res = await client.profileLibAdd(sketchPath, profileName, library);
+  const added = (res.added_libraries ?? [])
+    .map((l) => l.index_library?.name)
+    .filter(Boolean);
+  const skipped = (res.skipped_libraries ?? [])
+    .map((l) => l.index_library?.name)
+    .filter(Boolean);
+  if (added.length) {
+    vscode.window.showInformationMessage(
+      vscode.l10n.t("Added to profile: {0}", added.join(", ")),
+    );
+  }
+  if (skipped.length) {
+    vscode.window.showInformationMessage(
+      vscode.l10n.t("Already in profile: {0}", skipped.join(", ")),
+    );
+  }
+}
+
+/**
+ * ProfileLibRemove + consistent reporting (removed). The single remove path
+ * shared by the command-palette flow and the inline tree action.
+ */
+export async function applyProfileLibRemove(
+  client: ArduinoClient,
+  sketchPath: string,
+  profileName: string,
+  library: ProfileLibraryReference,
+): Promise<void> {
+  const res = await client.profileLibRemove(sketchPath, profileName, library);
+  const removed = (res.removed_libraries ?? [])
+    .map((l) => l.index_library?.name)
+    .filter(Boolean);
+  if (removed.length) {
+    vscode.window.showInformationMessage(
+      vscode.l10n.t("Removed from profile: {0}", removed.join(", ")),
+    );
+  }
+}
+
+/** Pin a library (by name + installed version) to a profile via the add path. */
+async function pinLibraryToProfile(
+  client: ArduinoClient,
+  profile: ProfileContext,
+  lib: { name: string; version: string },
+): Promise<void> {
+  await applyProfileLibAdd(client, profile.sketchPath, profile.profileName, {
+    index_library: { name: lib.name, version: lib.version, is_dependency: false },
+  });
+}
+
+/** Add an installed-library tree node (pinned to its version) to the profile. */
+export async function addInstalledLibraryToProfile(
+  client: ArduinoClient,
+  profile: ProfileContext | undefined,
+  node: LibNode | undefined,
+): Promise<void> {
+  if (node?.kind !== "lib" || !profile) {
+    return;
+  }
+  await pinLibraryToProfile(client, profile, {
+    name: node.name,
+    version: node.version,
+  });
+}
+
+/** Remove a profile-library tree node from the profile (inline tree action). */
+export async function removeProfileLibrary(
+  client: ArduinoClient,
+  profile: ProfileContext | undefined,
+  node: ProfileLibNode | undefined,
+): Promise<void> {
+  if (node?.kind !== "profileLib" || !profile) {
+    return;
+  }
+  await applyProfileLibRemove(
+    client,
+    profile.sketchPath,
+    profile.profileName,
+    node.ref,
+  );
+}
+
+/** After installing a library, offer to pin it to the current profile (Yes by default). */
+export async function offerAddToProfile(
+  client: ArduinoClient,
+  profile: ProfileContext | undefined,
+  lib: { name: string; version: string },
+): Promise<void> {
+  if (!profile) {
+    return;
+  }
+  const yes = vscode.l10n.t("Yes");
+  const choice = await vscode.window.showInformationMessage(
+    vscode.l10n.t('Add "{0}" to profile "{1}"?', lib.name, profile.profileName),
+    { modal: true },
+    yes,
+    vscode.l10n.t("No"),
+  );
+  if (choice === yes) {
+    await pinLibraryToProfile(client, profile, lib);
+  }
+}
 
 /** Create a new build profile in the current sketch's sketch.yaml. */
 export async function createProfile(
   client: ArduinoClient,
   boards: BoardManager,
+  platforms: PlatformManager,
 ): Promise<void> {
   const sketch = await resolveSketch(client);
   if (!sketch) {
@@ -30,6 +150,19 @@ export async function createProfile(
   if (!fqbn) {
     vscode.window.showWarningMessage(
       vscode.l10n.t("No board selected. Select a board first."),
+    );
+    return;
+  }
+
+  // The core must be installed before ProfileCreate: with it missing,
+  // arduino-cli writes `platforms: []`, which later panics its own YAML loader
+  // and kills the daemon.
+  if (!(await platforms.ensurePlatformInstalled(fqbn))) {
+    vscode.window.showWarningMessage(
+      vscode.l10n.t(
+        'Profile not created: the “{0}” core must be installed first.',
+        fqbn.split(":").slice(0, 2).join(":"),
+      ),
     );
     return;
   }
@@ -110,35 +243,13 @@ export async function addLibraryToProfile(
     return;
   }
 
-  const res = await client.profileLibAdd(
-    sketch.location_path,
-    profileName.trim(),
-    {
-      index_library: {
-        name: libName.trim(),
-        version: libVersion?.trim() ?? "",
-        is_dependency: false,
-      },
+  await applyProfileLibAdd(client, sketch.location_path, profileName.trim(), {
+    index_library: {
+      name: libName.trim(),
+      version: libVersion?.trim() ?? "",
+      is_dependency: false,
     },
-  );
-
-  const added = (res.added_libraries ?? [])
-    .map((l) => l.index_library?.name)
-    .filter(Boolean);
-  const skipped = (res.skipped_libraries ?? [])
-    .map((l) => l.index_library?.name)
-    .filter(Boolean);
-
-  if (added.length) {
-    vscode.window.showInformationMessage(
-      vscode.l10n.t("Added to profile: {0}", added.join(", ")),
-    );
-  }
-  if (skipped.length) {
-    vscode.window.showInformationMessage(
-      vscode.l10n.t("Already in profile: {0}", skipped.join(", ")),
-    );
-  }
+  });
 }
 
 /** Remove a library from a sketch build profile. */
@@ -189,19 +300,12 @@ export async function removeLibraryFromProfile(
     return;
   }
 
-  const res = await client.profileLibRemove(
+  await applyProfileLibRemove(
+    client,
     sketch.location_path,
     profileName.trim(),
     pick.lib,
   );
-  const removed = (res.removed_libraries ?? [])
-    .map((l) => l.index_library?.name)
-    .filter(Boolean);
-  if (removed.length) {
-    vscode.window.showInformationMessage(
-      vscode.l10n.t("Removed from profile: {0}", removed.join(", ")),
-    );
-  }
 }
 
 /** List libraries pinned in a sketch build profile. */

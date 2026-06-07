@@ -1,10 +1,11 @@
 import * as vscode from "vscode";
 import type { ArduinoClient } from "./arduinoClient";
 import type { PlatformSummary } from "./proto/types";
+import { promptVersion } from "./versionPick";
 
 /**
  * Platform/core management: search, install, uninstall, upgrade — plus
- * `ensurePlatformForFqbn`, which the compile/upload flow calls to offer
+ * `ensurePlatformInstalled`, which the compile/upload flow calls to offer
  * installing a missing core before the build fails (FR2.4).
  */
 export class PlatformManager {
@@ -14,15 +15,23 @@ export class PlatformManager {
   ) {}
 
   /**
-   * Ensure the platform a board belongs to is installed. Returns true if the
-   * build may proceed (already installed, just installed, or undeterminable —
-   * in which case we let compile surface the real error), false if the user
-   * declined to install a known-missing core.
+   * Ensure the platform a board belongs to is installed. Returns true only when
+   * the core is confirmed installed (already present or just installed), false
+   * otherwise (search failed, user declined, auto-install disabled, unknown
+   * core). Callers decide how to react to false — compile/upload can let the
+   * daemon surface a better error, ProfileCreate must abort.
+   *
+   * @param version When set (profile mode), checks and installs that specific
+   *   version. When absent (global mode / ProfileCreate), checks any installed
+   *   version and installs `latest_version` from the index.
    */
-  async ensurePlatformForFqbn(fqbn: string): Promise<boolean> {
+  async ensurePlatformInstalled(
+    fqbn: string,
+    version?: string,
+  ): Promise<boolean> {
     const [pkg, arch] = fqbn.split(":");
     if (!pkg || !arch) {
-      return true;
+      return false;
     }
     const id = `${pkg}:${arch}`;
 
@@ -31,17 +40,22 @@ export class PlatformManager {
       const res = await this.client.platformSearch(id);
       summary = res.search_output?.find((s) => s.metadata.id === id);
     } catch {
-      return true; // search failed — let compile run and report the real cause
+      return false;
     }
-    if (!summary || summary.installed_version) {
-      return true; // unknown platform, or already installed
+    if (!summary) {
+      return false;
+    }
+    if (version
+      ? summary.installed_version === version
+      : Boolean(summary.installed_version)) {
+      return true;
     }
 
     const enabled = vscode.workspace
       .getConfiguration("arduinoCli")
       .get<boolean>("autoInstallPlatform", true);
     if (!enabled) {
-      return true;
+      return false;
     }
 
     const choice = await vscode.window.showWarningMessage(
@@ -51,7 +65,7 @@ export class PlatformManager {
     if (!choice) {
       return false;
     }
-    await this.install(pkg, arch, summary.latest_version);
+    await this.install(pkg, arch, version ?? summary.latest_version);
     return true;
   }
 
@@ -82,16 +96,7 @@ export class PlatformManager {
       return;
     }
     const [pkg, arch] = summary.metadata.id.split(":");
-    await this.withProgress(
-      vscode.l10n.t("Uninstalling {0}…", summary.metadata.id),
-      (onStatus, signal) =>
-        this.client.platformUninstall(
-          { platform_package: pkg, architecture: arch },
-          onStatus,
-          signal,
-        ),
-      vscode.l10n.t("Removed {0}.", summary.metadata.id),
-    );
+    await this.uninstallById(pkg, arch);
   }
 
   /** Upgrade an installed platform chosen from a QuickPick. */
@@ -108,15 +113,149 @@ export class PlatformManager {
       return;
     }
     const [pkg, arch] = summary.metadata.id.split(":");
-    await this.withProgress(
-      vscode.l10n.t("Upgrading {0}…", summary.metadata.id),
+    await this.upgradeById(pkg, arch);
+  }
+
+  // --- reads (used by the Platforms tree view) -----------------------------
+
+  /**
+   * Installed cores, each flagged `updatable` when a newer release exists.
+   * There is no `PlatformList` RPC (unlike libraries), so installed-state is
+   * derived from `PlatformSearch` — the same source `pickPlatform` filters.
+   */
+  async listInstalled(): Promise<
+    { id: string; name: string; version: string; updatable: boolean }[]
+  > {
+    const res = await this.client.platformSearch("");
+    return (res.search_output ?? [])
+      .filter((s) => Boolean(s.installed_version))
+      .map((s) => ({
+        id: s.metadata.id,
+        name: installedName(s),
+        version: s.installed_version,
+        updatable:
+          Boolean(s.latest_version) &&
+          s.latest_version !== s.installed_version,
+      }));
+  }
+
+  // --- by-id mutations (used by the tree view's inline actions) ------------
+
+  uninstallById(pkg: string, arch: string): Promise<boolean> {
+    const id = `${pkg}:${arch}`;
+    return this.withProgress(
+      vscode.l10n.t("Uninstalling {0}…", id),
+      (onStatus, signal) =>
+        this.client.platformUninstall(
+          { platform_package: pkg, architecture: arch },
+          onStatus,
+          signal,
+        ),
+      vscode.l10n.t("Removed {0}.", id),
+    );
+  }
+
+  upgradeById(pkg: string, arch: string): Promise<boolean> {
+    const id = `${pkg}:${arch}`;
+    return this.withProgress(
+      vscode.l10n.t("Upgrading {0}…", id),
       (onStatus, signal) =>
         this.client.platformUpgrade(
           { platform_package: pkg, architecture: arch },
           onStatus,
           signal,
         ),
-      vscode.l10n.t("Upgraded {0}.", summary.metadata.id),
+      vscode.l10n.t("Upgraded {0}.", id),
+    );
+  }
+
+  /**
+   * Switch an installed core to any available release — including an older one
+   * (a downgrade): search for the platform, pick a version, reinstall.
+   */
+  async changeVersion(id: string, installedVersion: string): Promise<boolean> {
+    let summary: PlatformSummary | undefined;
+    try {
+      const res = await this.client.platformSearch(id);
+      summary = res.search_output?.find((s) => s.metadata.id === id);
+    } catch (err) {
+      this.showError(err);
+      return false;
+    }
+    if (!summary) {
+      vscode.window.showInformationMessage(
+        vscode.l10n.t("“{0}” is not in the platform index.", id),
+      );
+      return false;
+    }
+    const version = await this.pickVersion(summary, installedVersion);
+    if (version === undefined || version === installedVersion) {
+      return false;
+    }
+    const [pkg, arch] = id.split(":");
+    return this.withProgress(
+      vscode.l10n.t("Installing {0}:{1}…", pkg, arch),
+      (onStatus, signal) =>
+        this.client.platformInstall(
+          { platform_package: pkg, architecture: arch, version },
+          onStatus,
+          signal,
+        ),
+      vscode.l10n.t("Installed {0}:{1}.", pkg, arch),
+    );
+  }
+
+  /**
+   * Upgrade every updatable core. There is no `PlatformUpgradeAll` RPC, so this
+   * loops `PlatformUpgrade` under a single progress notification.
+   */
+  async upgradeAll(): Promise<boolean> {
+    const updatable = (await this.listInstalled()).filter((p) => p.updatable);
+    if (updatable.length === 0) {
+      vscode.window.showInformationMessage(
+        vscode.l10n.t("All platforms are up to date."),
+      );
+      return false;
+    }
+    return this.withProgress(
+      vscode.l10n.t("Upgrading all platforms…"),
+      async (onStatus, signal) => {
+        for (const p of updatable) {
+          const [pkg, arch] = p.id.split(":");
+          onStatus(p.id);
+          await this.client.platformUpgrade(
+            { platform_package: pkg, architecture: arch },
+            onStatus,
+            signal,
+          );
+        }
+      },
+      vscode.l10n.t("Platforms upgraded."),
+    );
+  }
+
+  /**
+   * Pick a release of `summary` (newest first; latest/installed annotated).
+   * Returns the sole version when there's only one, or undefined if cancelled.
+   */
+  private pickVersion(
+    summary: PlatformSummary,
+    installedVersion?: string,
+  ): Promise<string | undefined> {
+    return promptVersion({
+      versions: Object.keys(summary.releases ?? {}).sort(compareVersionDesc),
+      latest: summary.latest_version,
+      installed: installedVersion,
+      title: summary.metadata.id,
+    });
+  }
+
+  private showError(err: unknown): void {
+    vscode.window.showErrorMessage(
+      vscode.l10n.t(
+        "Arduino CLI: {0}",
+        err instanceof Error ? err.message : String(err),
+      ),
     );
   }
 
@@ -160,6 +299,10 @@ export class PlatformManager {
     );
   }
 
+  private verbose(): boolean {
+    return vscode.workspace.getConfiguration("arduinoCli").get<boolean>("verbose", false);
+  }
+
   private async pickPlatform(
     filter: (s: PlatformSummary) => boolean,
     title: string,
@@ -197,6 +340,7 @@ export class PlatformManager {
     return pick?.summary;
   }
 
+  /** Returns true on success, false on cancel/error. */
   private async withProgress(
     title: string,
     call: (
@@ -204,9 +348,9 @@ export class PlatformManager {
       signal: AbortSignal,
     ) => Promise<void>,
     successMessage: string,
-  ): Promise<void> {
+  ): Promise<boolean> {
     this.output.appendLine(`\n[platform] ${title}`);
-    await vscode.window.withProgress(
+    return vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
         title,
@@ -217,13 +361,16 @@ export class PlatformManager {
         token.onCancellationRequested(() => ac.abort());
         try {
           await call((message) => {
-            this.output.appendLine(`[platform] ${message}`);
+            if (this.verbose()) {
+              this.output.appendLine(`[platform] ${message}`);
+            }
             progress.report({ message });
           }, ac.signal);
           vscode.window.showInformationMessage(successMessage);
+          return true;
         } catch (err) {
           if (ac.signal.aborted) {
-            return;
+            return false;
           }
           this.output.appendLine(
             `[platform] failed: ${err instanceof Error ? err.message : String(err)}`,
@@ -231,10 +378,37 @@ export class PlatformManager {
           vscode.window.showErrorMessage(
             vscode.l10n.t("Platform operation failed — see the Arduino CLI output."),
           );
+          return false;
         }
       },
     );
   }
+}
+
+/** Display name for an installed core (its installed release name, else id). */
+function installedName(s: PlatformSummary): string {
+  return s.releases?.[s.installed_version]?.name || s.metadata.id;
+}
+
+/** Compare dotted version strings descending (newest first); numeric-aware. */
+function compareVersionDesc(a: string, b: string): number {
+  const pa = a.split(".");
+  const pb = b.split(".");
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const na = Number(pa[i] ?? 0);
+    const nb = Number(pb[i] ?? 0);
+    if (Number.isNaN(na) || Number.isNaN(nb)) {
+      const c = b.localeCompare(a);
+      if (c !== 0) {
+        return c;
+      }
+      continue;
+    }
+    if (na !== nb) {
+      return nb - na;
+    }
+  }
+  return 0;
 }
 
 /** Best human name for a platform summary (latest release name, else id). */

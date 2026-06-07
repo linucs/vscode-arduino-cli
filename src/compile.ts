@@ -3,6 +3,7 @@ import type { ArduinoClient } from "./arduinoClient";
 import type { BoardManager } from "./boardManager";
 import type { PlatformManager } from "./platformManager";
 import { resolveSketch } from "./sketch";
+import { prepareExecution } from "./profileMode";
 import type { CompileDiagnostic, CompileDiagnosticRef } from "./proto/types";
 
 /**
@@ -13,6 +14,8 @@ import type { CompileDiagnostic, CompileDiagnosticRef } from "./proto/types";
  */
 export class Compiler {
   private readonly diagnostics: vscode.DiagnosticCollection;
+  /** Fired after a successful compile (e.g. to refresh IntelliSense). */
+  private afterSuccess?: () => void;
 
   constructor(
     private readonly client: ArduinoClient,
@@ -23,6 +26,16 @@ export class Compiler {
     this.diagnostics = vscode.languages.createDiagnosticCollection("arduino");
   }
 
+  /**
+   * Register a hook run after each successful compile. Used to (re)configure
+   * IntelliSense once the platform is installed and the instance is built —
+   * notably the first compile of a profile sketch, which is what flips the
+   * profile from "not ready" (IntelliSense deferred) to ready.
+   */
+  onCompiled(cb: () => void): void {
+    this.afterSuccess = cb;
+  }
+
   /** Compile the resolved sketch for the selected board. Returns true on success. */
   async run(
     opts: { optimizeForDebug?: boolean; target?: vscode.Uri | string } = {},
@@ -31,8 +44,14 @@ export class Compiler {
     if (!sketch) {
       return false;
     }
-    const fqbn = this.boards.fqbn || sketch.default_fqbn;
-    if (!fqbn) {
+
+    const exec = await prepareExecution(
+      this.client, this.boards, sketch, this.platforms, this.output, "compile",
+    );
+    if (!exec) {
+      return false;
+    }
+    if (!exec.fqbn) {
       const choice = await vscode.window.showWarningMessage(
         vscode.l10n.t("No board selected for this sketch."),
         vscode.l10n.t("Select Board"),
@@ -43,19 +62,18 @@ export class Compiler {
       return false;
     }
 
-    // Offer to install the board's platform if it's missing (FR2.4).
-    if (!(await this.platforms.ensurePlatformForFqbn(fqbn))) {
-      return false;
-    }
+    const label = exec.profileMode
+      ? `profile:${exec.profileName}`
+      : (exec.fqbn as string);
 
     this.diagnostics.clear();
     this.output.show(true);
-    this.output.appendLine(`\n[compile] ${fqbn} — ${sketch.location_path}`);
+    this.output.appendLine(`\n[compile] ${label} — ${sketch.location_path}`);
 
     return vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: vscode.l10n.t("Compiling {0}…", fqbn),
+        title: vscode.l10n.t("Compiling {0}…", label),
         cancellable: true,
       },
       async (progress, token) => {
@@ -64,9 +82,12 @@ export class Compiler {
         try {
           const result = await this.client.compile(
             {
-              fqbn,
+              // Profile mode: omit fqbn (the bound instance supplies it).
+              ...(exec.profileMode ? {} : { fqbn: exec.fqbn }),
               sketch_path: sketch.location_path,
+              ...(exec.instance ? { instance: exec.instance } : {}),
               ...(opts.optimizeForDebug ? { optimize_for_debug: true } : {}),
+              ...(this.verbose() ? { verbose: true } : {}),
             },
             {
               out: (s) => this.output.append(s),
@@ -82,6 +103,7 @@ export class Compiler {
           vscode.window.showInformationMessage(
             vscode.l10n.t("Compilation finished."),
           );
+          this.afterSuccess?.();
           return true;
         } catch (err) {
           if (ac.signal.aborted) {
@@ -100,6 +122,10 @@ export class Compiler {
     );
   }
 
+  private verbose(): boolean {
+    return vscode.workspace.getConfiguration("arduinoCli").get<boolean>("verbose", false);
+  }
+
   private applyDiagnostics(diags: CompileDiagnostic[]): void {
     for (const [file, list] of buildDiagnostics(diags)) {
       this.diagnostics.set(vscode.Uri.file(file), list);
@@ -112,7 +138,7 @@ export class Compiler {
 }
 
 /**
- * Map `CompileDiagnostic[]` → vscode diagnostics grouped per file. Pure (no
+ * Map `CompileDiagnostic[]` -> vscode diagnostics grouped per file. Pure (no
  * collection side effects) so it can be unit-tested. Diagnostics with no file
  * are skipped; `context` + `notes` become related information.
  */

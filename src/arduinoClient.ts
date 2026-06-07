@@ -29,6 +29,7 @@ import type {
   ProfileLibRemoveResponse,
   ProfileLibraryReference,
   GetDebugConfigResponse,
+  InitResponse,
   IsDebugSupportedResponse,
   SetSketchDefaultsRequest,
   SetSketchDefaultsResponse,
@@ -103,8 +104,46 @@ export class ArduinoClient {
   private client: grpc.Client | undefined;
   private service: any;
   private instance: ArduinoInstance | undefined;
+  /**
+   * Profile-bound instances, keyed by sketch path. Created on demand for
+   * sketches whose sketch.yaml has a `default_profile`; the daemon binds the
+   * profile's board/platform/libraries at Init (isolated from globally-installed
+   * resources). The global `instance` above still serves profile-less sketches.
+   */
+  private readonly profileInstances = new Map<
+    string,
+    { profile: string; instance: ArduinoInstance }
+  >();
+  /**
+   * In-flight `getProfileInstance` calls keyed by sketch path, so concurrent
+   * callers (e.g. a user Compile and the background IntelliSense config) share a
+   * single Create+Init instead of each starting their own — which would launch
+   * two identical (potentially hundreds-of-MB) platform downloads, only one of
+   * which the Compile progress UI could cancel.
+   */
+  private readonly profileInstancesInFlight = new Map<
+    string,
+    { profile: string; promise: Promise<ArduinoInstance> }
+  >();
+  /**
+   * Monotonic epoch per sketch path, bumped on every
+   * `invalidateProfileInstance`. An in-flight Init captures the epoch when it
+   * starts and only caches its result if the epoch is unchanged on completion —
+   * so an Init that resolved against a now-superseded sketch.yaml does not write
+   * a stale instance back into the cache after invalidation.
+   */
+  private readonly profileEpochs = new Map<string, number>();
 
-  constructor(private readonly address: string) {}
+  /**
+   * @param address daemon gRPC address (loopback).
+   * @param log optional sink for init/lifecycle diagnostics (e.g. profile
+   *   platform downloads surfaced during `Init`). Decoupled from `vscode` on
+   *   purpose — the caller passes `output.appendLine`.
+   */
+  constructor(
+    private readonly address: string,
+    private readonly log?: (line: string) => void,
+  ) {}
 
   /** Loads the proto and opens an insecure local channel to the daemon. */
   connect(): void {
@@ -133,23 +172,214 @@ export class ArduinoClient {
 
   /** Create + Init an instance. Init is server-streaming progress; we await its end. */
   async initInstance(): Promise<ArduinoInstance> {
+    const instance = await this.createAndInit({});
+    this.instance = instance;
+    return instance;
+  }
+
+  /**
+   * Create an instance and run Init to completion. When `profile`/`sketch_path`
+   * are supplied the daemon binds that profile (board, platform, libraries),
+   * downloading the profile's resources as needed. Init is server-streaming
+   * progress; we await its end.
+   */
+  private async createAndInit(
+    initReq: {
+      profile?: string;
+      sketch_path?: string;
+    },
+    opts: {
+      /** Human-readable progress (profile platform/tool/library downloads). */
+      onProgress?: (message: string) => void;
+      /** Cancels the Init stream (e.g. user cancelled the progress UI). */
+      signal?: AbortSignal;
+    } = {},
+  ): Promise<ArduinoInstance> {
     const create = await this.unary<{ instance: ArduinoInstance }>(
       "Create",
       {},
     );
     const instance = create.instance;
 
-    await new Promise<void>((resolve, reject) => {
-      const stream = this.service.Init({ instance });
-      stream.on("data", () => {
-        /* progress messages — ignored in Phase 1 */
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const stream = this.service.Init({ instance, ...initReq });
+        // Cancelling the gRPC stream aborts the daemon-side download (verified:
+        // the partial file stops growing immediately). Log it so the output
+        // channel doesn't keep showing the last "Downloading…" line as if live.
+        const cancel = () => {
+          this.log?.("[init] cancelled — download stopped");
+          stream.cancel();
+        };
+        if (opts.signal) {
+          if (opts.signal.aborted) {
+            cancel();
+          } else {
+            opts.signal.addEventListener("abort", cancel, { once: true });
+          }
+        }
+        // `download_progress` updates carry only bytes (no label), so remember
+        // the label from the preceding `start` to annotate the percentage.
+        let label = "";
+        stream.on("data", (msg: InitResponse) => {
+          // Init failures (e.g. the daemon could not resolve/download a
+          // profile's platform) arrive as a normal stream message carrying the
+          // `error` oneof — NOT as a gRPC transport error. Branch on the
+          // `message` discriminator and reject on `error`, otherwise a
+          // half-initialised instance would look successful and surface later
+          // as a misleading "no platform installed" at Compile time.
+          if (msg.message === "error" && msg.error) {
+            reject(new Error(msg.error.message || "instance init failed"));
+            return;
+          }
+          if (msg.message !== "init_progress") {
+            return;
+          }
+          const line = describeInitProgress(msg.init_progress, (l) => {
+            label = l || label;
+            return label;
+          });
+          if (line) {
+            this.log?.(`[init] ${line}`);
+            opts.onProgress?.(line);
+          }
+        });
+        stream.on("error", reject);
+        stream.on("end", resolve);
       });
-      stream.on("error", reject);
-      stream.on("end", resolve);
-    });
+    } catch (err) {
+      // Init failed after Create allocated a daemon-side instance — release it
+      // so a failed profile resolution does not leak handles.
+      this.destroyInstance(instance);
+      throw err;
+    }
 
-    this.instance = instance;
     return instance;
+  }
+
+  /**
+   * Create + Init an instance bound to `profileName` for the sketch at
+   * `sketchPath`, cached per sketch path. The daemon resolves board, platform
+   * and libraries from the profile (isolated from globally-installed
+   * resources), so callers must NOT also pass an `fqbn` to Compile in this mode.
+   * Re-inits (and discards the old instance) if the cached entry was bound to a
+   * different profile.
+   */
+  async getProfileInstance(
+    sketchPath: string,
+    profileName: string,
+    opts: {
+      onProgress?: (message: string) => void;
+      signal?: AbortSignal;
+    } = {},
+  ): Promise<ArduinoInstance> {
+    const cached = this.profileInstances.get(sketchPath);
+    if (cached && cached.profile === profileName) {
+      return cached.instance;
+    }
+    // Join an in-flight Init for the same profile rather than starting a second
+    // one (and a second download).
+    const inFlight = this.profileInstancesInFlight.get(sketchPath);
+    if (inFlight && inFlight.profile === profileName) {
+      return inFlight.promise;
+    }
+    if (cached) {
+      this.destroyInstance(cached.instance);
+    }
+    const entry: { profile: string; promise: Promise<ArduinoInstance> } = {
+      profile: profileName,
+      promise: undefined as unknown as Promise<ArduinoInstance>,
+    };
+    entry.promise = this.buildStableProfileInstance(
+      sketchPath,
+      profileName,
+      opts,
+    ).finally(() => {
+      // Clear only OUR entry: a newer Init for the same profile (started after
+      // an invalidation) may already own the slot — matching on profile name
+      // alone would wrongly orphan it.
+      const cur = this.profileInstancesInFlight.get(sketchPath);
+      if (cur === entry) {
+        this.profileInstancesInFlight.delete(sketchPath);
+      }
+    });
+    this.profileInstancesInFlight.set(sketchPath, entry);
+    return entry.promise;
+  }
+
+  /**
+   * Create+Init a profile instance, retrying if `sketch.yaml` is invalidated
+   * (epoch bumped) while the Init runs — so the returned instance always
+   * reflects the current `sketch.yaml`, never a superseded one. Each superseded
+   * instance is destroyed immediately: zero leak, and the awaiter is never
+   * handed a stale handle. Re-Init is cheap (the platform is already installed
+   * from the first attempt; only changed libraries re-resolve).
+   */
+  private async buildStableProfileInstance(
+    sketchPath: string,
+    profileName: string,
+    opts: { onProgress?: (message: string) => void; signal?: AbortSignal },
+  ): Promise<ArduinoInstance> {
+    for (let attempt = 0; ; attempt++) {
+      const epoch = this.profileEpochs.get(sketchPath) ?? 0;
+      const instance = await this.createAndInit(
+        { profile: profileName, sketch_path: sketchPath },
+        opts,
+      );
+      if ((this.profileEpochs.get(sketchPath) ?? 0) === epoch) {
+        this.profileInstances.set(sketchPath, { profile: profileName, instance });
+        return instance;
+      }
+      // sketch.yaml changed during Init — this instance is stale. Destroy it and
+      // rebuild against the current sketch.yaml.
+      this.destroyInstance(instance);
+      if (attempt >= 4) {
+        throw new Error(
+          "sketch.yaml changed repeatedly during profile initialization — please retry",
+        );
+      }
+    }
+  }
+
+  /**
+   * Return the cached profile-bound instance for a sketch, or undefined if none
+   * exists yet — WITHOUT creating one. Lets background/auto-triggered features
+   * (IntelliSense config, debug-support probing) reuse a ready instance without
+   * ever kicking off the profile's platform download; that is reserved for
+   * explicit user actions (Compile/Upload) which show cancellable progress.
+   */
+  peekProfileInstance(
+    sketchPath: string,
+    profileName: string,
+  ): ArduinoInstance | undefined {
+    const cached = this.profileInstances.get(sketchPath);
+    return cached && cached.profile === profileName ? cached.instance : undefined;
+  }
+
+  /**
+   * Drop the cached profile-bound instance for a sketch so the next operation
+   * re-Inits. Called when sketch.yaml changes — either the `default_profile`
+   * name or a profile's content (e.g. libraries appended by the blocks editor),
+   * which the daemon must re-resolve.
+   */
+  invalidateProfileInstance(sketchPath: string): void {
+    // Advance the epoch. An in-flight Init (the retry loop in
+    // buildStableProfileInstance) checks the epoch on completion and, finding it
+    // changed, discards the stale instance and rebuilds against the current
+    // sketch.yaml — so we deliberately leave the in-flight entry in place rather
+    // than deleting it (deleting would spawn a second concurrent loop). New
+    // joiners attach to that loop and receive the rebuilt instance.
+    this.profileEpochs.set(sketchPath, (this.profileEpochs.get(sketchPath) ?? 0) + 1);
+    const cached = this.profileInstances.get(sketchPath);
+    if (cached) {
+      this.destroyInstance(cached.instance);
+      this.profileInstances.delete(sketchPath);
+    }
+  }
+
+  /** Best-effort release of a daemon instance handle. */
+  private destroyInstance(instance: ArduinoInstance): void {
+    this.unary("Destroy", { instance }).catch(() => undefined);
   }
 
   async version(): Promise<string> {
@@ -364,28 +594,37 @@ export class ArduinoClient {
   supportedUserFields(
     fqbn: string,
     protocol: string,
+    instance?: ArduinoInstance,
   ): Promise<SupportedUserFieldsResponse> {
     return this.unary<SupportedUserFieldsResponse>("SupportedUserFields", {
-      instance: this.requireInstance(),
+      instance: this.requireInstance(instance),
       fqbn,
       protocol,
     });
   }
 
-  listProgrammers(fqbn: string): Promise<ListProgrammersResponse> {
+  listProgrammers(
+    fqbn: string,
+    instance?: ArduinoInstance,
+  ): Promise<ListProgrammersResponse> {
     return this.unary<ListProgrammersResponse>(
       "ListProgrammersAvailableForUpload",
-      { instance: this.requireInstance(), fqbn },
+      { instance: this.requireInstance(instance), fqbn },
     );
   }
 
   enumerateMonitorPortSettings(
     portProtocol: string,
     fqbn: string,
+    instance?: ArduinoInstance,
   ): Promise<EnumerateMonitorPortSettingsResponse> {
     return this.unary<EnumerateMonitorPortSettingsResponse>(
       "EnumerateMonitorPortSettings",
-      { instance: this.requireInstance(), port_protocol: portProtocol, fqbn },
+      {
+        instance: this.requireInstance(instance),
+        port_protocol: portProtocol,
+        fqbn,
+      },
     );
   }
 
@@ -675,19 +914,23 @@ export class ArduinoClient {
   /** Compile a sketch. Streams output via `sinks`; resolves with the BuilderResult. */
   compile(
     req: {
-      fqbn: string;
+      /** Omitted in profile mode — the profile-bound `instance` supplies it. */
+      fqbn?: string;
       sketch_path: string;
       verbose?: boolean;
       optimize_for_debug?: boolean;
       build_path?: string;
       create_compilation_database_only?: boolean;
+      /** Profile-bound instance; falls back to the global instance when absent. */
+      instance?: ArduinoInstance;
     },
     sinks: BuildStreamSinks,
     signal?: AbortSignal,
   ): Promise<BuilderResult | undefined> {
+    const { instance, ...rest } = req;
     return this.runBuildStream<BuilderResult>(
       "Compile",
-      { instance: this.requireInstance(), ...req },
+      { instance: this.requireInstance(instance), ...rest },
       sinks,
       signal,
     );
@@ -701,13 +944,16 @@ export class ArduinoClient {
       port: object;
       verbose?: boolean;
       user_fields?: Record<string, string>;
+      /** Profile-bound instance; falls back to the global instance when absent. */
+      instance?: ArduinoInstance;
     },
     sinks: BuildStreamSinks,
     signal?: AbortSignal,
   ): Promise<UploadResult | undefined> {
+    const { instance, ...rest } = req;
     return this.runBuildStream<UploadResult>(
       "Upload",
-      { instance: this.requireInstance(), ...req },
+      { instance: this.requireInstance(instance), ...rest },
       sinks,
       signal,
     );
@@ -720,14 +966,18 @@ export class ArduinoClient {
       sketch_path: string;
       port: object;
       programmer: string;
+      verbose?: boolean;
       user_fields?: Record<string, string>;
+      /** Profile-bound instance; falls back to the global instance when absent. */
+      instance?: ArduinoInstance;
     },
     sinks: { out: (s: string) => void; err: (s: string) => void },
     signal?: AbortSignal,
   ): Promise<void> {
+    const { instance, ...rest } = req;
     return this.outputStream(
       "UploadUsingProgrammer",
-      { instance: this.requireInstance(), ...req },
+      { instance: this.requireInstance(instance), ...rest },
       sinks,
       signal,
     );
@@ -739,6 +989,7 @@ export class ArduinoClient {
       fqbn: string;
       port: object;
       programmer: string;
+      verbose?: boolean;
       user_fields?: Record<string, string>;
     },
     sinks: { out: (s: string) => void; err: (s: string) => void },
@@ -788,6 +1039,8 @@ export class ArduinoClient {
     port: object;
     fqbn?: string;
     port_configuration?: object;
+    /** Profile-bound instance; falls back to the global instance when absent. */
+    instance?: ArduinoInstance;
   }): MonitorStream {
     const call = this.service.Monitor();
     const stream: MonitorStream = {
@@ -800,7 +1053,7 @@ export class ArduinoClient {
     };
     call.write({
       open_request: {
-        instance: this.requireInstance(),
+        instance: this.requireInstance(req.instance),
         port: req.port,
         fqbn: req.fqbn ?? "",
         ...(req.port_configuration
@@ -820,9 +1073,11 @@ export class ArduinoClient {
     port?: object;
     interpreter?: string;
     programmer?: string;
+    /** Profile-bound instance; falls back to the global instance when absent. */
+    instance?: ArduinoInstance;
   }): Promise<IsDebugSupportedResponse> {
     return this.unary<IsDebugSupportedResponse>("IsDebugSupported", {
-      instance: this.requireInstance(),
+      instance: this.requireInstance(req.instance),
       fqbn: req.fqbn,
       ...(req.port ? { port: req.port } : {}),
       ...(req.interpreter ? { interpreter: req.interpreter } : {}),
@@ -837,10 +1092,13 @@ export class ArduinoClient {
     interpreter?: string;
     import_dir?: string;
     programmer?: string;
+    /** Profile-bound instance; falls back to the global instance when absent. */
+    instance?: ArduinoInstance;
   }): Promise<GetDebugConfigResponse> {
+    const { instance, ...rest } = req;
     return this.unary<GetDebugConfigResponse>("GetDebugConfig", {
-      instance: this.requireInstance(),
-      ...req,
+      instance: this.requireInstance(instance),
+      ...rest,
     });
   }
 
@@ -855,6 +1113,8 @@ export class ArduinoClient {
     port?: object;
     interpreter?: string;
     programmer?: string;
+    /** Profile-bound instance; falls back to the global instance when absent. */
+    instance?: ArduinoInstance;
   }): DebugStream {
     const call = this.service.Debug();
     const stream: DebugStream = {
@@ -863,13 +1123,18 @@ export class ArduinoClient {
       cancel: () => call.cancel(),
       on: (event: string, cb: (...args: any[]) => void) => call.on(event, cb),
     };
+    const { instance, ...rest } = req;
     call.write({
-      debug_request: { instance: this.requireInstance(), ...req },
+      debug_request: { instance: this.requireInstance(instance), ...rest },
     });
     return stream;
   }
 
   async destroy(): Promise<void> {
+    for (const { instance } of this.profileInstances.values()) {
+      this.destroyInstance(instance);
+    }
+    this.profileInstances.clear();
     if (this.instance) {
       await this.unary("Destroy", { instance: this.instance }).catch(
         () => undefined,
@@ -888,12 +1153,16 @@ export class ArduinoClient {
     return this.instance !== undefined;
   }
 
-  /** The current instance, or throw if the client has not been initialized. */
-  private requireInstance(): Instance {
-    if (!this.instance) {
+  /**
+   * Resolve the instance to use for a call: an explicit (profile-bound) instance
+   * when provided, otherwise the global instance. Throws if neither exists.
+   */
+  private requireInstance(explicit?: ArduinoInstance): Instance {
+    const inst = explicit ?? this.instance;
+    if (!inst) {
       throw new Error("arduino-cli instance not initialized");
     }
-    return this.instance;
+    return inst;
   }
 
   /** Promisified unary call helper. */
@@ -908,4 +1177,42 @@ export class ArduinoClient {
       });
     });
   }
+}
+
+/**
+ * Render an `InitResponse.Progress` into a one-line status string. Download
+ * `update` frames carry only byte counts, so `track` is called on each `start`
+ * to remember the label and replay it on subsequent `update`/`end` frames.
+ * Returns undefined for frames with nothing worth showing.
+ */
+function describeInitProgress(
+  p: InitResponse["init_progress"],
+  track: (label: string) => string,
+): string | undefined {
+  const dl = p?.download_progress;
+  const task = p?.task_progress;
+  if (dl?.start) {
+    const label = track(dl.start.label || dl.start.url || "");
+    return label ? `Downloading ${label}…` : "Downloading…";
+  }
+  if (dl?.update) {
+    const label = track("");
+    const total = Number(dl.update.total_size) || 0;
+    const done = Number(dl.update.downloaded) || 0;
+    if (total > 0) {
+      const pct = Math.floor((done * 100) / total);
+      return `Downloading ${label} — ${pct}% (${mib(done)}/${mib(total)} MiB)`;
+    }
+    return label ? `Downloading ${label}…` : "Downloading…";
+  }
+  if (dl?.end) {
+    return dl.end.message || undefined;
+  }
+  // Stage messages (e.g. "Downloading the tool …", "Installing platform …").
+  return task?.name || task?.message || undefined;
+}
+
+/** Bytes → MiB with one decimal, for compact progress strings. */
+function mib(bytes: number): string {
+  return (bytes / (1024 * 1024)).toFixed(1);
 }

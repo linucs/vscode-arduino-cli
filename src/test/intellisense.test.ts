@@ -1,6 +1,8 @@
 import * as assert from "assert";
 import {
   tokenize,
+  tokenizeResponseFile,
+  expandResponseFiles,
   parseCompileCommand,
   pickSketchEntry,
   parseIncludeSet,
@@ -38,6 +40,82 @@ suite("intellisense — parseCompileCommand", () => {
       file: "x.cpp",
     });
     assert.deepStrictEqual(p.includes, ["/a", "/b"]);
+  });
+
+  test("expands @response-files and resolves -iprefix/-iwithprefixbefore (esp32)", () => {
+    // Mirrors how the esp32 core passes its SDK: a -iprefix base, an
+    // @flags/includes file of -iwithprefixbefore dirs, and an @flags/defines
+    // file carrying ESP_PLATFORM (with escaped-quote string values).
+    const files: Record<string, string> = {
+      "/sdk/flags/includes":
+        "-iwithprefixbefore freertos/FreeRTOS-Kernel/include -iwithprefixbefore soc/esp32c6/include",
+      "/sdk/flags/defines": '-DESP_PLATFORM -DIDF_VER=\\"v5.5.4\\"',
+    };
+    const p = parseCompileCommand(
+      {
+        directory: "/",
+        arguments: [
+          "riscv32-esp-elf-g++",
+          "-DARDUINO=10607",
+          "@/sdk/flags/defines",
+          "-iprefix",
+          "/sdk/include/",
+          "@/sdk/flags/includes",
+          "-I/sdk/qio_qspi/include",
+          "-std=gnu++2b",
+          "/build/sketch.ino.cpp",
+        ],
+        file: "/build/sketch.ino.cpp",
+      },
+      (f) => files[f],
+    );
+    assert.deepStrictEqual(p.includes, [
+      "/sdk/include/freertos/FreeRTOS-Kernel/include",
+      "/sdk/include/soc/esp32c6/include",
+      "/sdk/qio_qspi/include",
+    ]);
+    assert.deepStrictEqual(p.defines, [
+      "ARDUINO=10607",
+      "ESP_PLATFORM",
+      'IDF_VER="v5.5.4"',
+    ]);
+    assert.strictEqual(p.std, "gnu++2b");
+  });
+
+  test("leaves an unreadable @response-file as a literal (no throw)", () => {
+    const p = parseCompileCommand(
+      {
+        directory: "/",
+        arguments: ["g++", "-I/a", "@/missing/flags", "-DX=1"],
+        file: "x.cpp",
+      },
+      () => {
+        throw new Error("ENOENT");
+      },
+    );
+    assert.deepStrictEqual(p.includes, ["/a"]);
+    assert.deepStrictEqual(p.defines, ["X=1"]);
+  });
+});
+
+suite("intellisense — response files", () => {
+  test("tokenizeResponseFile unescapes backslash-quoted values", () => {
+    // Source `\\"` is a single backslash-escaped quote in the file's bytes.
+    assert.deepStrictEqual(
+      tokenizeResponseFile('-DESP_PLATFORM -DIDF_VER=\\"v5.5.4\\"'),
+      ["-DESP_PLATFORM", '-DIDF_VER="v5.5.4"'],
+    );
+  });
+
+  test("expandResponseFiles inlines file contents in place, recursively", () => {
+    const files: Record<string, string> = {
+      "/r/a": "-DA @/r/b",
+      "/r/b": "-DB -I/inc",
+    };
+    assert.deepStrictEqual(
+      expandResponseFiles(["g++", "@/r/a", "-DC"], "/", (f) => files[f]),
+      ["g++", "-DA", "-DB", "-I/inc", "-DC"],
+    );
   });
 });
 

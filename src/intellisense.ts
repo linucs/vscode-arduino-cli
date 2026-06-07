@@ -5,6 +5,7 @@ import * as vscode from "vscode";
 import type { ArduinoClient } from "./arduinoClient";
 import type { BoardManager } from "./boardManager";
 import { resolveSketch } from "./sketch";
+import { resolveExecution } from "./profileMode";
 
 const CPPTOOLS_EXT = "ms-vscode.cpptools";
 const CONFIG_NAME = "Arduino";
@@ -85,8 +86,17 @@ export class IntelliSenseManager {
     if (!sketch) {
       return;
     }
-    const fqbn = this.boards.fqbn || sketch.default_fqbn;
-    if (!fqbn) {
+    // Mirror the compiler's mode so the compilation database resolves the same
+    // resources: profile mode runs through the profile-bound instance (no fqbn),
+    // global mode keeps an explicit fqbn on the global instance.
+    // Never trigger the profile's platform download from IntelliSense (it runs
+    // automatically): only reuse an already-built profile instance. The first
+    // Compile installs the platform; a later configure picks it up.
+    const exec = await resolveExecution(this.client, this.boards, sketch, {
+      create: false,
+    });
+    const fqbn = exec.fqbn;
+    if (!exec.profileMode && !fqbn) {
       if (!opts.silent) {
         vscode.window.showWarningMessage(
           vscode.l10n.t("Select a board before configuring IntelliSense."),
@@ -94,12 +104,21 @@ export class IntelliSenseManager {
       }
       return;
     }
+    if (exec.profileMode && !exec.profileReady) {
+      this.output.appendLine(
+        "[intellisense] profile platform not installed yet — will configure after the first compile",
+      );
+      return;
+    }
 
     if (!opts.silent) {
       this.maybeHintCpptools();
     }
 
-    const buildPath = this.buildPathFor(sketch.location_path, fqbn);
+    // Key the build dir by profile (not fqbn) in profile mode so the profile and
+    // global compilation databases don't collide.
+    const buildKey = exec.profileMode ? `profile:${exec.profileName}` : fqbn!;
+    const buildPath = this.buildPathFor(sketch.location_path, buildKey);
     const mySeq = ++this.seq;
     this.abort?.abort();
     const ac = new AbortController();
@@ -116,10 +135,12 @@ export class IntelliSenseManager {
         () =>
           this.client.compile(
             {
-              fqbn,
+              // Profile mode: omit fqbn (the bound instance supplies it).
+              ...(exec.profileMode ? {} : { fqbn }),
               sketch_path: sketch.location_path,
               build_path: buildPath,
               create_compilation_database_only: true,
+              ...(exec.instance ? { instance: exec.instance } : {}),
             },
             {
               out: (s) => this.output.append(s),
@@ -174,7 +195,10 @@ export class IntelliSenseManager {
     );
     if (!opts.silent) {
       vscode.window.showInformationMessage(
-        vscode.l10n.t("IntelliSense configured for {0}.", fqbn),
+        vscode.l10n.t(
+          "IntelliSense configured for {0}.",
+          exec.profileMode ? exec.profileName! : fqbn!,
+        ),
       );
     }
   }
@@ -194,10 +218,10 @@ export class IntelliSenseManager {
       .get<boolean>("intellisense.autoConfigure", true);
   }
 
-  private buildPathFor(sketchPath: string, fqbn: string): string {
+  private buildPathFor(sketchPath: string, key: string): string {
     const hash = crypto
       .createHash("sha1")
-      .update(`${sketchPath}::${fqbn}`)
+      .update(`${sketchPath}::${key}`)
       .digest("hex")
       .slice(0, 16);
     const dir = path.join(
@@ -295,25 +319,147 @@ export function tokenize(command: string): string[] {
   return out;
 }
 
-/** Extract include dirs, defines, compiler path and -std from a DB entry. */
-export function parseCompileCommand(entry: CompileCommandEntry): ParsedCommand {
-  const argv = entry.arguments ?? tokenize(entry.command ?? "");
+/**
+ * Tokenize the contents of a GCC `@response-file`: whitespace separates tokens,
+ * single/double quotes group, and a backslash escapes the next character — so
+ * `-DVER=\"1.2\"` becomes the single token `-DVER="1.2"`. The backslash handling
+ * is why this can't reuse {@link tokenize} (which is for shell-style commands).
+ */
+export function tokenizeResponseFile(text: string): string[] {
+  const out: string[] = [];
+  let cur = "";
+  let quote: '"' | "'" | null = null;
+  let started = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === "\\" && i + 1 < text.length) {
+      cur += text[++i];
+      started = true;
+    } else if (quote) {
+      if (c === quote) {
+        quote = null;
+      } else {
+        cur += c;
+      }
+    } else if (c === '"' || c === "'") {
+      quote = c;
+      started = true;
+    } else if (/\s/.test(c)) {
+      if (started) {
+        out.push(cur);
+        cur = "";
+        started = false;
+      }
+    } else {
+      cur += c;
+      started = true;
+    }
+  }
+  if (started) {
+    out.push(cur);
+  }
+  return out;
+}
+
+/**
+ * Expand GCC `@file` response-file arguments in place. `@file` tells the compiler
+ * to read that file and substitute its whitespace-separated contents as if they
+ * appeared on the command line — a standard GCC feature (not specific to any
+ * core) used to pass more flags than the OS command-length limit allows. The
+ * esp32 core relies on it for its whole SDK: hundreds of include dirs live in
+ * `flags/includes` and its defines (including `ESP_PLATFORM`) in `flags/defines`.
+ * Without expansion those are invisible to us, so IntelliSense misses the
+ * platform's includes/defines and takes wrong `#ifdef` branches.
+ *
+ * Nested `@file`s expand recursively (depth-guarded); an unreadable file is left
+ * as its literal token, matching GCC (which treats a missing `@file` literally).
+ * `readFile` is injectable for tests.
+ */
+export function expandResponseFiles(
+  argv: string[],
+  baseDir: string,
+  readFile: (p: string) => string = (p) => fs.readFileSync(p, "utf8"),
+  depth = 0,
+): string[] {
+  if (depth > 16) {
+    return argv; // cycle / abuse guard
+  }
+  const out: string[] = [];
+  for (const arg of argv) {
+    if (arg.length > 1 && arg.startsWith("@")) {
+      const ref = arg.slice(1);
+      const file = path.isAbsolute(ref) ? ref : path.join(baseDir, ref);
+      let content: string;
+      try {
+        content = readFile(file);
+      } catch {
+        out.push(arg); // unreadable — leave literal (GCC semantics)
+        continue;
+      }
+      out.push(
+        ...expandResponseFiles(
+          tokenizeResponseFile(content),
+          path.dirname(file),
+          readFile,
+          depth + 1,
+        ),
+      );
+    } else {
+      out.push(arg);
+    }
+  }
+  return out;
+}
+
+/**
+ * Extract include dirs, defines, compiler path and -std from a DB entry.
+ *
+ * `@response-file` args are expanded first (see {@link expandResponseFiles}), and
+ * the GCC `-iprefix` + `-iwithprefixbefore`/`-iwithprefix` include mechanism is
+ * resolved — both standard compiler features the esp32 core uses to inject its
+ * SDK includes/defines. Plain `-I`/`-isystem`/`-D` still work unchanged.
+ * `readFile` is injectable for tests.
+ */
+export function parseCompileCommand(
+  entry: CompileCommandEntry,
+  readFile: (p: string) => string = (p) => fs.readFileSync(p, "utf8"),
+): ParsedCommand {
+  const raw = entry.arguments ?? tokenize(entry.command ?? "");
+  const argv = expandResponseFiles(raw, entry.directory ?? "", readFile);
   const includes: string[] = [];
   const defines: string[] = [];
   const compilerArgs: string[] = [];
   const compilerPath = argv[0] ?? "";
   let std = "";
+  // Set by `-iprefix`; each following `-iwithprefix[before] dir` resolves against
+  // it (GCC concatenates literally), e.g. `.../include/` + `freertos/...`.
+  let prefix = "";
+  const withPrefix = (dir: string): string => path.normalize(prefix + dir);
 
   for (let i = 1; i < argv.length; i++) {
     const a = argv[i];
-    if (a === "-I" || a === "-isystem") {
+    if (a === "-I" || a === "-isystem" || a === "-iquote") {
       if (argv[i + 1]) {
         includes.push(argv[++i]);
       }
-    } else if (a.startsWith("-I")) {
-      includes.push(a.slice(2));
+    } else if (a === "-iprefix") {
+      prefix = argv[++i] ?? prefix;
+    } else if (a === "-iwithprefixbefore" || a === "-iwithprefix") {
+      if (argv[i + 1]) {
+        includes.push(withPrefix(argv[++i]));
+      }
+    } else if (a.startsWith("-iwithprefixbefore")) {
+      includes.push(withPrefix(a.slice("-iwithprefixbefore".length)));
+    } else if (a.startsWith("-iwithprefix")) {
+      includes.push(withPrefix(a.slice("-iwithprefix".length)));
+    } else if (a.startsWith("-iprefix")) {
+      prefix = a.slice("-iprefix".length);
     } else if (a.startsWith("-isystem")) {
       includes.push(a.slice(8));
+    } else if (a.startsWith("-iquote")) {
+      includes.push(a.slice("-iquote".length));
+    } else if (a.startsWith("-I")) {
+      includes.push(a.slice(2));
     } else if (a === "-D") {
       if (argv[i + 1]) {
         defines.push(argv[++i]);

@@ -79,7 +79,11 @@ export async function archiveSketch(client: ArduinoClient): Promise<void> {
  */
 export async function resolveSketch(
   client: ArduinoClient,
-  opts: { silent?: boolean; target?: vscode.Uri | string } = {},
+  opts: {
+    silent?: boolean;
+    target?: vscode.Uri | string;
+    output?: vscode.OutputChannel;
+  } = {},
 ): Promise<Sketch | undefined> {
   const candidate = await pickCandidatePath(opts.silent ?? false, opts.target);
   if (!candidate) {
@@ -89,12 +93,14 @@ export async function resolveSketch(
     const res = await client.loadSketch(candidate);
     return res.sketch;
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    // Log even in silent mode: a sketch (likely with a sketch.yaml) is present
+    // but won't parse — otherwise the failure is invisible (e.g. the profile
+    // tree just never appears). Non-intrusive: written to the channel, not shown.
+    opts.output?.appendLine(`[sketch] could not load ${candidate}: ${msg}`);
     if (!opts.silent) {
       vscode.window.showErrorMessage(
-        vscode.l10n.t(
-          "Not a valid Arduino sketch: {0}",
-          err instanceof Error ? err.message : String(err),
-        ),
+        vscode.l10n.t("Not a valid Arduino sketch: {0}", msg),
       );
     }
     return undefined;

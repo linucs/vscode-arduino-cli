@@ -422,9 +422,13 @@ export class BoardManager {
     }
     try {
       const hasPort = Boolean(sel.port.address);
+      // In profile mode the board is owned by the (mandatory-fqbn) profile, so
+      // the board selector must not touch it — only the physical port is
+      // persisted. The board changes by editing the profile, not here.
+      const profileMode = Boolean(sketch.default_profile?.name);
       await this.client.setSketchDefaults({
         sketch_path: sketch.location_path,
-        default_fqbn: sel.fqbn,
+        ...(profileMode ? {} : { default_fqbn: sel.fqbn }),
         ...(hasPort
           ? {
               default_port_address: sel.port.address,
@@ -433,9 +437,15 @@ export class BoardManager {
           : {}),
       });
       this.output.appendLine(
-        `[boards] pinned ${sel.fqbn}${
-          hasPort ? ` @ ${sel.port.address}` : ""
-        } to sketch.yaml (${sketch.location_path})`,
+        profileMode
+          ? `[boards] profile mode — kept ${
+              sketch.default_profile?.name
+            } board; pinned${
+              hasPort ? ` port ${sel.port.address}` : " nothing"
+            } to sketch.yaml (${sketch.location_path})`
+          : `[boards] pinned ${sel.fqbn}${
+              hasPort ? ` @ ${sel.port.address}` : ""
+            } to sketch.yaml (${sketch.location_path})`,
       );
     } catch (err) {
       this.output.appendLine(

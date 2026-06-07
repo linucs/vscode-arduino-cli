@@ -1,3 +1,4 @@
+import * as path from "node:path";
 import * as vscode from "vscode";
 import { ArduinoClient } from "./arduinoClient";
 import { BoardManager } from "./boardManager";
@@ -7,20 +8,29 @@ import { DebugManager } from "./debug";
 import { IntelliSenseManager } from "./intellisense";
 import { Indexes } from "./indexes";
 import { LibraryManager } from "./libraryManager";
-import { LibraryTreeProvider } from "./libraryView";
+import { LibraryTreeProvider, type LibNode } from "./libraryView";
 import { checkForUpdates, cleanDownloadCache } from "./maintenance";
 import { PlatformManager } from "./platformManager";
+import { PlatformTreeProvider, type PlatNode } from "./platformView";
 import {
+  addInstalledLibraryToProfile,
   addLibraryToProfile,
   createProfile,
   listProfileLibraries,
+  offerAddToProfile,
   removeLibraryFromProfile,
+  removeProfileLibrary,
   setDefaultProfile,
 } from "./profileManager";
 import { SerialMonitor } from "./serialMonitor";
 import { syncToDaemon, watchSettings } from "./settingsSync";
-import { archiveSketch, newSketch } from "./sketch";
+import { archiveSketch, newSketch, resolveSketch } from "./sketch";
 import { Uploader } from "./upload";
+import {
+  ProfileLibraryTreeProvider,
+  type ProfileContext,
+  type ProfileLibNode,
+} from "./profileLibraryView";
 
 let context: vscode.ExtensionContext;
 let daemon: DaemonManager | undefined;
@@ -35,6 +45,17 @@ let libraries: LibraryManager | undefined;
 let debugManager: DebugManager | undefined;
 let intellisense: IntelliSenseManager | undefined;
 let libraryView: LibraryTreeProvider | undefined;
+let platformView: PlatformTreeProvider | undefined;
+let profileLibraryView: ProfileLibraryTreeProvider | undefined;
+let profileLibTreeView: vscode.TreeView<ProfileLibNode> | undefined;
+/** Active sketch's default-profile context (cached); undefined outside profile mode. */
+let activeProfile: ProfileContext | undefined;
+/**
+ * Folder of the active editor at the last profile-context resolve. Used to skip
+ * the (glob + LoadSketch) re-resolve when an editor switch stays within the same
+ * sketch folder or moves to a non-file surface. `null` = never resolved yet.
+ */
+let lastProfileSketchDir: string | undefined | null = null;
 let output: vscode.OutputChannel;
 /** One-time daemon-dependent startup (settings sync + update check), run on first ready. */
 let firstReadyHooksRun = false;
@@ -75,13 +96,22 @@ export async function activate(ctx: vscode.ExtensionContext) {
       withReady((d) => d.indexes.updateLibrariesIndex()),
     ),
     vscode.commands.registerCommand("arduinoCli.installPlatform", () =>
-      withReady((d) => d.platforms.installInteractive()),
+      withReady(async (d) => {
+        await d.platforms.installInteractive();
+        await afterPlatformChange(d);
+      }),
     ),
     vscode.commands.registerCommand("arduinoCli.uninstallPlatform", () =>
-      withReady((d) => d.platforms.uninstallInteractive()),
+      withReady(async (d) => {
+        await d.platforms.uninstallInteractive();
+        await afterPlatformChange(d);
+      }),
     ),
     vscode.commands.registerCommand("arduinoCli.upgradePlatform", () =>
-      withReady((d) => d.platforms.upgradeInteractive()),
+      withReady(async (d) => {
+        await d.platforms.upgradeInteractive();
+        await afterPlatformChange(d);
+      }),
     ),
     vscode.commands.registerCommand("arduinoCli.downloadPlatform", () =>
       withReady((d) => d.platforms.downloadInteractive()),
@@ -117,7 +147,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
       withReady((d) => cleanDownloadCache(d.client, output)),
     ),
     vscode.commands.registerCommand("arduinoCli.createProfile", () =>
-      withReady((d) => createProfile(d.client, d.boards)),
+      withReady((d) => createProfile(d.client, d.boards, d.platforms)),
     ),
     vscode.commands.registerCommand("arduinoCli.setDefaultProfile", () =>
       withReady((d) => setDefaultProfile(d.client)),
@@ -157,8 +187,11 @@ export async function activate(ctx: vscode.ExtensionContext) {
     ),
     vscode.commands.registerCommand("arduinoCli.addLibrary", () =>
       withReady(async (d) => {
-        if (await d.libraries.addLibrary()) {
+        const installed = await d.libraries.addLibrary();
+        if (installed) {
           await afterLibraryChange(d);
+          await offerAddToProfile(d.client, activeProfile, installed);
+          profileLibraryView?.refresh();
         }
       }),
     ),
@@ -176,6 +209,42 @@ export async function activate(ctx: vscode.ExtensionContext) {
   libraryView = new LibraryTreeProvider(() =>
     ensureReady().then((d) => d.libraries),
   );
+  // Second tree: the active sketch's default-profile libraries. Hidden outside
+  // profile mode (gated by the `arduinoCli.profileMode` context key). The client
+  // and active-profile context are resolved lazily; the view only renders when
+  // profile mode is on, by which point the daemon is ready.
+  profileLibraryView = new ProfileLibraryTreeProvider(
+    () => ensureReady().then((d) => d.client),
+    () => activeProfile,
+  );
+  profileLibTreeView = vscode.window.createTreeView("arduinoCli.profileLibraries", {
+    treeDataProvider: profileLibraryView,
+  });
+  ctx.subscriptions.push(
+    profileLibTreeView,
+    // Follow the active editor: re-resolve which sketch/profile is in scope.
+    vscode.window.onDidChangeActiveTextEditor(() => void refreshProfileContext()),
+    vscode.commands.registerCommand("arduinoCli.refreshProfileLibraries", () =>
+      profileLibraryView?.refresh(),
+    ),
+    vscode.commands.registerCommand(
+      "arduinoCli.lib.addToProfile",
+      (node: LibNode | undefined) =>
+        withReady(async (d) => {
+          await addInstalledLibraryToProfile(d.client, activeProfile, node);
+          profileLibraryView?.refresh();
+        }),
+    ),
+    vscode.commands.registerCommand(
+      "arduinoCli.profileLib.remove",
+      (node: ProfileLibNode | undefined) =>
+        withReady(async (d) => {
+          await removeProfileLibrary(d.client, activeProfile, node);
+          profileLibraryView?.refresh();
+        }),
+    ),
+  );
+
   ctx.subscriptions.push(
     vscode.window.createTreeView("arduinoCli.libraries", {
       treeDataProvider: libraryView,
@@ -200,7 +269,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
     vscode.commands.registerCommand("arduinoCli.downloadLibrary", () =>
       withReady((d) => d.libraries.downloadArchive()),
     ),
-    vscode.commands.registerCommand("arduinoCli.lib.uninstall", (node) =>
+    vscode.commands.registerCommand("arduinoCli.lib.uninstall", (node: LibNode | undefined) =>
       withReady(async (d) => {
         if (node?.kind === "lib") {
           if (await d.libraries.uninstallByName(node.name)) {
@@ -209,7 +278,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
         }
       }),
     ),
-    vscode.commands.registerCommand("arduinoCli.lib.changeVersion", (node) =>
+    vscode.commands.registerCommand("arduinoCli.lib.changeVersion", (node: LibNode | undefined) =>
       withReady(async (d) => {
         if (node?.kind === "lib") {
           if (await d.libraries.changeVersion(node.name, node.version)) {
@@ -218,11 +287,62 @@ export async function activate(ctx: vscode.ExtensionContext) {
         }
       }),
     ),
-    vscode.commands.registerCommand("arduinoCli.lib.upgrade", (node) =>
+    vscode.commands.registerCommand("arduinoCli.lib.upgrade", (node: LibNode | undefined) =>
       withReady(async (d) => {
         if (node?.kind === "lib") {
           if (await d.libraries.upgradeByName(node.name)) {
             await afterLibraryChange(d);
+          }
+        }
+      }),
+    ),
+  );
+
+  // Platforms (cores) tree view — mirror of the Libraries view, on the global
+  // instance. Resolves the live PlatformManager lazily so it survives daemon
+  // restarts without re-registering the view.
+  platformView = new PlatformTreeProvider(() =>
+    ensureReady().then((d) => d.platforms),
+  );
+  ctx.subscriptions.push(
+    vscode.window.createTreeView("arduinoCli.platforms", {
+      treeDataProvider: platformView,
+    }),
+    vscode.commands.registerCommand("arduinoCli.refreshPlatforms", () =>
+      platformView?.refresh(),
+    ),
+    vscode.commands.registerCommand("arduinoCli.upgradePlatforms", () =>
+      withReady(async (d) => {
+        if (await d.platforms.upgradeAll()) {
+          await afterPlatformChange(d);
+        }
+      }),
+    ),
+    vscode.commands.registerCommand("arduinoCli.platform.uninstall", (node: PlatNode | undefined) =>
+      withReady(async (d) => {
+        if (node?.kind === "platform") {
+          const [pkg, arch] = node.id.split(":");
+          if (await d.platforms.uninstallById(pkg, arch)) {
+            await afterPlatformChange(d);
+          }
+        }
+      }),
+    ),
+    vscode.commands.registerCommand("arduinoCli.platform.upgrade", (node: PlatNode | undefined) =>
+      withReady(async (d) => {
+        if (node?.kind === "platform") {
+          const [pkg, arch] = node.id.split(":");
+          if (await d.platforms.upgradeById(pkg, arch)) {
+            await afterPlatformChange(d);
+          }
+        }
+      }),
+    ),
+    vscode.commands.registerCommand("arduinoCli.platform.changeVersion", (node: PlatNode | undefined) =>
+      withReady(async (d) => {
+        if (node?.kind === "platform") {
+          if (await d.platforms.changeVersion(node.id, node.version)) {
+            await afterPlatformChange(d);
           }
         }
       }),
@@ -248,6 +368,28 @@ export async function activate(ctx: vscode.ExtensionContext) {
     }),
     // Reconfigure IntelliSense when a sketch file's #include set changes.
     vscode.workspace.onDidSaveTextDocument((doc) => intellisense?.onDidSave(doc)),
+  );
+
+  // Profile mode is bound to sketch.yaml's `default_profile` and the profile's
+  // resources. Any external rewrite — the blocks editor appending libraries, an
+  // Arduino IDE / daemon profile edit, or a `default_profile` change — must drop
+  // the cached profile-bound instance so the next compile/IntelliSense re-Inits
+  // and re-resolves the profile, then refresh IntelliSense.
+  const sketchYamlWatcher =
+    vscode.workspace.createFileSystemWatcher("**/sketch.yaml");
+  const onSketchYaml = (uri: vscode.Uri): void => {
+    client?.invalidateProfileInstance(path.dirname(uri.fsPath));
+    intellisense?.scheduleConfigure();
+    // A default_profile change flips profile mode; a content change alters the
+    // profile-library list. Re-resolve context and repaint the profile tree —
+    // forced, since the active folder may be unchanged but its sketch.yaml is not.
+    void refreshProfileContext({ force: true });
+  };
+  context.subscriptions.push(
+    sketchYamlWatcher,
+    sketchYamlWatcher.onDidChange(onSketchYaml),
+    sketchYamlWatcher.onDidCreate(onSketchYaml),
+    sketchYamlWatcher.onDidDelete(onSketchYaml),
   );
 
   // The daemon is NOT started here: spawning it requires arduino-cli on PATH and
@@ -286,7 +428,7 @@ async function ensureReady(): Promise<Deps> {
   }
   await daemon.start();
   if (!client) {
-    client = new ArduinoClient(daemon.address);
+    client = new ArduinoClient(daemon.address, (line) => output.appendLine(line));
     client.connect();
     await client.initInstance();
   }
@@ -304,7 +446,7 @@ async function ensureReady(): Promise<Deps> {
     compiler = new Compiler(client, boards, platforms, output);
   }
   if (!uploader) {
-    uploader = new Uploader(client, boards, output);
+    uploader = new Uploader(client, boards, platforms, output);
   }
   if (!monitor) {
     monitor = new SerialMonitor(client, boards, output);
@@ -314,6 +456,11 @@ async function ensureReady(): Promise<Deps> {
   }
   if (!intellisense) {
     intellisense = new IntelliSenseManager(client, boards, context, output);
+    // A successful compile installs the platform and builds the profile
+    // instance — the point at which a deferred profile-mode IntelliSense can
+    // finally configure. Refresh it then.
+    const isense = intellisense;
+    compiler.onCompiled(() => isense.scheduleConfigure());
   }
   if (!debugManager) {
     debugManager = new DebugManager(client, boards, monitor, output);
@@ -333,6 +480,10 @@ async function ensureReady(): Promise<Deps> {
     void syncToDaemon(client, output).catch(() => {});
     context.subscriptions.push(watchSettings(client, output));
     void checkForUpdates(client, output, { quiet: true }).catch(() => {});
+    // Now that the daemon is up, resolve profile mode for the active sketch so
+    // the profile-libraries view can appear — forced, to establish the initial
+    // context regardless of the change-detection short-circuit.
+    void refreshProfileContext({ force: true });
   }
   return {
     client,
@@ -352,6 +503,58 @@ async function ensureReady(): Promise<Deps> {
 async function afterLibraryChange(d: Deps): Promise<void> {
   await libraryView?.refresh();
   d.intellisense.scheduleConfigure();
+}
+
+async function afterPlatformChange(d: Deps): Promise<void> {
+  await platformView?.refresh();
+  d.intellisense.scheduleConfigure();
+}
+
+/**
+ * Re-resolve the active sketch's default profile, publish the `profileMode`
+ * context key (gates the profile-libraries view + the inline actions), and
+ * repaint the profile tree. Respects lazy daemon start: if the daemon isn't
+ * ready yet we report "no profile" rather than spawning it on an editor change.
+ */
+async function refreshProfileContext(
+  opts: { force?: boolean } = {},
+): Promise<void> {
+  // Cheap change-detection before the expensive resolve: the active editor's
+  // folder. The profile context only changes when the active *sketch* changes
+  // (a different folder) or sketch.yaml changes (force). Switching between files
+  // in the same sketch, or focusing a non-file surface (Output, terminal,
+  // settings → no active text editor), leaves it unchanged — skip the glob +
+  // LoadSketch entirely in that case.
+  const activeUri = vscode.window.activeTextEditor?.document.uri;
+  const activeDir =
+    activeUri?.scheme === "file" ? path.dirname(activeUri.fsPath) : undefined;
+  if (!opts.force && (activeDir === undefined || activeDir === lastProfileSketchDir)) {
+    return;
+  }
+  lastProfileSketchDir = activeDir;
+
+  let ctx: ProfileContext | undefined;
+  if (client?.ready) {
+    try {
+      const sketch = await resolveSketch(client, { silent: true, output });
+      const profileName = sketch?.default_profile?.name;
+      if (sketch && profileName) {
+        ctx = { sketchPath: sketch.location_path, profileName };
+      }
+    } catch {
+      ctx = undefined;
+    }
+  }
+  activeProfile = ctx;
+  await vscode.commands.executeCommand(
+    "setContext",
+    "arduinoCli.profileMode",
+    Boolean(ctx),
+  );
+  if (profileLibTreeView) {
+    profileLibTreeView.description = ctx?.profileName;
+  }
+  profileLibraryView?.refresh();
 }
 
 /** Run an action after ensuring the daemon/managers are ready, with error reporting. */
