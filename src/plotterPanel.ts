@@ -1,6 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
+import { defaultSaveUri, notifySaved } from "./fileActions";
 import type { ParsedTelemetry } from "./telemetryParser";
 
 const VIEW_TYPE = "arduinoCli.plotter";
@@ -106,16 +107,19 @@ export class PlotterPanel {
   private async onMessage(msg: { type: string; csv?: string }): Promise<void> {
     if (msg.type === "exportCsv" && msg.csv) {
       const dest = await vscode.window.showSaveDialog({
+        title: vscode.l10n.t("Export Plotter Data"),
         filters: { CSV: ["csv"] },
-        defaultUri: vscode.Uri.file("serial-data.csv"),
+        defaultUri: defaultSaveUri("serial-data.csv"),
       });
       if (dest) {
         await vscode.workspace.fs.writeFile(
           dest,
           Buffer.from(msg.csv, "utf8"),
         );
-        vscode.window.showInformationMessage(
+        void notifySaved(
           vscode.l10n.t("Data exported to {0}", path.basename(dest.fsPath)),
+          dest.fsPath,
+          "open",
         );
       }
     }

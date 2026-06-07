@@ -151,5 +151,8 @@
   "Data exported to {0}": "資料已匯出至 {0}",
   "No serial data captured yet.": "尚未擷取序列埠資料。",
   "Save Serial Log": "儲存序列埠記錄",
-  "Serial log saved to {0}": "序列埠記錄已儲存至 {0}"
+  "Serial log saved to {0}": "序列埠記錄已儲存至 {0}",
+  "Open": "開啟",
+  "Reveal in File Explorer": "在檔案總管中顯示",
+  "Export Plotter Data": "匯出繪圖儀資料"
 }

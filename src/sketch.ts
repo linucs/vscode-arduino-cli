@@ -1,6 +1,7 @@
 import * as path from "node:path";
 import * as vscode from "vscode";
 import type { ArduinoClient } from "./arduinoClient";
+import { notifySaved } from "./fileActions";
 import type { Sketch } from "./proto/types";
 
 /** Scaffold a new sketch: prompt for name and directory, then open the main file. */
@@ -34,8 +35,26 @@ export async function newSketch(client: ArduinoClient): Promise<void> {
   }
 
   const res = await client.newSketch(name.trim(), dir);
+
+  // Open the main file first: adding a workspace folder can restart the
+  // extension host (when the window had no folders yet), which would drop any
+  // follow-up work — but an already-open editor survives the restart.
   const doc = await vscode.workspace.openTextDocument(res.main_file);
   await vscode.window.showTextDocument(doc);
+
+  // Add the sketch's own folder (the <dir>/<name> subdirectory arduino-cli
+  // created) as a root of the current window, so it becomes the working folder.
+  // Derive it from main_file rather than reconstructing, since the CLI may
+  // sanitize the name.
+  const sketchFolder = vscode.Uri.file(path.dirname(res.main_file));
+  const existing = vscode.workspace.workspaceFolders ?? [];
+  if (!existing.some((f) => f.uri.fsPath === sketchFolder.fsPath)) {
+    vscode.workspace.updateWorkspaceFolders(existing.length, 0, {
+      uri: sketchFolder,
+      name: path.basename(sketchFolder.fsPath),
+    });
+  }
+
   vscode.window.showInformationMessage(
     vscode.l10n.t("Created sketch {0}", name.trim()),
   );
@@ -61,8 +80,10 @@ export async function archiveSketch(client: ArduinoClient): Promise<void> {
   }
 
   await client.archiveSketch(sketch.location_path, dest.fsPath);
-  vscode.window.showInformationMessage(
+  void notifySaved(
     vscode.l10n.t("Sketch archived to {0}", path.basename(dest.fsPath)),
+    dest.fsPath,
+    "reveal",
   );
 }
 

@@ -151,5 +151,8 @@
   "Data exported to {0}": "データを {0} にエクスポートしました",
   "No serial data captured yet.": "まだシリアルデータが取得されていません。",
   "Save Serial Log": "シリアルログを保存",
-  "Serial log saved to {0}": "シリアルログを {0} に保存しました"
+  "Serial log saved to {0}": "シリアルログを {0} に保存しました",
+  "Open": "開く",
+  "Reveal in File Explorer": "ファイルエクスプローラーで表示",
+  "Export Plotter Data": "プロッターのデータをエクスポート"
 }

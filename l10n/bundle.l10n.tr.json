@@ -151,5 +151,8 @@
   "Data exported to {0}": "Veriler {0} konumuna dışa aktarıldı",
   "No serial data captured yet.": "Henüz seri veri yakalanmadı.",
   "Save Serial Log": "Seri Günlüğü Kaydet",
-  "Serial log saved to {0}": "Seri günlük {0} konumuna kaydedildi"
+  "Serial log saved to {0}": "Seri günlük {0} konumuna kaydedildi",
+  "Open": "Aç",
+  "Reveal in File Explorer": "Dosya Gezgini'nde Göster",
+  "Export Plotter Data": "Çizici Verilerini Dışa Aktar"
 }

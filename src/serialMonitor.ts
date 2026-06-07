@@ -5,6 +5,7 @@ import type {
   MonitorStream,
 } from "./arduinoClient";
 import type { BoardManager } from "./boardManager";
+import { defaultSaveUri, notifySaved } from "./fileActions";
 import { PlotterPanel } from "./plotterPanel";
 import { resolveSketch } from "./sketch";
 import { resolveExecution } from "./profileMode";
@@ -90,8 +91,9 @@ export class SerialMonitor {
 
     const ext = format.id === "csv" ? "csv" : "txt";
     const dest = await vscode.window.showSaveDialog({
+      title: vscode.l10n.t("Save Serial Log"),
       filters: { [format.label]: [ext] },
-      defaultUri: vscode.Uri.file(`serial-log.${ext}`),
+      defaultUri: defaultSaveUri(`serial-log.${ext}`),
     });
     if (!dest) {
       return;
@@ -110,8 +112,10 @@ export class SerialMonitor {
     }
 
     await vscode.workspace.fs.writeFile(dest, Buffer.from(content, "utf8"));
-    vscode.window.showInformationMessage(
+    void notifySaved(
       vscode.l10n.t("Serial log saved to {0}", dest.fsPath),
+      dest.fsPath,
+      "open",
     );
   }
 

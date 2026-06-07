@@ -151,5 +151,8 @@
   "Data exported to {0}": "Az adatok exportálva ide: {0}",
   "No serial data captured yet.": "Még nem rögzült soros adat.",
   "Save Serial Log": "Soros napló mentése",
-  "Serial log saved to {0}": "A soros napló mentve ide: {0}"
+  "Serial log saved to {0}": "A soros napló mentve ide: {0}",
+  "Open": "Megnyitás",
+  "Reveal in File Explorer": "Megjelenítés a fájlkezelőben",
+  "Export Plotter Data": "Plotteradatok exportálása"
 }

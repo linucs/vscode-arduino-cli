@@ -151,5 +151,8 @@
   "Data exported to {0}": "Daten exportiert nach {0}",
   "No serial data captured yet.": "Noch keine seriellen Daten erfasst.",
   "Save Serial Log": "Serielles Protokoll speichern",
-  "Serial log saved to {0}": "Serielles Protokoll gespeichert in {0}"
+  "Serial log saved to {0}": "Serielles Protokoll gespeichert in {0}",
+  "Open": "Öffnen",
+  "Reveal in File Explorer": "Im Datei-Explorer anzeigen",
+  "Export Plotter Data": "Plotter-Daten exportieren"
 }

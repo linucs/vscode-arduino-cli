@@ -151,5 +151,8 @@
   "Data exported to {0}": "Dane wyeksportowano do {0}",
   "No serial data captured yet.": "Nie przechwycono jeszcze żadnych danych z portu szeregowego.",
   "Save Serial Log": "Zapisz dziennik portu szeregowego",
-  "Serial log saved to {0}": "Dziennik portu szeregowego zapisano do {0}"
+  "Serial log saved to {0}": "Dziennik portu szeregowego zapisano do {0}",
+  "Open": "Otwórz",
+  "Reveal in File Explorer": "Pokaż w eksploratorze plików",
+  "Export Plotter Data": "Eksportuj dane plotera"
 }

@@ -151,5 +151,8 @@
   "Data exported to {0}": "Данные экспортированы в {0}",
   "No serial data captured yet.": "Данные с порта ещё не получены.",
   "Save Serial Log": "Сохранить журнал порта",
-  "Serial log saved to {0}": "Журнал порта сохранён в {0}"
+  "Serial log saved to {0}": "Журнал порта сохранён в {0}",
+  "Open": "Открыть",
+  "Reveal in File Explorer": "Показать в проводнике",
+  "Export Plotter Data": "Экспорт данных плоттера"
 }

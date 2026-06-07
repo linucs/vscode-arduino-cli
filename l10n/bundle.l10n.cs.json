@@ -151,5 +151,8 @@
   "Data exported to {0}": "Data exportována do {0}",
   "No serial data captured yet.": "Zatím nebyla zachycena žádná sériová data.",
   "Save Serial Log": "Uložit sériový protokol",
-  "Serial log saved to {0}": "Sériový protokol uložen do {0}"
+  "Serial log saved to {0}": "Sériový protokol uložen do {0}",
+  "Open": "Otevřít",
+  "Reveal in File Explorer": "Zobrazit v Průzkumníku souborů",
+  "Export Plotter Data": "Exportovat data plotteru"
 }

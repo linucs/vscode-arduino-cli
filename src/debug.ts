@@ -287,11 +287,17 @@ export class DebugManager implements vscode.DebugConfigurationProvider {
 
   /** Command entry point: resolve config, suspend monitor, launch the session. */
   async startDebug(target?: vscode.Uri | string): Promise<void> {
-    const built = await this.buildConfiguration({ target });
-    if (!built) {
+    const result = await this.buildConfiguration({ target });
+    if (!result) {
       return;
     }
-    const folder = vscode.workspace.workspaceFolders?.[0];
+    const { built, sketchPath } = result;
+    // Resolve ${workspaceFolder} against the root that actually contains the
+    // sketch — in a multi-root workspace the sketch may live outside the first
+    // root. Fall back to the first root, then the sketch's own folder.
+    const folder =
+      vscode.workspace.getWorkspaceFolder(vscode.Uri.file(sketchPath)) ??
+      vscode.workspace.workspaceFolders?.[0];
     this.output.appendLine(
       `[debug] launching ${built.type}:\n${JSON.stringify(built, null, 2)}`,
     );
@@ -359,15 +365,15 @@ export class DebugManager implements vscode.DebugConfigurationProvider {
     if (config.type !== "arduino") {
       return config;
     }
-    const built = await this.buildConfiguration({
+    const result = await this.buildConfiguration({
       fqbn: config.fqbn,
       programmer: config.programmer,
     });
-    if (!built) {
+    if (!result) {
       return undefined; // abort the launch
     }
     this.monitor.suspendForDebug();
-    return built;
+    return result.built;
   }
 
   // --- internals -------------------------------------------------------------
@@ -449,12 +455,14 @@ export class DebugManager implements vscode.DebugConfigurationProvider {
     fqbn?: string;
     programmer?: string;
     target?: vscode.Uri | string;
-  }): Promise<vscode.DebugConfiguration | undefined> {
+  }): Promise<
+    { built: vscode.DebugConfiguration; sketchPath: string } | undefined
+  > {
     const ctx = await this.resolveContext(overrides);
     if (!ctx) {
       return undefined;
     }
-    return this.translate(ctx);
+    return { built: this.translate(ctx), sketchPath: ctx.sketchPath };
   }
 
   /** Pick the adapter, run its translator (or the custom template), merge overrides. */

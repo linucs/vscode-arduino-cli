@@ -151,5 +151,8 @@
   "Data exported to {0}": "数据已导出到 {0}",
   "No serial data captured yet.": "尚未捕获串口数据。",
   "Save Serial Log": "保存串口日志",
-  "Serial log saved to {0}": "串口日志已保存到 {0}"
+  "Serial log saved to {0}": "串口日志已保存到 {0}",
+  "Open": "打开",
+  "Reveal in File Explorer": "在文件资源管理器中显示",
+  "Export Plotter Data": "导出绘图仪数据"
 }

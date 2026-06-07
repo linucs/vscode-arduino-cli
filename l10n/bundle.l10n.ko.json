@@ -151,5 +151,8 @@
   "Data exported to {0}": "데이터를 {0}에 내보냈습니다",
   "No serial data captured yet.": "아직 캡처된 시리얼 데이터가 없습니다.",
   "Save Serial Log": "시리얼 로그 저장",
-  "Serial log saved to {0}": "시리얼 로그를 {0}에 저장했습니다"
+  "Serial log saved to {0}": "시리얼 로그를 {0}에 저장했습니다",
+  "Open": "열기",
+  "Reveal in File Explorer": "파일 탐색기에서 표시",
+  "Export Plotter Data": "플로터 데이터 내보내기"
 }
