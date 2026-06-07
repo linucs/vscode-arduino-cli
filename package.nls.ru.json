@@ -1,5 +1,5 @@
 {
-  "displayName": "Arduino CLI (gRPC)",
+  "displayName": "Arduino CLI IDE",
   "description": "Лёгкое расширение VS Code, обёртка над gRPC-демоном arduino-cli (ArduinoCoreService) — компиляция, загрузка и мониторинг, не покидая редактор.",
   "config.title": "Arduino CLI",
   "config.path": "Путь к исполняемому файлу arduino-cli.",
@@ -68,5 +68,21 @@
   "view.libraries": "Установленные библиотеки",
   "view.profileLibraries": "Библиотеки профиля",
   "command.showVersion": "Arduino CLI: Показать версию демона",
-  "command.restartDaemon": "Arduino CLI: Перезапустить демон"
+  "command.restartDaemon": "Arduino CLI: Перезапустить демон",
+  "walkthrough.title": "Начало работы с Arduino CLI",
+  "walkthrough.description": "Компилируйте, загружайте и отслеживайте скетчи Arduino прямо в VS Code.",
+  "walkthrough.installCli.title": "Установите Arduino CLI",
+  "walkthrough.installCli.description": "Это расширение управляет официальным **arduino-cli** — установите его один раз, и всё готово.\n\n- **macOS:** `brew install arduino-cli`\n- **Windows:** `winget install ArduinoSA.CLI`\n- **Linux / вручную:** [руководство по установке](https://arduino.github.io/arduino-cli/latest/installation/)\n\nЗатем убедитесь, что всё подключено: [Показать версию демона](command:arduinoCli.showVersion).",
+  "walkthrough.openSketch.title": "Откройте или создайте скетч",
+  "walkthrough.openSketch.description": "Откройте папку, содержащую файл `.ino`, или создайте новый.\n\n[Новый скетч](command:arduinoCli.newSketch)",
+  "walkthrough.selectBoard.title": "Выберите свою плату",
+  "walkthrough.selectBoard.description": "Укажите расширению, какую плату вы используете. Если её ядро ещё не установлено, оно предложит установить его за вас.\n\n[Выбрать плату](command:arduinoCli.selectBoard)",
+  "walkthrough.compileUpload.title": "Компиляция и загрузка",
+  "walkthrough.compileUpload.description": "Откройте свой `.ino` и используйте кнопки в правом верхнем углу редактора: **Компиляция** (✓) и **Загрузка** (⬆).\n\n[Скомпилировать сейчас](command:arduinoCli.compile)",
+  "walkthrough.monitor.title": "Слушайте ответы своей платы",
+  "walkthrough.monitor.description": "Читайте то, что ваша плата выводит через последовательный порт, или стройте графики значений в реальном времени с помощью плоттера.\n\n[Открыть монитор порта](command:arduinoCli.openMonitor) · [Открыть плоттер порта](command:arduinoCli.openPlotter)",
+  "walkthrough.manage.title": "Управление ядрами и библиотеками",
+  "walkthrough.manage.description": "Откройте представление **Arduino** на панели действий (значок печатной платы), чтобы устанавливать, обновлять или удалять платформы и библиотеки — без необходимости запоминать команды.\n\n[Открыть представление Arduino](command:workbench.view.extension.arduinoCli)",
+  "walkthrough.blockly.title": "Дополнительно: программирование с помощью блоков",
+  "walkthrough.blockly.description": "Предпочитаете перетаскивать блоки вместо набора C++? Установите родственное расширение **Blocks Editor** — визуальный редактор в стиле Scratch, который генерирует настоящий код Arduino, а также собирает и загружает его через это расширение.\n\n[Установить Blocks Editor](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nЭто совершенно необязательно — это расширение полностью работает само по себе."
 }

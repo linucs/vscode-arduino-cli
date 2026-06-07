@@ -1,5 +1,5 @@
 {
-  "displayName": "Arduino CLI (gRPC)",
+  "displayName": "Arduino CLI IDE",
   "description": "Eine schlanke VS-Code-Erweiterung, die den gRPC-Daemon von arduino-cli (ArduinoCoreService) kapselt — Kompilieren, Hochladen und Überwachen, ohne den Editor zu verlassen.",
   "config.title": "Arduino CLI",
   "config.path": "Pfad zur ausführbaren Datei arduino-cli.",
@@ -68,5 +68,21 @@
   "view.libraries": "Installierte Bibliotheken",
   "view.profileLibraries": "Profilbibliotheken",
   "command.showVersion": "Arduino CLI: Daemon-Version anzeigen",
-  "command.restartDaemon": "Arduino CLI: Daemon neu starten"
+  "command.restartDaemon": "Arduino CLI: Daemon neu starten",
+  "walkthrough.title": "Erste Schritte mit der Arduino CLI",
+  "walkthrough.description": "Arduino-Sketche direkt in VS Code kompilieren, hochladen und überwachen.",
+  "walkthrough.installCli.title": "Die Arduino CLI installieren",
+  "walkthrough.installCli.description": "Diese Erweiterung steuert die offizielle **arduino-cli** — einmal installieren und schon kann es losgehen.\n\n- **macOS:** `brew install arduino-cli`\n- **Windows:** `winget install ArduinoSA.CLI`\n- **Linux / manuell:** [Installationsanleitung](https://arduino.github.io/arduino-cli/latest/installation/)\n\nBestätige anschließend, dass alles eingerichtet ist: [Daemon-Version anzeigen](command:arduinoCli.showVersion).",
+  "walkthrough.openSketch.title": "Einen Sketch öffnen oder erstellen",
+  "walkthrough.openSketch.description": "Öffne einen Ordner, der eine `.ino`-Datei enthält, oder erstelle eine neue.\n\n[Neuer Sketch](command:arduinoCli.newSketch)",
+  "walkthrough.selectBoard.title": "Deine Platine auswählen",
+  "walkthrough.selectBoard.description": "Teile der Erweiterung mit, welche Platine du verwenden möchtest. Falls der zugehörige Core noch nicht installiert ist, wird angeboten, ihn für dich zu installieren.\n\n[Platine auswählen](command:arduinoCli.selectBoard)",
+  "walkthrough.compileUpload.title": "Kompilieren & hochladen",
+  "walkthrough.compileUpload.description": "Öffne deine `.ino`-Datei und verwende die Schaltflächen oben rechts im Editor: **Kompilieren** (✓) und **Hochladen** (⬆).\n\n[Jetzt kompilieren](command:arduinoCli.compile)",
+  "walkthrough.monitor.title": "Hören, was deine Platine antwortet",
+  "walkthrough.monitor.description": "Lies, was deine Platine über die serielle Schnittstelle ausgibt, oder stelle Live-Werte mit dem Plotter grafisch dar.\n\n[Seriellen Monitor öffnen](command:arduinoCli.openMonitor) · [Seriellen Plotter öffnen](command:arduinoCli.openPlotter)",
+  "walkthrough.manage.title": "Cores & Bibliotheken verwalten",
+  "walkthrough.manage.description": "Öffne die **Arduino**-Ansicht in der Aktivitätsleiste (das Platinen-Symbol), um Plattformen und Bibliotheken zu installieren, zu aktualisieren oder zu entfernen — ganz ohne Befehle auswendig zu lernen.\n\n[Die Arduino-Ansicht öffnen](command:workbench.view.extension.arduinoCli)",
+  "walkthrough.blockly.title": "Optional: mit Blöcken programmieren",
+  "walkthrough.blockly.description": "Ziehst du Blöcke lieber, als C++ zu tippen? Installiere die Schwester-Erweiterung **Blocks Editor** — einen visuellen, Scratch-ähnlichen Editor, der echten Arduino-Code erzeugt und über diese Erweiterung kompiliert und hochlädt.\n\n[Blocks Editor installieren](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nSie ist völlig optional — diese Erweiterung funktioniert vollständig auch für sich allein."
 }

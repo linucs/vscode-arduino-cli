@@ -1,5 +1,5 @@
 {
-  "displayName": "Arduino CLI (gRPC)",
+  "displayName": "Arduino CLI IDE",
   "description": "arduino-cli gRPC 데몬(ArduinoCoreService)을 감싸는 경량 VS Code 확장 — 편집기를 벗어나지 않고 컴파일, 업로드, 모니터링을 수행합니다.",
   "config.title": "Arduino CLI",
   "config.path": "arduino-cli 실행 파일 경로입니다.",
@@ -68,5 +68,21 @@
   "view.libraries": "설치된 라이브러리",
   "view.profileLibraries": "프로필 라이브러리",
   "command.showVersion": "Arduino CLI: 데몬 버전 표시",
-  "command.restartDaemon": "Arduino CLI: 데몬 다시 시작"
+  "command.restartDaemon": "Arduino CLI: 데몬 다시 시작",
+  "walkthrough.title": "Arduino CLI 시작하기",
+  "walkthrough.description": "일반 VS Code에서 Arduino 스케치를 컴파일, 업로드, 모니터링하세요.",
+  "walkthrough.installCli.title": "Arduino CLI 설치",
+  "walkthrough.installCli.description": "이 확장은 공식 **arduino-cli**를 사용합니다 — 한 번만 설치하면 준비 완료입니다.\n\n- **macOS:** `brew install arduino-cli`\n- **Windows:** `winget install ArduinoSA.CLI`\n- **Linux / 수동:** [설치 가이드](https://arduino.github.io/arduino-cli/latest/installation/)\n\n그런 다음 제대로 연결되었는지 확인하세요: [데몬 버전 표시](command:arduinoCli.showVersion).",
+  "walkthrough.openSketch.title": "스케치 열기 또는 만들기",
+  "walkthrough.openSketch.description": "`.ino` 파일이 포함된 폴더를 열거나 새 스케치를 생성하세요.\n\n[새 스케치](command:arduinoCli.newSketch)",
+  "walkthrough.selectBoard.title": "보드 선택",
+  "walkthrough.selectBoard.description": "확장에 대상 보드를 알려주세요. 해당 코어가 아직 설치되지 않은 경우 자동으로 설치를 제안합니다.\n\n[보드 선택](command:arduinoCli.selectBoard)",
+  "walkthrough.compileUpload.title": "컴파일 및 업로드",
+  "walkthrough.compileUpload.description": "`.ino`를 열고 편집기 오른쪽 상단의 버튼을 사용하세요: **컴파일** (✓) 및 **업로드** (⬆).\n\n[지금 컴파일](command:arduinoCli.compile)",
+  "walkthrough.monitor.title": "보드의 응답 확인",
+  "walkthrough.monitor.description": "보드가 시리얼로 출력하는 내용을 읽거나, 플로터로 실시간 수치를 그래프로 표시하세요.\n\n[시리얼 모니터 열기](command:arduinoCli.openMonitor) · [시리얼 플로터 열기](command:arduinoCli.openPlotter)",
+  "walkthrough.manage.title": "코어 및 라이브러리 관리",
+  "walkthrough.manage.description": "활동 표시줄의 **Arduino** 뷰(회로 기판 아이콘)를 열어 플랫폼과 라이브러리를 설치, 업데이트, 제거하세요 — 명령어를 외울 필요가 없습니다.\n\n[Arduino 뷰 열기](command:workbench.view.extension.arduinoCli)",
+  "walkthrough.blockly.title": "선택 사항: 블록으로 프로그래밍",
+  "walkthrough.blockly.description": "C++를 입력하는 것보다 블록을 드래그하는 것을 선호하시나요? 자매 확장인 **Blocks Editor**를 설치하세요 — 실제 Arduino 코드를 생성하고 이 확장을 통해 빌드 및 업로드하는 시각적인 Scratch 방식의 편집기입니다.\n\n[Blocks Editor 설치](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\n완전히 선택 사항입니다 — 이 확장은 단독으로도 완전히 작동합니다."
 }

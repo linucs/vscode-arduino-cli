@@ -1,4 +1,4 @@
-# Arduino CLI (gRPC)
+# Arduino CLI IDE
 
 **Code Arduino sketches in plain VS Code — compile, upload, monitor, and debug right from the editor.**
 
@@ -32,7 +32,7 @@ To check it worked, open a terminal and run `arduino-cli version`.
 
 ### Step 2 — Install this extension
 
-Search for **"Arduino CLI (gRPC)"** in the VS Code Extensions view, or install from [Open VSX](https://open-vsx.org) on VSCodium / Cursor / Windsurf.
+Search for **"Arduino CLI IDE"** in the VS Code Extensions view, or install from [Open VSX](https://open-vsx.org) on VSCodium / Cursor / Windsurf.
 
 ### Step 3 — Build your first sketch
 

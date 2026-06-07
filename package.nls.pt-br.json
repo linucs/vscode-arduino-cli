@@ -1,5 +1,5 @@
 {
-  "displayName": "Arduino CLI (gRPC)",
+  "displayName": "Arduino CLI IDE",
   "description": "Uma extensão leve do VS Code que encapsula o daemon gRPC do arduino-cli (ArduinoCoreService) — compile, carregue e monitore sem sair do editor.",
   "config.title": "Arduino CLI",
   "config.path": "Caminho para o executável do arduino-cli.",
@@ -68,5 +68,21 @@
   "view.libraries": "Bibliotecas instaladas",
   "view.profileLibraries": "Bibliotecas do perfil",
   "command.showVersion": "Arduino CLI: Mostrar versão do daemon",
-  "command.restartDaemon": "Arduino CLI: Reiniciar daemon"
+  "command.restartDaemon": "Arduino CLI: Reiniciar daemon",
+  "walkthrough.title": "Comece com o Arduino CLI",
+  "walkthrough.description": "Compile, carregue e monitore sketches do Arduino no VS Code puro.",
+  "walkthrough.installCli.title": "Instale o Arduino CLI",
+  "walkthrough.installCli.description": "Esta extensão usa o **arduino-cli** oficial — instale-o uma vez e está tudo pronto.\n\n- **macOS:** `brew install arduino-cli`\n- **Windows:** `winget install ArduinoSA.CLI`\n- **Linux / manual:** [guia de instalação](https://arduino.github.io/arduino-cli/latest/installation/)\n\nDepois confirme que está configurado: [Mostrar versão do daemon](command:arduinoCli.showVersion).",
+  "walkthrough.openSketch.title": "Abra ou crie um sketch",
+  "walkthrough.openSketch.description": "Abra uma pasta que contenha um arquivo `.ino` ou crie um novo do zero.\n\n[Novo sketch](command:arduinoCli.newSketch)",
+  "walkthrough.selectBoard.title": "Selecione sua placa",
+  "walkthrough.selectBoard.description": "Informe à extensão qual placa você está usando. Se o core dela ainda não estiver instalado, ela se oferece para instalá-lo para você.\n\n[Selecionar placa](command:arduinoCli.selectBoard)",
+  "walkthrough.compileUpload.title": "Compile e carregue",
+  "walkthrough.compileUpload.description": "Abra seu `.ino` e use os botões no canto superior direito do editor: **Compilar** (✓) e **Carregar** (⬆).\n\n[Compilar agora](command:arduinoCli.compile)",
+  "walkthrough.monitor.title": "Veja sua placa responder",
+  "walkthrough.monitor.description": "Leia o que sua placa imprime pela serial ou trace números ao vivo com o plotter.\n\n[Abrir monitor serial](command:arduinoCli.openMonitor) · [Abrir plotter serial](command:arduinoCli.openPlotter)",
+  "walkthrough.manage.title": "Gerencie cores e bibliotecas",
+  "walkthrough.manage.description": "Abra a visão **Arduino** na Barra de Atividades (o ícone de placa de circuito) para instalar, atualizar ou remover plataformas e bibliotecas — sem comandos para memorizar.\n\n[Abrir a visão do Arduino](command:workbench.view.extension.arduinoCli)",
+  "walkthrough.blockly.title": "Opcional: programe com blocos",
+  "walkthrough.blockly.description": "Prefere arrastar blocos a digitar C++? Instale a extensão irmã **Blocks Editor** — um editor visual, no estilo Scratch, que gera código Arduino real e compila e carrega por meio desta extensão.\n\n[Instalar o Blocks Editor](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nÉ totalmente opcional — esta extensão funciona plenamente por conta própria."
 }

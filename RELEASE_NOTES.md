@@ -1,4 +1,4 @@
-# Arduino CLI (gRPC) v0.0.1 — first public release 🎉
+# Arduino CLI IDE v0.0.1 — first public release 🎉
 
 Code Arduino sketches in **plain VS Code** — compile, upload, monitor, and debug right from the editor.
 
@@ -32,6 +32,6 @@ Full walkthrough and command reference in the [README](https://github.com/linucs
 
 ---
 
-**Install:** [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=linucs.vscode-arduino-cli) · [Open VSX](https://open-vsx.org/extension/linucs/vscode-arduino-cli) · or download the `.vsix` below.
+**Install:** [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=linucs.vscode-arduino-cli-ide) · [Open VSX](https://open-vsx.org/extension/linucs/vscode-arduino-cli-ide) · or download the `.vsix` below.
 
 Found a bug or have an idea? [Open an issue](https://github.com/linucs/vscode-arduino-cli/issues). See the [full changelog](https://github.com/linucs/vscode-arduino-cli/blob/main/CHANGELOG.md).

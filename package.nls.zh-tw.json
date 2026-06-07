@@ -1,5 +1,5 @@
 {
-  "displayName": "Arduino CLI (gRPC)",
+  "displayName": "Arduino CLI IDE",
   "description": "一個輕量級 VS Code 擴充功能，封裝 arduino-cli 的 gRPC 守護程序 (ArduinoCoreService) —— 無需離開編輯器即可編譯、上傳與監視。",
   "config.title": "Arduino CLI",
   "config.path": "arduino-cli 可執行檔的路徑。",
@@ -68,5 +68,21 @@
   "view.libraries": "已安裝的程式庫",
   "view.profileLibraries": "設定檔中的程式庫",
   "command.showVersion": "Arduino CLI：顯示守護程序版本",
-  "command.restartDaemon": "Arduino CLI：重新啟動守護程序"
+  "command.restartDaemon": "Arduino CLI：重新啟動守護程序",
+  "walkthrough.title": "開始使用 Arduino CLI",
+  "walkthrough.description": "在純 VS Code 中編譯、上傳並監視 Arduino 草稿碼。",
+  "walkthrough.installCli.title": "安裝 Arduino CLI",
+  "walkthrough.installCli.description": "此擴充功能驅動官方的 **arduino-cli** —— 只需安裝一次即可使用。\n\n- **macOS：** `brew install arduino-cli`\n- **Windows：** `winget install ArduinoSA.CLI`\n- **Linux / 手動：** [安裝指南](https://arduino.github.io/arduino-cli/latest/installation/)\n\n接著確認它已正確連接：[顯示守護程序版本](command:arduinoCli.showVersion)。",
+  "walkthrough.openSketch.title": "開啟或建立草稿碼",
+  "walkthrough.openSketch.description": "開啟一個包含 `.ino` 檔案的資料夾，或建立一個全新的草稿碼。\n\n[新增草稿碼](command:arduinoCli.newSketch)",
+  "walkthrough.selectBoard.title": "選取你的開發板",
+  "walkthrough.selectBoard.description": "告訴擴充功能你的目標開發板。如果其核心尚未安裝，它會主動提議為你安裝。\n\n[選取開發板](command:arduinoCli.selectBoard)",
+  "walkthrough.compileUpload.title": "編譯與上傳",
+  "walkthrough.compileUpload.description": "開啟你的 `.ino`，並使用編輯器右上角的按鈕：**編譯**（✓）與**上傳**（⬆）。\n\n[立即編譯](command:arduinoCli.compile)",
+  "walkthrough.monitor.title": "查看開發板的回應",
+  "walkthrough.monitor.description": "讀取開發板透過序列埠輸出的內容，或使用繪圖器即時繪製數值圖表。\n\n[開啟序列埠監視器](command:arduinoCli.openMonitor) · [開啟序列埠繪圖器](command:arduinoCli.openPlotter)",
+  "walkthrough.manage.title": "管理核心與程式庫",
+  "walkthrough.manage.description": "開啟活動列中的 **Arduino** 檢視（電路板圖示）以安裝、更新或移除平台與程式庫 —— 無需記憶任何命令。\n\n[開啟 Arduino 檢視](command:workbench.view.extension.arduinoCli)",
+  "walkthrough.blockly.title": "選用：以積木方式編程",
+  "walkthrough.blockly.description": "比起撰寫 C++，更喜歡拖曳積木嗎？安裝姊妹擴充功能 **Blocks Editor** —— 一個視覺化、類似 Scratch 的編輯器，可產生真正的 Arduino 程式碼，並透過此擴充功能建置與上傳。\n\n[安裝 Blocks Editor](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\n它完全是選用的 —— 此擴充功能本身即可完整運作。"
 }

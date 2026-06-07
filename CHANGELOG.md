@@ -1,6 +1,6 @@
 # Change Log
 
-All notable changes to the "Arduino CLI (gRPC)" extension will be documented in this file.
+All notable changes to the "Arduino CLI IDE" extension will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 

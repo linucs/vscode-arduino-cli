@@ -1,0 +1,22 @@
+<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="200" fill="#1e1e1e" rx="8"/>
+  <!-- Stacked blocks with connector tabs -->
+  <rect x="40" y="52" width="90" height="22" rx="3" fill="#5b80a5"/>
+  <rect x="62" y="74" width="14" height="5" rx="1" fill="#5b80a5"/>
+  <rect x="40" y="79" width="90" height="22" rx="3" fill="#a5745b"/>
+  <rect x="62" y="101" width="14" height="5" rx="1" fill="#a5745b"/>
+  <rect x="40" y="106" width="90" height="22" rx="3" fill="#7a5ba5"/>
+  <text x="85" y="67" text-anchor="middle" font-size="9" font-family="sans-serif" fill="#fff">pinMode</text>
+  <text x="85" y="94" text-anchor="middle" font-size="9" font-family="sans-serif" fill="#fff">digitalWrite</text>
+  <text x="85" y="121" text-anchor="middle" font-size="9" font-family="sans-serif" fill="#fff">delay</text>
+  <!-- Arrow -->
+  <line x1="142" y1="90" x2="170" y2="90" stroke="#27c93f" stroke-width="2"/>
+  <polygon points="170,85 180,90 170,95" fill="#27c93f"/>
+  <!-- Generated code -->
+  <rect x="190" y="50" width="80" height="80" rx="4" fill="#0d0d0d" stroke="#454545" stroke-width="1"/>
+  <text x="200" y="68" font-size="8" font-family="monospace" fill="#569cd6">void <tspan fill="#dcdcaa">loop</tspan>() {</text>
+  <text x="206" y="84" font-size="8" font-family="monospace" fill="#dcdcaa">digitalWrite<tspan fill="#d4d4d4">(13,1);</tspan></text>
+  <text x="206" y="100" font-size="8" font-family="monospace" fill="#dcdcaa">delay<tspan fill="#d4d4d4">(500);</tspan></text>
+  <text x="200" y="116" font-size="8" font-family="monospace" fill="#d4d4d4">}</text>
+  <text x="150" y="160" text-anchor="middle" font-size="9" font-family="sans-serif" fill="#8b8b8b">Blocks Editor — optional</text>
+</svg>

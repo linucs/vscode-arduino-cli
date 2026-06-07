@@ -1,5 +1,5 @@
 {
-  "displayName": "Arduino CLI (gRPC)",
+  "displayName": "Arduino CLI IDE",
   "description": "arduino-cli gRPC arka plan hizmetini (ArduinoCoreService) saran hafif bir VS Code uzantısı — düzenleyiciden ayrılmadan derleyin, yükleyin ve izleyin.",
   "config.title": "Arduino CLI",
   "config.path": "arduino-cli yürütülebilir dosyasının yolu.",
@@ -68,5 +68,21 @@
   "view.libraries": "Kurulu Kitaplıklar",
   "view.profileLibraries": "Profil Kitaplıkları",
   "command.showVersion": "Arduino CLI: Arka Plan Hizmeti Sürümünü Göster",
-  "command.restartDaemon": "Arduino CLI: Arka Plan Hizmetini Yeniden Başlat"
+  "command.restartDaemon": "Arduino CLI: Arka Plan Hizmetini Yeniden Başlat",
+  "walkthrough.title": "Arduino CLI ile Başlayın",
+  "walkthrough.description": "Düz VS Code içinde Arduino çizimlerini derleyin, yükleyin ve izleyin.",
+  "walkthrough.installCli.title": "Arduino CLI'yi kurun",
+  "walkthrough.installCli.description": "Bu uzantı resmi **arduino-cli**'yi çalıştırır — bir kez kurun ve hazır olun.\n\n- **macOS:** `brew install arduino-cli`\n- **Windows:** `winget install ArduinoSA.CLI`\n- **Linux / elle:** [kurulum kılavuzu](https://arduino.github.io/arduino-cli/latest/installation/)\n\nArdından bağlandığını doğrulayın: [Arka Plan Hizmeti Sürümünü Göster](command:arduinoCli.showVersion).",
+  "walkthrough.openSketch.title": "Bir çizim açın veya oluşturun",
+  "walkthrough.openSketch.description": "Bir `.ino` dosyası içeren bir klasör açın veya sıfırdan yeni bir tane oluşturun.\n\n[Yeni Çizim](command:arduinoCli.newSketch)",
+  "walkthrough.selectBoard.title": "Kartınızı seçin",
+  "walkthrough.selectBoard.description": "Hedeflediğiniz kartı uzantıya bildirin. Çekirdeği henüz kurulu değilse, sizin için kurmayı önerir.\n\n[Kart Seç](command:arduinoCli.selectBoard)",
+  "walkthrough.compileUpload.title": "Derle ve yükle",
+  "walkthrough.compileUpload.description": "`.ino` dosyanızı açın ve düzenleyicinin sağ üst köşesindeki düğmeleri kullanın: **Derle** (✓) ve **Yükle** (⬆).\n\n[Şimdi derle](command:arduinoCli.compile)",
+  "walkthrough.monitor.title": "Kartınızın yanıtlarını izleyin",
+  "walkthrough.monitor.description": "Kartınızın seri üzerinden yazdırdıklarını okuyun veya çiziciyle canlı sayıların grafiğini çizin.\n\n[Seri Monitörü Aç](command:arduinoCli.openMonitor) · [Seri Çizici Aç](command:arduinoCli.openPlotter)",
+  "walkthrough.manage.title": "Çekirdekleri ve kitaplıkları yönetin",
+  "walkthrough.manage.description": "Platformları ve kitaplıkları kurmak, güncellemek veya kaldırmak için Etkinlik Çubuğundaki **Arduino** görünümünü (devre kartı simgesi) açın — ezberlenecek komut yok.\n\n[Arduino görünümünü aç](command:workbench.view.extension.arduinoCli)",
+  "walkthrough.blockly.title": "İsteğe bağlı: bloklarla programlayın",
+  "walkthrough.blockly.description": "C++ yazmak yerine blokları sürüklemeyi mi tercih edersiniz? Kardeş uzantı **Blocks Editor**'ü kurun — gerçek Arduino kodu üreten ve bu uzantı aracılığıyla derleyip yükleyen, Scratch benzeri görsel bir düzenleyici.\n\n[Blocks Editor'ü Kur](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nTamamen isteğe bağlıdır — bu uzantı kendi başına tam olarak çalışır."
 }

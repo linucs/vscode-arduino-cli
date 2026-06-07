@@ -1,5 +1,5 @@
 {
-  "name": "vscode-arduino-cli",
+  "name": "vscode-arduino-cli-ide",
   "displayName": "%displayName%",
   "description": "%description%",
   "version": "0.0.1",
@@ -508,6 +508,64 @@
               "request": "launch",
               "name": "Arduino Debug"
             }
+          }
+        ]
+      }
+    ],
+    "walkthroughs": [
+      {
+        "id": "arduinoCli.welcome",
+        "title": "%walkthrough.title%",
+        "description": "%walkthrough.description%",
+        "steps": [
+          {
+            "id": "installCli",
+            "title": "%walkthrough.installCli.title%",
+            "description": "%walkthrough.installCli.description%",
+            "media": { "svg": "images/walkthrough/install-cli.svg", "altText": "A terminal installing arduino-cli" },
+            "completionEvents": ["onCommand:arduinoCli.showVersion"]
+          },
+          {
+            "id": "openSketch",
+            "title": "%walkthrough.openSketch.title%",
+            "description": "%walkthrough.openSketch.description%",
+            "media": { "svg": "images/walkthrough/open-sketch.svg", "altText": "An Arduino sketch file" },
+            "completionEvents": ["onCommand:arduinoCli.newSketch"]
+          },
+          {
+            "id": "selectBoard",
+            "title": "%walkthrough.selectBoard.title%",
+            "description": "%walkthrough.selectBoard.description%",
+            "media": { "svg": "images/walkthrough/select-board.svg", "altText": "Selecting an Arduino board" },
+            "completionEvents": ["onCommand:arduinoCli.selectBoard"]
+          },
+          {
+            "id": "compileUpload",
+            "title": "%walkthrough.compileUpload.title%",
+            "description": "%walkthrough.compileUpload.description%",
+            "media": { "svg": "images/walkthrough/compile-upload.svg", "altText": "Compile and upload toolbar buttons" },
+            "completionEvents": ["onCommand:arduinoCli.compile"]
+          },
+          {
+            "id": "monitor",
+            "title": "%walkthrough.monitor.title%",
+            "description": "%walkthrough.monitor.description%",
+            "media": { "svg": "images/walkthrough/monitor.svg", "altText": "Serial monitor and plotter" },
+            "completionEvents": ["onCommand:arduinoCli.openMonitor"]
+          },
+          {
+            "id": "manage",
+            "title": "%walkthrough.manage.title%",
+            "description": "%walkthrough.manage.description%",
+            "media": { "svg": "images/walkthrough/manage.svg", "altText": "Cores and libraries sidebar" },
+            "completionEvents": ["onView:arduinoCli.libraries"]
+          },
+          {
+            "id": "blockly",
+            "title": "%walkthrough.blockly.title%",
+            "description": "%walkthrough.blockly.description%",
+            "media": { "svg": "images/walkthrough/blockly.svg", "altText": "Drag-and-drop blocks generating Arduino code" },
+            "completionEvents": ["extensionInstalled:linucs.blocks-editor"]
           }
         ]
       }

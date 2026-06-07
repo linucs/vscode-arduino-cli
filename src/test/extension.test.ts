@@ -5,6 +5,6 @@ suite('Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
 
 	test('extension is present', () => {
-		assert.ok(vscode.extensions.getExtension('linucs.vscode-arduino-cli'));
+		assert.ok(vscode.extensions.getExtension('linucs.vscode-arduino-cli-ide'));
 	});
 });

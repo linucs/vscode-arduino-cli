@@ -1,0 +1,19 @@
+<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="200" fill="#1e1e1e" rx="8"/>
+  <!-- Editor title bar -->
+  <rect x="30" y="45" width="240" height="30" rx="4" fill="#252526" stroke="#454545" stroke-width="1"/>
+  <text x="44" y="64" font-size="11" font-family="monospace" fill="#d4d4d4">Blink.ino</text>
+  <!-- Toolbar buttons -->
+  <circle cx="212" cy="60" r="13" fill="#2d2d2d" stroke="#555" stroke-width="1"/>
+  <path d="M206 60 l4 5 l8 -10" stroke="#27c93f" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="246" cy="60" r="13" fill="#2d2d2d" stroke="#555" stroke-width="1"/>
+  <path d="M246 66 v-11 m0 0 l-5 5 m5 -5 l5 5" stroke="#3794ff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Labels -->
+  <text x="212" y="92" text-anchor="middle" font-size="8" font-family="sans-serif" fill="#8b8b8b">Compile</text>
+  <text x="246" y="92" text-anchor="middle" font-size="8" font-family="sans-serif" fill="#8b8b8b">Upload</text>
+  <!-- Output -->
+  <rect x="30" y="108" width="240" height="58" rx="4" fill="#0d0d0d" stroke="#454545" stroke-width="1"/>
+  <text x="42" y="128" font-size="9" font-family="monospace" fill="#8b8b8b">Compiling sketch...</text>
+  <text x="42" y="144" font-size="9" font-family="monospace" fill="#27c93f">Done compiling.</text>
+  <text x="42" y="160" font-size="9" font-family="monospace" fill="#3794ff">Uploading to board...</text>
+</svg>

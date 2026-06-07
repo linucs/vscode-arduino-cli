@@ -1,5 +1,5 @@
 {
-  "displayName": "Arduino CLI (gRPC)",
+  "displayName": "Arduino CLI IDE",
   "description": "Lekkie rozszerzenie VS Code opakowujące demona gRPC arduino-cli (ArduinoCoreService) — kompiluj, wgrywaj i monitoruj bez opuszczania edytora.",
   "config.title": "Arduino CLI",
   "config.path": "Ścieżka do pliku wykonywalnego arduino-cli.",
@@ -68,5 +68,21 @@
   "view.libraries": "Zainstalowane biblioteki",
   "view.profileLibraries": "Biblioteki profilu",
   "command.showVersion": "Arduino CLI: Pokaż wersję demona",
-  "command.restartDaemon": "Arduino CLI: Uruchom ponownie demona"
+  "command.restartDaemon": "Arduino CLI: Uruchom ponownie demona",
+  "walkthrough.title": "Rozpocznij pracę z Arduino CLI",
+  "walkthrough.description": "Kompiluj, wgrywaj i monitoruj szkice Arduino w zwykłym VS Code.",
+  "walkthrough.installCli.title": "Zainstaluj Arduino CLI",
+  "walkthrough.installCli.description": "To rozszerzenie korzysta z oficjalnego **arduino-cli** — zainstaluj je raz i gotowe.\n\n- **macOS:** `brew install arduino-cli`\n- **Windows:** `winget install ArduinoSA.CLI`\n- **Linux / ręcznie:** [przewodnik instalacji](https://arduino.github.io/arduino-cli/latest/installation/)\n\nNastępnie potwierdź, że wszystko działa: [Pokaż wersję demona](command:arduinoCli.showVersion).",
+  "walkthrough.openSketch.title": "Otwórz lub utwórz szkic",
+  "walkthrough.openSketch.description": "Otwórz folder zawierający plik `.ino` albo utwórz nowy szkic.\n\n[Nowy szkic](command:arduinoCli.newSketch)",
+  "walkthrough.selectBoard.title": "Wybierz swoją płytkę",
+  "walkthrough.selectBoard.description": "Wskaż rozszerzeniu, na jaką płytkę celujesz. Jeśli jej rdzeń nie jest jeszcze zainstalowany, rozszerzenie zaproponuje jego instalację.\n\n[Wybierz płytkę](command:arduinoCli.selectBoard)",
+  "walkthrough.compileUpload.title": "Kompiluj i wgrywaj",
+  "walkthrough.compileUpload.description": "Otwórz swój plik `.ino` i użyj przycisków w prawym górnym rogu edytora: **Kompiluj** (✓) i **Wgraj** (⬆).\n\n[Kompiluj teraz](command:arduinoCli.compile)",
+  "walkthrough.monitor.title": "Obserwuj odpowiedzi swojej płytki",
+  "walkthrough.monitor.description": "Odczytuj to, co Twoja płytka wypisuje przez port szeregowy, albo wykreślaj na żywo liczby za pomocą plotera.\n\n[Otwórz monitor portu szeregowego](command:arduinoCli.openMonitor) · [Otwórz ploter portu szeregowego](command:arduinoCli.openPlotter)",
+  "walkthrough.manage.title": "Zarządzaj rdzeniami i bibliotekami",
+  "walkthrough.manage.description": "Otwórz widok **Arduino** na pasku aktywności (ikona płytki drukowanej), aby instalować, aktualizować lub usuwać platformy i biblioteki — bez zapamiętywania poleceń.\n\n[Otwórz widok Arduino](command:workbench.view.extension.arduinoCli)",
+  "walkthrough.blockly.title": "Opcjonalnie: programuj za pomocą bloków",
+  "walkthrough.blockly.description": "Wolisz przeciągać bloki zamiast pisać w C++? Zainstaluj siostrzane rozszerzenie **Blocks Editor** — wizualny edytor w stylu Scratcha, który generuje prawdziwy kod Arduino oraz buduje i wgrywa go za pomocą tego rozszerzenia.\n\n[Zainstaluj Blocks Editor](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nJest całkowicie opcjonalny — to rozszerzenie działa w pełni samodzielnie."
 }

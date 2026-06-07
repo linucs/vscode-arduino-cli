@@ -1,5 +1,5 @@
 {
-  "displayName": "Arduino CLI (gRPC)",
+  "displayName": "Arduino CLI IDE",
   "description": "A lightweight VS Code extension that wraps the arduino-cli gRPC daemon (ArduinoCoreService) — compile, upload, and monitor without leaving the editor.",
   "config.title": "Arduino CLI",
   "config.path": "Path to the arduino-cli executable.",
@@ -68,5 +68,21 @@
   "view.libraries": "Installed Libraries",
   "view.profileLibraries": "Profile Libraries",
   "command.showVersion": "Arduino CLI: Show Daemon Version",
-  "command.restartDaemon": "Arduino CLI: Restart Daemon"
+  "command.restartDaemon": "Arduino CLI: Restart Daemon",
+  "walkthrough.title": "Get Started with Arduino CLI",
+  "walkthrough.description": "Compile, upload, and monitor Arduino sketches in plain VS Code.",
+  "walkthrough.installCli.title": "Install the Arduino CLI",
+  "walkthrough.installCli.description": "This extension drives the official **arduino-cli** — install it once and you're set.\n\n- **macOS:** `brew install arduino-cli`\n- **Windows:** `winget install ArduinoSA.CLI`\n- **Linux / manual:** [installation guide](https://arduino.github.io/arduino-cli/latest/installation/)\n\nThen confirm it's wired up: [Show Daemon Version](command:arduinoCli.showVersion).",
+  "walkthrough.openSketch.title": "Open or create a sketch",
+  "walkthrough.openSketch.description": "Open a folder that contains an `.ino` file, or scaffold a fresh one.\n\n[New Sketch](command:arduinoCli.newSketch)",
+  "walkthrough.selectBoard.title": "Select your board",
+  "walkthrough.selectBoard.description": "Tell the extension which board you're targeting. If its core isn't installed yet, it offers to install it for you.\n\n[Select Board](command:arduinoCli.selectBoard)",
+  "walkthrough.compileUpload.title": "Compile & upload",
+  "walkthrough.compileUpload.description": "Open your `.ino` and use the buttons in the top-right of the editor: **Compile** (✓) and **Upload** (⬆).\n\n[Compile now](command:arduinoCli.compile)",
+  "walkthrough.monitor.title": "Watch your board talk back",
+  "walkthrough.monitor.description": "Read what your board prints over serial, or graph live numbers with the plotter.\n\n[Open Serial Monitor](command:arduinoCli.openMonitor) · [Open Serial Plotter](command:arduinoCli.openPlotter)",
+  "walkthrough.manage.title": "Manage cores & libraries",
+  "walkthrough.manage.description": "Open the **Arduino** view in the Activity Bar (the circuit-board icon) to install, update, or remove platforms and libraries — no commands to memorize.\n\n[Open the Arduino view](command:workbench.view.extension.arduinoCli)",
+  "walkthrough.blockly.title": "Optional: program with blocks",
+  "walkthrough.blockly.description": "Prefer dragging blocks to typing C++? Install the sister extension **Blocks Editor** — a visual, Scratch-like editor that generates real Arduino code and builds & uploads through this extension.\n\n[Install Blocks Editor](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nIt's completely optional — this extension works fully on its own."
 }

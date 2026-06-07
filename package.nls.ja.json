@@ -1,5 +1,5 @@
 {
-  "displayName": "Arduino CLI (gRPC)",
+  "displayName": "Arduino CLI IDE",
   "description": "arduino-cli の gRPC デーモン (ArduinoCoreService) をラップする軽量な VS Code 拡張機能 — エディターを離れずにコンパイル・書き込み・モニターを行えます。",
   "config.title": "Arduino CLI",
   "config.path": "arduino-cli 実行ファイルへのパス。",
@@ -68,5 +68,21 @@
   "view.libraries": "インストール済みライブラリ",
   "view.profileLibraries": "プロファイルのライブラリ",
   "command.showVersion": "Arduino CLI: デーモンのバージョンを表示",
-  "command.restartDaemon": "Arduino CLI: デーモンを再起動"
+  "command.restartDaemon": "Arduino CLI: デーモンを再起動",
+  "walkthrough.title": "Arduino CLI をはじめよう",
+  "walkthrough.description": "素の VS Code で Arduino スケッチのコンパイル・書き込み・モニターを行えます。",
+  "walkthrough.installCli.title": "Arduino CLI をインストールする",
+  "walkthrough.installCli.description": "この拡張機能は公式の **arduino-cli** を利用します — 一度インストールすれば準備完了です。\n\n- **macOS:** `brew install arduino-cli`\n- **Windows:** `winget install ArduinoSA.CLI`\n- **Linux / 手動:** [インストールガイド](https://arduino.github.io/arduino-cli/latest/installation/)\n\nそのうえで正しく連携できているか確認します: [デーモンのバージョンを表示](command:arduinoCli.showVersion)。",
+  "walkthrough.openSketch.title": "スケッチを開くか作成する",
+  "walkthrough.openSketch.description": "`.ino` ファイルを含むフォルダーを開くか、新しいものを作成します。\n\n[新しいスケッチ](command:arduinoCli.newSketch)",
+  "walkthrough.selectBoard.title": "ボードを選択する",
+  "walkthrough.selectBoard.description": "対象とするボードを拡張機能に指定します。そのコアがまだインストールされていない場合は、インストールを提案します。\n\n[ボードを選択](command:arduinoCli.selectBoard)",
+  "walkthrough.compileUpload.title": "コンパイルと書き込み",
+  "walkthrough.compileUpload.description": "`.ino` を開き、エディター右上のボタンを使います: **コンパイル** (✓) と **書き込み** (⬆)。\n\n[今すぐコンパイル](command:arduinoCli.compile)",
+  "walkthrough.monitor.title": "ボードからの応答を見る",
+  "walkthrough.monitor.description": "ボードがシリアル経由で出力する内容を読んだり、プロッターで数値をリアルタイムにグラフ化したりできます。\n\n[シリアルモニターを開く](command:arduinoCli.openMonitor) · [シリアルプロッターを開く](command:arduinoCli.openPlotter)",
+  "walkthrough.manage.title": "コアとライブラリを管理する",
+  "walkthrough.manage.description": "アクティビティバーの **Arduino** ビュー (回路基板のアイコン) を開いて、プラットフォームやライブラリのインストール・更新・削除を行えます — コマンドを覚える必要はありません。\n\n[Arduino ビューを開く](command:workbench.view.extension.arduinoCli)",
+  "walkthrough.blockly.title": "オプション: ブロックでプログラミングする",
+  "walkthrough.blockly.description": "C++ を入力するよりもブロックをドラッグする方が好みですか? 姉妹拡張機能の **Blocks Editor** をインストールしてください — Scratch のようなビジュアルエディターで、実際の Arduino コードを生成し、この拡張機能を通じてビルドと書き込みを行います。\n\n[Blocks Editor をインストール](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\n完全にオプションです — この拡張機能はそれ単体で十分に機能します。"
 }

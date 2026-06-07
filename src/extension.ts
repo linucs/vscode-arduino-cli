@@ -67,6 +67,8 @@ export async function activate(ctx: vscode.ExtensionContext) {
 
   daemon = new DaemonManager(output);
 
+  maybeShowWalkthrough(ctx);
+
   ctx.subscriptions.push(
     vscode.commands.registerCommand("arduinoCli.showVersion", showVersion),
     vscode.commands.registerCommand("arduinoCli.restartDaemon", restartDaemon),
@@ -623,6 +625,26 @@ async function restartDaemon() {
 
 function asMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
+}
+
+/**
+ * Open the Get Started walkthrough once per version — on first install and after
+ * an update — by comparing the packaged version against the one stored in
+ * globalState. Cheap and daemon-independent, so it runs at activation without
+ * waiting on (or spawning) the daemon.
+ */
+function maybeShowWalkthrough(ctx: vscode.ExtensionContext): void {
+  const currentVersion = ctx.extension.packageJSON.version as string;
+  const lastVersion = ctx.globalState.get<string>("walkthroughVersion");
+  if (lastVersion === currentVersion) {
+    return;
+  }
+  void ctx.globalState.update("walkthroughVersion", currentVersion);
+  void vscode.commands.executeCommand(
+    "workbench.action.openWalkthrough",
+    `${ctx.extension.id}#arduinoCli.welcome`,
+    false,
+  );
 }
 
 /**

@@ -1,5 +1,5 @@
 {
-  "displayName": "Arduino CLI (gRPC)",
+  "displayName": "Arduino CLI IDE",
   "description": "Könnyűsúlyú VS Code-bővítmény, amely az arduino-cli gRPC démonját (ArduinoCoreService) burkolja be — fordítás, feltöltés és figyelés a szerkesztő elhagyása nélkül.",
   "config.title": "Arduino CLI",
   "config.path": "Az arduino-cli végrehajtható fájl elérési útja.",
@@ -68,5 +68,21 @@
   "view.libraries": "Telepített programkönyvtárak",
   "view.profileLibraries": "A profil programkönyvtárai",
   "command.showVersion": "Arduino CLI: Démon verziójának megjelenítése",
-  "command.restartDaemon": "Arduino CLI: Démon újraindítása"
+  "command.restartDaemon": "Arduino CLI: Démon újraindítása",
+  "walkthrough.title": "Ismerkedés az Arduino CLI-vel",
+  "walkthrough.description": "Arduino vázlatok fordítása, feltöltése és figyelése egyszerűen a VS Code-ban.",
+  "walkthrough.installCli.title": "Az Arduino CLI telepítése",
+  "walkthrough.installCli.description": "Ez a bővítmény a hivatalos **arduino-cli** eszközt vezérli — telepítse egyszer, és készen is áll.\n\n- **macOS:** `brew install arduino-cli`\n- **Windows:** `winget install ArduinoSA.CLI`\n- **Linux / kézi telepítés:** [telepítési útmutató](https://arduino.github.io/arduino-cli/latest/installation/)\n\nEzután ellenőrizze, hogy minden be van-e kötve: [Démon verziójának megjelenítése](command:arduinoCli.showVersion).",
+  "walkthrough.openSketch.title": "Vázlat megnyitása vagy létrehozása",
+  "walkthrough.openSketch.description": "Nyisson meg egy mappát, amely `.ino` fájlt tartalmaz, vagy hozzon létre egy újat.\n\n[Új vázlat](command:arduinoCli.newSketch)",
+  "walkthrough.selectBoard.title": "Válassza ki a kártyáját",
+  "walkthrough.selectBoard.description": "Adja meg a bővítménynek, melyik kártyát célozza meg. Ha a magja még nincs telepítve, felajánlja a telepítését.\n\n[Kártya kiválasztása](command:arduinoCli.selectBoard)",
+  "walkthrough.compileUpload.title": "Fordítás és feltöltés",
+  "walkthrough.compileUpload.description": "Nyissa meg az `.ino` fájlját, és használja a szerkesztő jobb felső sarkában lévő gombokat: **Fordítás** (✓) és **Feltöltés** (⬆).\n\n[Fordítás most](command:arduinoCli.compile)",
+  "walkthrough.monitor.title": "Figyelje, mit válaszol a kártya",
+  "walkthrough.monitor.description": "Olvassa el, amit a kártya a soros porton kiír, vagy ábrázolja a valós idejű számokat a plotterrel.\n\n[Soros monitor megnyitása](command:arduinoCli.openMonitor) · [Soros plotter megnyitása](command:arduinoCli.openPlotter)",
+  "walkthrough.manage.title": "Magok és programkönyvtárak kezelése",
+  "walkthrough.manage.description": "Nyissa meg az **Arduino** nézetet a Tevékenységsávon (a nyomtatott áramkör ikon) platformok és programkönyvtárak telepítéséhez, frissítéséhez vagy eltávolításához — nincsenek megjegyzendő parancsok.\n\n[Az Arduino nézet megnyitása](command:workbench.view.extension.arduinoCli)",
+  "walkthrough.blockly.title": "Választható: programozás blokkokkal",
+  "walkthrough.blockly.description": "Inkább blokkokat húzogatna, mint C++-t gépelne? Telepítse a testvérbővítményt, a **Blocks Editor**-t — egy vizuális, Scratch-szerű szerkesztőt, amely valódi Arduino kódot generál, és ezen a bővítményen keresztül fordít és tölt fel.\n\n[Blocks Editor telepítése](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nTeljesen választható — ez a bővítmény önmagában is teljes mértékben működik."
 }

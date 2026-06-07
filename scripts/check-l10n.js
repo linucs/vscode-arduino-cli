@@ -5,11 +5,16 @@
  *
  *  1. Invalid JSON in package.json / NLS files / l10n bundles (e.g. smart quotes
  *     used as delimiters — which silently breaks ALL runtime translations).
- *  2. Duplicate keys in an l10n bundle (JSON.parse keeps only the last).
- *  3. Runtime strings — every `vscode.l10n.t("…")` key in src/ must exist in
+ *  2. Duplicate keys in any NLS file or l10n bundle (JSON.parse keeps only the last).
+ *  3. Manifest strings — every `%key%` in package.json must exist in the English
+ *     base package.nls.json.
+ *  4. Manifest parity — every package.nls.<locale>.json must carry EXACTLY the
+ *     English key set: no missing translation, no orphaned key. Adding a new
+ *     `%key%` therefore fails the build until every language is translated.
+ *  5. Runtime strings — every `vscode.l10n.t("…")` key in src/ must exist in
  *     l10n/bundle.l10n.it.json.
- *  4. Manifest strings — every `%key%` in package.json must exist in both
- *     package.nls.json and package.nls.it.json.
+ *  6. Runtime parity — every l10n bundle must carry the same key set as the
+ *     Italian reference bundle.
  *
  * Exits non-zero with a clear report on any violation.
  */
@@ -70,29 +75,71 @@ function extractL10nKeys(src) {
   return keys;
 }
 
-// 1 + 2: JSON validity (+ duplicate keys for the l10n bundles).
-const jsonFiles = [
-  "package.json",
-  "package.nls.json",
-  "package.nls.it.json",
-];
-for (const f of fs.readdirSync(path.join(ROOT, "l10n"))) {
-  if (f.endsWith(".json")) {
-    jsonFiles.push(path.join("l10n", f));
-  }
+/** Keys present in `have` but missing from `want` (set difference want \ have). */
+function missingFrom(want, have) {
+  const has = new Set(Object.keys(have));
+  return Object.keys(want).filter((k) => !has.has(k));
 }
+
+// Discover every localization file: the English NLS base, its per-locale
+// siblings (package.nls.<loc>.json), and the runtime l10n bundles.
+const nlsLocaleFiles = fs
+  .readdirSync(ROOT)
+  .filter((f) => /^package\.nls\..+\.json$/.test(f))
+  .sort();
+const bundleFiles = fs
+  .readdirSync(path.join(ROOT, "l10n"))
+  .filter((f) => f.endsWith(".json"))
+  .map((f) => path.join("l10n", f))
+  .sort();
+
+// 1 + 2: JSON validity, plus duplicate-key detection for every NLS / bundle.
+const jsonFiles = ["package.json", "package.nls.json", ...nlsLocaleFiles, ...bundleFiles];
 const parsed = {};
 for (const rel of jsonFiles) {
   const r = readJson(rel);
   if (r) {
     parsed[rel] = r.data;
-    if (rel.startsWith("l10n")) {
+    if (rel !== "package.json") {
       findDuplicateKeys(rel, r.raw);
     }
   }
 }
 
-// 3: runtime l10n coverage against the Italian bundle.
+const nlsEn = parsed["package.nls.json"] || {};
+
+// 3: manifest %key% references must all resolve in the English NLS base.
+// (Locale parity below then guarantees they resolve in every language too.)
+const pkgRaw = fs.readFileSync(path.join(ROOT, "package.json"), "utf8");
+const refSeen = new Set();
+for (const m of pkgRaw.matchAll(/%([\w.]+)%/g)) {
+  const key = m[1];
+  if (refSeen.has(key)) {
+    continue;
+  }
+  refSeen.add(key);
+  if (!(key in nlsEn)) {
+    errors.push(`package.json: %${key}% missing from package.nls.json`);
+  }
+}
+
+// 4: manifest NLS parity — every locale file must carry EXACTLY the English
+// key set: no missing translations, no orphaned keys left behind.
+for (const rel of nlsLocaleFiles) {
+  const loc = parsed[rel];
+  if (!loc) {
+    continue;
+  }
+  for (const k of missingFrom(nlsEn, loc)) {
+    errors.push(`${rel}: missing translation for "${k}"`);
+  }
+  for (const k of missingFrom(loc, nlsEn)) {
+    errors.push(`${rel}: orphan key "${k}" not in package.nls.json`);
+  }
+}
+
+// 5: runtime l10n coverage — every vscode.l10n.t("…") key in src/ must exist in
+// the Italian bundle (the reference locale).
 const bundle = parsed[path.join("l10n", "bundle.l10n.it.json")] || {};
 for (const file of listTs(path.join(ROOT, "src"))) {
   for (const key of extractL10nKeys(fs.readFileSync(file, "utf8"))) {
@@ -104,22 +151,18 @@ for (const file of listTs(path.join(ROOT, "src"))) {
   }
 }
 
-// 4: manifest %key% references must resolve in both NLS files.
-const pkgRaw = fs.readFileSync(path.join(ROOT, "package.json"), "utf8");
-const nlsEn = parsed["package.nls.json"] || {};
-const nlsIt = parsed["package.nls.it.json"] || {};
-const refSeen = new Set();
-for (const m of pkgRaw.matchAll(/%([\w.]+)%/g)) {
-  const key = m[1];
-  if (refSeen.has(key)) {
+// 6: runtime bundle parity — every l10n bundle must carry the same key set as
+// the Italian reference bundle (no language silently missing a runtime string).
+for (const rel of bundleFiles) {
+  const b = parsed[rel];
+  if (!b || rel.endsWith("bundle.l10n.it.json")) {
     continue;
   }
-  refSeen.add(key);
-  if (!(key in nlsEn)) {
-    errors.push(`package.json: %${key}% missing from package.nls.json`);
+  for (const k of missingFrom(bundle, b)) {
+    errors.push(`${rel}: missing translation for "${k}"`);
   }
-  if (!(key in nlsIt)) {
-    errors.push(`package.json: %${key}% missing from package.nls.it.json`);
+  for (const k of missingFrom(b, bundle)) {
+    errors.push(`${rel}: orphan key "${k}" not in bundle.l10n.it.json`);
   }
 }
 

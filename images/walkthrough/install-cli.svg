@@ -1,0 +1,14 @@
+<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="200" fill="#1e1e1e" rx="8"/>
+  <!-- Terminal window -->
+  <rect x="30" y="40" width="240" height="120" rx="6" fill="#0d0d0d" stroke="#555" stroke-width="1"/>
+  <rect x="30" y="40" width="240" height="22" rx="6" fill="#2d2d2d"/>
+  <circle cx="44" cy="51" r="4" fill="#ff5f56"/>
+  <circle cx="58" cy="51" r="4" fill="#ffbd2e"/>
+  <circle cx="72" cy="51" r="4" fill="#27c93f"/>
+  <text x="46" y="92" font-size="11" font-family="monospace" fill="#27c93f">$</text>
+  <text x="60" y="92" font-size="11" font-family="monospace" fill="#d4d4d4">brew install arduino-cli</text>
+  <text x="46" y="118" font-size="11" font-family="monospace" fill="#27c93f">$</text>
+  <text x="60" y="118" font-size="11" font-family="monospace" fill="#d4d4d4">arduino-cli version</text>
+  <text x="60" y="140" font-size="11" font-family="monospace" fill="#8b8b8b">arduino-cli  Version: 1.x</text>
+</svg>

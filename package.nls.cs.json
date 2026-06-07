@@ -1,5 +1,5 @@
 {
-  "displayName": "Arduino CLI (gRPC)",
+  "displayName": "Arduino CLI IDE",
   "description": "Odlehčené rozšíření VS Code, které obaluje gRPC démona arduino-cli (ArduinoCoreService) — kompilujte, nahrávejte a monitorujte bez opuštění editoru.",
   "config.title": "Arduino CLI",
   "config.path": "Cesta ke spustitelnému souboru arduino-cli.",
@@ -68,5 +68,21 @@
   "view.libraries": "Nainstalované knihovny",
   "view.profileLibraries": "Knihovny profilu",
   "command.showVersion": "Arduino CLI: Zobrazit verzi démona",
-  "command.restartDaemon": "Arduino CLI: Restartovat démona"
+  "command.restartDaemon": "Arduino CLI: Restartovat démona",
+  "walkthrough.title": "Začínáme s Arduino CLI",
+  "walkthrough.description": "Kompilujte, nahrávejte a monitorujte skeče Arduino přímo ve VS Code.",
+  "walkthrough.installCli.title": "Nainstalujte Arduino CLI",
+  "walkthrough.installCli.description": "Toto rozšíření ovládá oficiální **arduino-cli** — jednou jej nainstalujte a máte hotovo.\n\n- **macOS:** `brew install arduino-cli`\n- **Windows:** `winget install ArduinoSA.CLI`\n- **Linux / ručně:** [návod k instalaci](https://arduino.github.io/arduino-cli/latest/installation/)\n\nPoté ověřte, že je vše propojeno: [Zobrazit verzi démona](command:arduinoCli.showVersion).",
+  "walkthrough.openSketch.title": "Otevřete nebo vytvořte skeč",
+  "walkthrough.openSketch.description": "Otevřete složku obsahující soubor `.ino` nebo vytvořte nový.\n\n[Nový skeč](command:arduinoCli.newSketch)",
+  "walkthrough.selectBoard.title": "Vyberte svou desku",
+  "walkthrough.selectBoard.description": "Sdělte rozšíření, na kterou desku cílíte. Pokud její jádro ještě není nainstalováno, nabídne jeho instalaci za vás.\n\n[Vybrat desku](command:arduinoCli.selectBoard)",
+  "walkthrough.compileUpload.title": "Kompilace a nahrání",
+  "walkthrough.compileUpload.description": "Otevřete svůj soubor `.ino` a použijte tlačítka v pravém horním rohu editoru: **Kompilovat** (✓) a **Nahrát** (⬆).\n\n[Kompilovat nyní](command:arduinoCli.compile)",
+  "walkthrough.monitor.title": "Sledujte, co vaše deska odpovídá",
+  "walkthrough.monitor.description": "Čtěte, co vaše deska vypisuje přes sériovou linku, nebo vykreslujte živá čísla pomocí plotteru.\n\n[Otevřít sériový monitor](command:arduinoCli.openMonitor) · [Otevřít sériový plotter](command:arduinoCli.openPlotter)",
+  "walkthrough.manage.title": "Spravujte jádra a knihovny",
+  "walkthrough.manage.description": "Otevřete zobrazení **Arduino** na panelu aktivit (ikona desky plošných spojů) pro instalaci, aktualizaci nebo odebrání platforem a knihoven — žádné příkazy k zapamatování.\n\n[Otevřít zobrazení Arduino](command:workbench.view.extension.arduinoCli)",
+  "walkthrough.blockly.title": "Volitelné: programujte pomocí bloků",
+  "walkthrough.blockly.description": "Dáváte přednost přetahování bloků před psaním C++? Nainstalujte sesterské rozšíření **Blocks Editor** — vizuální editor podobný Scratch, který generuje skutečný kód Arduino a sestavuje a nahrává jej prostřednictvím tohoto rozšíření.\n\n[Nainstalovat Blocks Editor](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nJe zcela volitelné — toto rozšíření funguje plně samo o sobě."
 }

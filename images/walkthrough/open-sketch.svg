@@ -1,0 +1,12 @@
+<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="200" fill="#1e1e1e" rx="8"/>
+  <!-- Folder -->
+  <path d="M55 70 h40 l10 12 h70 a6 6 0 0 1 6 6 v62 a6 6 0 0 1 -6 6 h-120 a6 6 0 0 1 -6 -6 v-74 a6 6 0 0 1 6 -6 z" fill="#3a3d41" stroke="#555" stroke-width="1"/>
+  <!-- Sketch file -->
+  <rect x="120" y="95" width="64" height="78" rx="4" fill="#252526" stroke="#008184" stroke-width="1.5"/>
+  <path d="M168 95 l16 16 h-16 z" fill="#008184" opacity="0.4"/>
+  <line x1="130" y1="120" x2="174" y2="120" stroke="#5b80a5" stroke-width="2"/>
+  <line x1="130" y1="132" x2="166" y2="132" stroke="#8b8b8b" stroke-width="2"/>
+  <line x1="130" y1="144" x2="174" y2="144" stroke="#8b8b8b" stroke-width="2"/>
+  <text x="152" y="166" text-anchor="middle" font-size="9" font-family="monospace" fill="#008184">.ino</text>
+</svg>

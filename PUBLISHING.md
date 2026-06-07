@@ -69,7 +69,7 @@ one at a time — a release will still succeed and just upload the `.vsix` to Gi
    (the tag is the source of the `.vsix` filename; the published version comes from
    `package.json`). Keep the two in sync.
 4. **Publish release.** The workflow then:
-   - builds and packages `vscode-arduino-cli-<tag>.vsix`,
+   - builds and packages `vscode-arduino-cli-ide-<tag>.vsix`,
    - uploads it to the GitHub release,
    - publishes to the VS Code Marketplace (`VSCE_PAT`),
    - publishes to Open VSX (`OVSX_PAT`).

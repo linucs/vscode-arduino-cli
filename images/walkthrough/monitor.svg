@@ -1,0 +1,14 @@
+<svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="200" fill="#1e1e1e" rx="8"/>
+  <!-- Plotter panel -->
+  <rect x="30" y="35" width="240" height="80" rx="4" fill="#0d0d0d" stroke="#454545" stroke-width="1"/>
+  <!-- grid -->
+  <line x1="30" y1="75" x2="270" y2="75" stroke="#2a2a2a" stroke-width="1"/>
+  <!-- waveform -->
+  <polyline points="40,95 70,60 100,90 130,50 160,85 190,55 220,92 260,62" fill="none" stroke="#3794ff" stroke-width="2"/>
+  <polyline points="40,100 70,85 100,72 130,95 160,68 190,90 220,70 260,98" fill="none" stroke="#27c93f" stroke-width="2"/>
+  <!-- Monitor text panel -->
+  <rect x="30" y="125" width="240" height="42" rx="4" fill="#0d0d0d" stroke="#454545" stroke-width="1"/>
+  <text x="42" y="142" font-size="9" font-family="monospace" fill="#d4d4d4">temp: 24.5  hum: 41</text>
+  <text x="42" y="158" font-size="9" font-family="monospace" fill="#d4d4d4">temp: 24.6  hum: 42</text>
+</svg>
