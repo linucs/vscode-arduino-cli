@@ -2,6 +2,8 @@
 
 **Code Arduino sketches in plain VS Code — compile, upload, monitor, and debug right from the editor.**
 
+![Arduino CLI IDE in action — compiling, uploading, and plotting serial data inside VS Code](images/demo.gif)
+
 This extension is a **thin wrapper** around the official [`arduino-cli`](https://github.com/arduino/arduino-cli). It doesn't reinvent anything: it spawns the `arduino-cli` daemon in the background and gives you buttons, menus, and tree views for the things it already does. You get a **stock VS Code experience** for Arduino — the editor, extensions, themes, and keybindings you already use — with none of a separate IDE on top.
 
 > **Who is this for?** Anyone who wants to write Arduino code in VS Code and have the build/upload toolchain a click away — without a heavyweight, all-in-one Arduino IDE. If you can install one command-line tool, you're ready.
@@ -179,6 +181,10 @@ Press **F5** in VS Code to launch an Extension Development Host. The extension l
 vendored `arduino-cli` `.proto` files at runtime via `@grpc/proto-loader` (no codegen step).
 See [`CLAUDE.md`](CLAUDE.md) for architecture notes and [`PUBLISHING.md`](PUBLISHING.md) for
 the release process.
+
+## Community
+
+Questions, ideas, or just want to show what you built? Join the [GitHub Discussions](https://github.com/linucs/vscode-arduino-cli/discussions).
 
 ## Contributing
 

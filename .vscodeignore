@@ -22,3 +22,5 @@ images/icon.svg
 yarn.lock
 *.vsix
 *.code-workspace
+.github/**
+RELEASE_NOTES.md
