@@ -2,7 +2,7 @@
   "name": "vscode-arduino-cli-ide",
   "displayName": "%displayName%",
   "description": "%description%",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "license": "MIT",
   "publisher": "linucs",
   "icon": "images/icon.png",

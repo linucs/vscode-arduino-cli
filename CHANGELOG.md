@@ -4,6 +4,28 @@ All notable changes to the "Arduino CLI IDE" extension will be documented in thi
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.1.1] - 2026-06-07
+
+### Added
+
+- **"Saved" toasts with follow-up actions** — after saving a serial log, exporting
+  plotter data, or archiving a sketch, the confirmation now offers an **Open** or
+  **Reveal in File Explorer** action.
+
+### Changed
+
+- **Smarter Save dialog defaults** — Save Serial Log, Export Plotter Data, and
+  Archive Sketch now default to the active sketch's workspace folder instead of the
+  filesystem root.
+- **New Sketch** now adds the created sketch's folder as a root of the current
+  window, so it immediately becomes the working folder.
+
+### Fixed
+
+- **Debugging in multi-root workspaces** — `${workspaceFolder}` now resolves against
+  the workspace root that actually contains the sketch, rather than always the first
+  root.
+
 ## [0.0.1] - 2026-06-07
 
 First public release.
@@ -47,4 +69,5 @@ talks to it over local gRPC — no reimplementation of arduino-cli, just an edit
 - **Maintenance** — check for `arduino-cli` updates and clean the download cache.
 - **Localization** — the UI is translated into 14 languages.
 
+[0.1.1]: https://github.com/linucs/vscode-arduino-cli/releases/tag/v0.1.1
 [0.0.1]: https://github.com/linucs/vscode-arduino-cli/releases/tag/v0.0.1

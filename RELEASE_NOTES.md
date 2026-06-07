@@ -6,6 +6,15 @@ Code Arduino sketches in **plain VS Code** — compile, upload, monitor, and deb
 
 ---
 
+## v0.1.1 — 2026-06-07
+
+- **Saved-file follow-up actions** — saving a serial log, exporting plotter data, or archiving a sketch now offers an **Open** or **Reveal in File Explorer** action straight from the confirmation toast.
+- **Smarter Save dialogs** — Save Serial Log, Export Plotter Data, and Archive Sketch now default to your sketch's workspace folder instead of the filesystem root.
+- **New Sketch** adds the freshly created sketch folder as a root of the current window, so it becomes your working folder right away.
+- **Fixed** — debugging in a multi-root workspace now resolves `${workspaceFolder}` against the root that actually contains the sketch.
+
+---
+
 ## v0.0.1 — 2026-06-07 — first public release
 
 - **Editor toolbar buttons** — Compile, Upload, Serial Monitor, and Debug appear in the editor title bar for any `.ino` file (over text *and* custom editors).
