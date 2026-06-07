@@ -428,9 +428,24 @@ async function ensureReady(): Promise<Deps> {
   }
   await daemon.start();
   if (!client) {
-    client = new ArduinoClient(daemon.address, (line) => output.appendLine(line));
-    client.connect();
-    await client.initInstance();
+    const c = new ArduinoClient(daemon.address, (line) => output.appendLine(line));
+    c.connect();
+    // Assign only after connect() so a throw here doesn't strand a half-built
+    // client (the next ensureReady rebuilds from scratch).
+    client = c;
+  }
+  if (!client.ready) {
+    // Create+Init the daemon instance. Gated on readiness — NOT on client
+    // existence — so a first init that failed (daemon slow to listen, transient
+    // gRPC error) is retried on the next command instead of leaving a client
+    // whose every call throws "instance not initialized". Drop the client on
+    // failure so a later attempt starts clean.
+    try {
+      await client.initInstance();
+    } catch (err) {
+      client = undefined;
+      throw err;
+    }
   }
   if (!boards) {
     boards = new BoardManager(client, context, output);

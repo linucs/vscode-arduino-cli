@@ -104,6 +104,8 @@ export class ArduinoClient {
   private client: grpc.Client | undefined;
   private service: any;
   private instance: ArduinoInstance | undefined;
+  /** In-flight global-instance rebuild, shared by concurrent stale-handle recoveries. */
+  private reinitInFlight: Promise<ArduinoInstance> | undefined;
   /**
    * Profile-bound instances, keyed by sketch path. Created on demand for
    * sketches whose sketch.yaml has a `default_profile`; the daemon binds the
@@ -800,7 +802,33 @@ export class ArduinoClient {
    * (mirrors 1:1 onto OutputChannel/progress). Resolves on `end`, rejects on
    * `error`. An aborted `signal` cancels the underlying call.
    */
-  serverStream(
+  /**
+   * Server-streaming call with the same stale-instance recovery as {@link unary}.
+   * A stale-handle rejection arrives on the stream's `error` event before any
+   * `data`, so rebuilding the global instance and replaying the call once is
+   * safe — no progress has been emitted yet.
+   */
+  async serverStream(
+    method: string,
+    request: object,
+    opts: { onData: (msg: any) => void; signal?: AbortSignal },
+  ): Promise<void> {
+    try {
+      await this.callServerStream(method, request, opts);
+    } catch (err) {
+      if (await this.recoverStaleInstance(err, method, request)) {
+        await this.callServerStream(
+          method,
+          { ...request, instance: this.instance },
+          opts,
+        );
+        return;
+      }
+      throw err;
+    }
+  }
+
+  private callServerStream(
     method: string,
     request: object,
     opts: { onData: (msg: any) => void; signal?: AbortSignal },
@@ -1165,8 +1193,24 @@ export class ArduinoClient {
     return inst;
   }
 
-  /** Promisified unary call helper. */
-  private unary<T>(method: string, request: object): Promise<T> {
+  /**
+   * Promisified unary call. If the call fails because the daemon-side instance
+   * is gone (the daemon was restarted/crashed and our global handle is now
+   * stale), rebuild the global instance once and retry — so a single command
+   * heals the connection instead of erroring. See {@link recoverStaleInstance}.
+   */
+  private async unary<T>(method: string, request: object): Promise<T> {
+    try {
+      return await this.callUnary<T>(method, request);
+    } catch (err) {
+      if (await this.recoverStaleInstance(err, method, request)) {
+        return this.callUnary<T>(method, { ...request, instance: this.instance });
+      }
+      throw err;
+    }
+  }
+
+  private callUnary<T>(method: string, request: object): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       this.service[method](request, (err: grpc.ServiceError | null, res: T) => {
         if (err) {
@@ -1176,6 +1220,65 @@ export class ArduinoClient {
         }
       });
     });
+  }
+
+  /** Matches the daemon's (and our own) "instance is gone" error wording. */
+  private isStaleInstanceError(err: unknown): boolean {
+    const msg = err instanceof Error ? err.message : String(err);
+    return /instance not initialized|invalid.*instance|unknown instance|no instance/i.test(
+      msg,
+    );
+  }
+
+  /**
+   * Decide whether a failed call can be transparently retried after rebuilding
+   * the GLOBAL instance, and if so, do the rebuild. Returns true when the caller
+   * should retry once.
+   *
+   * Scoped to the global instance on purpose: only when the failing request
+   * carried our current global handle at top level do we know that re-Init +
+   * swapping in the fresh handle reproduces the same call. Profile-bound
+   * instances carry a different handle (board/libraries resolved from the
+   * profile) — auto-swapping the global one would be wrong, so those are left to
+   * the caller to re-resolve. Create/Init/Destroy are never recovered (they
+   * don't take a handle and recovery itself issues them — avoids recursion).
+   */
+  private async recoverStaleInstance(
+    err: unknown,
+    method: string,
+    request: object,
+  ): Promise<boolean> {
+    if (method === "Create" || method === "Init" || method === "Destroy") {
+      return false;
+    }
+    if (!this.isStaleInstanceError(err)) {
+      return false;
+    }
+    const reqInstance = (request as { instance?: ArduinoInstance }).instance;
+    if (!reqInstance || reqInstance !== this.instance) {
+      return false;
+    }
+    try {
+      await this.reinitGlobalInstance();
+      this.log?.("[recovery] re-initialized stale daemon instance");
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Rebuild the global instance, de-duplicating concurrent recoveries so a burst
+   * of failing calls triggers a single Create+Init and all retry against the
+   * same fresh handle.
+   */
+  private reinitGlobalInstance(): Promise<ArduinoInstance> {
+    if (!this.reinitInFlight) {
+      this.reinitInFlight = this.initInstance().finally(() => {
+        this.reinitInFlight = undefined;
+      });
+    }
+    return this.reinitInFlight;
   }
 }
 
