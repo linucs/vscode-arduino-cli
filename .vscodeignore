@@ -17,6 +17,7 @@ eslint.config.mjs
 **/*.ts
 CLAUDE.md
 PUBLISHING.md
+RELEASE_NOTES.md
 images/icon.svg
 yarn.lock
 *.vsix
