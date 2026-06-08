@@ -62,6 +62,20 @@ export class BoardManager {
     return this.selection?.port;
   }
 
+  /** Current board/port selection as plain fields, for read-only consumers (the LLM `build-status` tool). */
+  get selectionInfo():
+    | { fqbn: string; boardName: string; portAddress: string }
+    | undefined {
+    if (!this.selection) {
+      return undefined;
+    }
+    return {
+      fqbn: this.selection.fqbn,
+      boardName: this.selection.boardName,
+      portAddress: this.selection.port.address,
+    };
+  }
+
   /** Throws a user-facing error if nothing is selected; returns the selection otherwise. */
   requireSelection(): Selection {
     if (!this.selection) {

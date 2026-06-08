@@ -84,5 +84,6 @@
   "walkthrough.manage.title": "管理内核与库",
   "walkthrough.manage.description": "打开活动栏中的 **Arduino** 视图（电路板图标），即可安装、更新或移除平台和库 —— 无需记忆任何命令。\n\n[打开 Arduino 视图](command:workbench.view.extension.arduinoCli)",
   "walkthrough.blockly.title": "可选：使用积木编程",
-  "walkthrough.blockly.description": "比起编写 C++ 更喜欢拖拽积木？安装姊妹扩展 **Blocks Editor** —— 一个类似 Scratch 的可视化编辑器，它能生成真正的 Arduino 代码，并通过此扩展进行构建和上传。\n\n[安装 Blocks Editor](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\n它完全是可选的 —— 此扩展可以独立完整运行。"
+  "walkthrough.blockly.description": "比起编写 C++ 更喜欢拖拽积木？安装姊妹扩展 **Blocks Editor** —— 一个类似 Scratch 的可视化编辑器，它能生成真正的 Arduino 代码，并通过此扩展进行构建和上传。\n\n[安装 Blocks Editor](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\n它完全是可选的 —— 此扩展可以独立完整运行。",
+  "command.installArduinoSkill": "Arduino CLI：安装 Claude Code 技能"
 }

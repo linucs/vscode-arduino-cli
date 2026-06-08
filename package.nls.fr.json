@@ -84,5 +84,6 @@
   "walkthrough.manage.title": "Gérer les cores et les bibliothèques",
   "walkthrough.manage.description": "Ouvrez la vue **Arduino** dans la barre d'activité (l'icône de circuit imprimé) pour installer, mettre à jour ou supprimer des plateformes et des bibliothèques — sans commande à mémoriser.\n\n[Ouvrir la vue Arduino](command:workbench.view.extension.arduinoCli)",
   "walkthrough.blockly.title": "Optionnel : programmer avec des blocs",
-  "walkthrough.blockly.description": "Vous préférez glisser des blocs plutôt que taper du C++ ? Installez l'extension complémentaire **Blocks Editor** — un éditeur visuel à la Scratch qui génère du vrai code Arduino, puis compile et téléverse via cette extension.\n\n[Installer Blocks Editor](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nC'est entièrement optionnel — cette extension fonctionne parfaitement seule."
+  "walkthrough.blockly.description": "Vous préférez glisser des blocs plutôt que taper du C++ ? Installez l'extension complémentaire **Blocks Editor** — un éditeur visuel à la Scratch qui génère du vrai code Arduino, puis compile et téléverse via cette extension.\n\n[Installer Blocks Editor](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nC'est entièrement optionnel — cette extension fonctionne parfaitement seule.",
+  "command.installArduinoSkill": "Arduino CLI : Installer le skill Claude Code"
 }

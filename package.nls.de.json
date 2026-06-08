@@ -84,5 +84,6 @@
   "walkthrough.manage.title": "Cores & Bibliotheken verwalten",
   "walkthrough.manage.description": "Öffne die **Arduino**-Ansicht in der Aktivitätsleiste (das Platinen-Symbol), um Plattformen und Bibliotheken zu installieren, zu aktualisieren oder zu entfernen — ganz ohne Befehle auswendig zu lernen.\n\n[Die Arduino-Ansicht öffnen](command:workbench.view.extension.arduinoCli)",
   "walkthrough.blockly.title": "Optional: mit Blöcken programmieren",
-  "walkthrough.blockly.description": "Ziehst du Blöcke lieber, als C++ zu tippen? Installiere die Schwester-Erweiterung **Blocks Editor** — einen visuellen, Scratch-ähnlichen Editor, der echten Arduino-Code erzeugt und über diese Erweiterung kompiliert und hochlädt.\n\n[Blocks Editor installieren](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nSie ist völlig optional — diese Erweiterung funktioniert vollständig auch für sich allein."
+  "walkthrough.blockly.description": "Ziehst du Blöcke lieber, als C++ zu tippen? Installiere die Schwester-Erweiterung **Blocks Editor** — einen visuellen, Scratch-ähnlichen Editor, der echten Arduino-Code erzeugt und über diese Erweiterung kompiliert und hochlädt.\n\n[Blocks Editor installieren](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nSie ist völlig optional — diese Erweiterung funktioniert vollständig auch für sich allein.",
+  "command.installArduinoSkill": "Arduino CLI: Claude-Code-Skill installieren"
 }

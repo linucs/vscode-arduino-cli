@@ -84,5 +84,6 @@
   "walkthrough.manage.title": "コアとライブラリを管理する",
   "walkthrough.manage.description": "アクティビティバーの **Arduino** ビュー (回路基板のアイコン) を開いて、プラットフォームやライブラリのインストール・更新・削除を行えます — コマンドを覚える必要はありません。\n\n[Arduino ビューを開く](command:workbench.view.extension.arduinoCli)",
   "walkthrough.blockly.title": "オプション: ブロックでプログラミングする",
-  "walkthrough.blockly.description": "C++ を入力するよりもブロックをドラッグする方が好みですか? 姉妹拡張機能の **Blocks Editor** をインストールしてください — Scratch のようなビジュアルエディターで、実際の Arduino コードを生成し、この拡張機能を通じてビルドと書き込みを行います。\n\n[Blocks Editor をインストール](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\n完全にオプションです — この拡張機能はそれ単体で十分に機能します。"
+  "walkthrough.blockly.description": "C++ を入力するよりもブロックをドラッグする方が好みですか? 姉妹拡張機能の **Blocks Editor** をインストールしてください — Scratch のようなビジュアルエディターで、実際の Arduino コードを生成し、この拡張機能を通じてビルドと書き込みを行います。\n\n[Blocks Editor をインストール](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\n完全にオプションです — この拡張機能はそれ単体で十分に機能します。",
+  "command.installArduinoSkill": "Arduino CLI: Claude Code スキルをインストール"
 }

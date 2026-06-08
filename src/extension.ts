@@ -22,6 +22,8 @@ import {
   removeProfileLibrary,
   setDefaultProfile,
 } from "./profileManager";
+import { registerArduinoLmTools } from "./chat/lmTools";
+import { installArduinoSkill } from "./skill/installSkill";
 import { SerialMonitor } from "./serialMonitor";
 import { syncToDaemon, watchSettings } from "./settingsSync";
 import { archiveSketch, newSketch, resolveSketch } from "./sketch";
@@ -394,6 +396,18 @@ export async function activate(ctx: vscode.ExtensionContext) {
     sketchYamlWatcher.onDidDelete(onSketchYaml),
   );
 
+  // GitHub Copilot Language Model Tools (driven via the live, lazily-started
+  // client) + the one-click Claude Code skill installer.
+  ctx.subscriptions.push(
+    ...registerArduinoLmTools(ensureReady, {
+      afterLibraryChange,
+      afterPlatformChange,
+    }),
+    vscode.commands.registerCommand("arduinoCli.installArduinoSkill", () =>
+      installArduinoSkill(ctx),
+    ),
+  );
+
   // The daemon is NOT started here: spawning it requires arduino-cli on PATH and
   // is pointless until the user runs a command. It starts lazily on first use
   // (see ensureReady / withReady), so users without arduino-cli — or who only use
@@ -410,7 +424,7 @@ export async function deactivate() {
   daemon?.stop();
 }
 
-interface Deps {
+export interface Deps {
   client: ArduinoClient;
   boards: BoardManager;
   compiler: Compiler;

@@ -84,5 +84,6 @@
   "walkthrough.manage.title": "Spravujte jádra a knihovny",
   "walkthrough.manage.description": "Otevřete zobrazení **Arduino** na panelu aktivit (ikona desky plošných spojů) pro instalaci, aktualizaci nebo odebrání platforem a knihoven — žádné příkazy k zapamatování.\n\n[Otevřít zobrazení Arduino](command:workbench.view.extension.arduinoCli)",
   "walkthrough.blockly.title": "Volitelné: programujte pomocí bloků",
-  "walkthrough.blockly.description": "Dáváte přednost přetahování bloků před psaním C++? Nainstalujte sesterské rozšíření **Blocks Editor** — vizuální editor podobný Scratch, který generuje skutečný kód Arduino a sestavuje a nahrává jej prostřednictvím tohoto rozšíření.\n\n[Nainstalovat Blocks Editor](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nJe zcela volitelné — toto rozšíření funguje plně samo o sobě."
+  "walkthrough.blockly.description": "Dáváte přednost přetahování bloků před psaním C++? Nainstalujte sesterské rozšíření **Blocks Editor** — vizuální editor podobný Scratch, který generuje skutečný kód Arduino a sestavuje a nahrává jej prostřednictvím tohoto rozšíření.\n\n[Nainstalovat Blocks Editor](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nJe zcela volitelné — toto rozšíření funguje plně samo o sobě.",
+  "command.installArduinoSkill": "Arduino CLI: Nainstalovat dovednost pro Claude Code"
 }

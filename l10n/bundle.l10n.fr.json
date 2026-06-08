@@ -154,5 +154,8 @@
   "Serial log saved to {0}": "Journal série enregistré dans {0}",
   "Open": "Ouvrir",
   "Reveal in File Explorer": "Afficher dans l'explorateur de fichiers",
-  "Export Plotter Data": "Exporter les données du traceur"
+  "Export Plotter Data": "Exporter les données du traceur",
+  "Open a workspace folder first to install the Arduino skill.": "Ouvrez d'abord un dossier d'espace de travail pour installer le skill Arduino.",
+  "Could not install the Arduino skill: {0}": "Impossible d'installer le skill Arduino : {0}",
+  "Arduino skill installed in {0}. Start a Claude Code session in this folder and it will be available.": "Skill Arduino installé dans {0}. Démarrez une session Claude Code dans ce dossier pour l'utiliser."
 }

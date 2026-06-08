@@ -12,10 +12,26 @@ import type { CompileDiagnostic, CompileDiagnosticRef } from "./proto/types";
  * Output (stdout/stderr) is mirrored to the shared output channel; the structured
  * `BuilderResult.diagnostics` are mapped into a DiagnosticCollection.
  */
+/**
+ * Structured summary of the most recent compile, for non-UI consumers (the LLM
+ * `compile` tool). `output` is a tail of the captured stdout/stderr — present
+ * even on failure, where `diagnostics` is empty (the daemon ends the stream with
+ * an error and the structured result is lost, but the compiler text is not).
+ */
+export interface CompileReport {
+  ok: boolean;
+  label: string;
+  fqbn?: string;
+  diagnostics: CompileDiagnostic[];
+  output: string;
+}
+
 export class Compiler {
   private readonly diagnostics: vscode.DiagnosticCollection;
   /** Fired after a successful compile (e.g. to refresh IntelliSense). */
   private afterSuccess?: () => void;
+  /** Summary of the last `run()` that reached the compile step; for the LLM tool. */
+  private lastReport: CompileReport | undefined;
 
   constructor(
     private readonly client: ArduinoClient,
@@ -36,10 +52,18 @@ export class Compiler {
     this.afterSuccess = cb;
   }
 
+  /** Structured summary of the last compile that reached the compile step. */
+  getLastReport(): CompileReport | undefined {
+    return this.lastReport;
+  }
+
   /** Compile the resolved sketch for the selected board. Returns true on success. */
   async run(
     opts: { optimizeForDebug?: boolean; target?: vscode.Uri | string } = {},
   ): Promise<boolean> {
+    // Cleared up front so a caller that reads getLastReport() after an early
+    // exit (no sketch / no board) sees "did not compile", not a stale report.
+    this.lastReport = undefined;
     const sketch = await resolveSketch(this.client, { target: opts.target });
     if (!sketch) {
       return false;
@@ -79,6 +103,14 @@ export class Compiler {
       async (progress, token) => {
         const ac = new AbortController();
         token.onCancellationRequested(() => ac.abort());
+        // Mirror stdout/stderr into a capture buffer too, so the LLM tool can
+        // report the compiler errors — including on failure, where the daemon
+        // ends the stream with an error and no structured result reaches us.
+        const captured: string[] = [];
+        const append = (s: string) => {
+          this.output.append(s);
+          captured.push(s);
+        };
         try {
           const result = await this.client.compile(
             {
@@ -90,8 +122,8 @@ export class Compiler {
               ...(this.verbose() ? { verbose: true } : {}),
             },
             {
-              out: (s) => this.output.append(s),
-              err: (s) => this.output.append(s),
+              out: append,
+              err: append,
               progress: (t) =>
                 progress.report({ message: t.message || t.name }),
             },
@@ -100,6 +132,13 @@ export class Compiler {
           if (result?.diagnostics?.length) {
             this.applyDiagnostics(result.diagnostics);
           }
+          this.lastReport = {
+            ok: true,
+            label,
+            fqbn: exec.fqbn,
+            diagnostics: result?.diagnostics ?? [],
+            output: tail(captured.join("")),
+          };
           vscode.window.showInformationMessage(
             vscode.l10n.t("Compilation finished."),
           );
@@ -110,6 +149,13 @@ export class Compiler {
             this.output.appendLine("[compile] cancelled");
             return false;
           }
+          this.lastReport = {
+            ok: false,
+            label,
+            fqbn: exec.fqbn,
+            diagnostics: [],
+            output: tail(captured.join("")),
+          };
           this.output.appendLine(
             `[compile] failed: ${err instanceof Error ? err.message : String(err)}`,
           );
@@ -180,6 +226,11 @@ export function toRange(line: number, column: number): vscode.Range {
   const l = Math.max(0, (line || 1) - 1);
   const c = Math.max(0, (column || 1) - 1);
   return new vscode.Range(l, c, l, c);
+}
+
+/** Keep the last `max` characters — compiler output is most useful at the end. */
+export function tail(text: string, max = 4000): string {
+  return text.length > max ? "…" + text.slice(text.length - max) : text;
 }
 
 export function toSeverity(severity: string): vscode.DiagnosticSeverity {

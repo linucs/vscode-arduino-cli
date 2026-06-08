@@ -154,5 +154,8 @@
   "Serial log saved to {0}": "Dziennik portu szeregowego zapisano do {0}",
   "Open": "Otwórz",
   "Reveal in File Explorer": "Pokaż w eksploratorze plików",
-  "Export Plotter Data": "Eksportuj dane plotera"
+  "Export Plotter Data": "Eksportuj dane plotera",
+  "Open a workspace folder first to install the Arduino skill.": "Najpierw otwórz folder obszaru roboczego, aby zainstalować umiejętność Arduino.",
+  "Could not install the Arduino skill: {0}": "Nie można zainstalować umiejętności Arduino: {0}",
+  "Arduino skill installed in {0}. Start a Claude Code session in this folder and it will be available.": "Umiejętność Arduino zainstalowana w {0}. Uruchom sesję Claude Code w tym folderze, aby z niej korzystać."
 }

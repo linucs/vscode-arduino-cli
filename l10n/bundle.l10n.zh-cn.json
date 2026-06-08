@@ -154,5 +154,8 @@
   "Serial log saved to {0}": "串口日志已保存到 {0}",
   "Open": "打开",
   "Reveal in File Explorer": "在文件资源管理器中显示",
-  "Export Plotter Data": "导出绘图仪数据"
+  "Export Plotter Data": "导出绘图仪数据",
+  "Open a workspace folder first to install the Arduino skill.": "请先打开一个工作区文件夹以安装 Arduino 技能。",
+  "Could not install the Arduino skill: {0}": "无法安装 Arduino 技能：{0}",
+  "Arduino skill installed in {0}. Start a Claude Code session in this folder and it will be available.": "Arduino 技能已安装到 {0}。在此文件夹中启动 Claude Code 会话即可使用。"
 }

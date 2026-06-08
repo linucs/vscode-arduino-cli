@@ -84,5 +84,6 @@
   "walkthrough.manage.title": "Magok és programkönyvtárak kezelése",
   "walkthrough.manage.description": "Nyissa meg az **Arduino** nézetet a Tevékenységsávon (a nyomtatott áramkör ikon) platformok és programkönyvtárak telepítéséhez, frissítéséhez vagy eltávolításához — nincsenek megjegyzendő parancsok.\n\n[Az Arduino nézet megnyitása](command:workbench.view.extension.arduinoCli)",
   "walkthrough.blockly.title": "Választható: programozás blokkokkal",
-  "walkthrough.blockly.description": "Inkább blokkokat húzogatna, mint C++-t gépelne? Telepítse a testvérbővítményt, a **Blocks Editor**-t — egy vizuális, Scratch-szerű szerkesztőt, amely valódi Arduino kódot generál, és ezen a bővítményen keresztül fordít és tölt fel.\n\n[Blocks Editor telepítése](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nTeljesen választható — ez a bővítmény önmagában is teljes mértékben működik."
+  "walkthrough.blockly.description": "Inkább blokkokat húzogatna, mint C++-t gépelne? Telepítse a testvérbővítményt, a **Blocks Editor**-t — egy vizuális, Scratch-szerű szerkesztőt, amely valódi Arduino kódot generál, és ezen a bővítményen keresztül fordít és tölt fel.\n\n[Blocks Editor telepítése](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nTeljesen választható — ez a bővítmény önmagában is teljes mértékben működik.",
+  "command.installArduinoSkill": "Arduino CLI: Claude Code skill telepítése"
 }

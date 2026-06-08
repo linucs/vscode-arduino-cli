@@ -154,5 +154,8 @@
   "Serial log saved to {0}": "Журнал порта сохранён в {0}",
   "Open": "Открыть",
   "Reveal in File Explorer": "Показать в проводнике",
-  "Export Plotter Data": "Экспорт данных плоттера"
+  "Export Plotter Data": "Экспорт данных плоттера",
+  "Open a workspace folder first to install the Arduino skill.": "Сначала откройте папку рабочей области, чтобы установить навык Arduino.",
+  "Could not install the Arduino skill: {0}": "Не удалось установить навык Arduino: {0}",
+  "Arduino skill installed in {0}. Start a Claude Code session in this folder and it will be available.": "Навык Arduino установлен в {0}. Запустите сеанс Claude Code в этой папке, и он станет доступен."
 }

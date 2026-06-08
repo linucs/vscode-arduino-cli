@@ -84,5 +84,6 @@
   "walkthrough.manage.title": "Управление ядрами и библиотеками",
   "walkthrough.manage.description": "Откройте представление **Arduino** на панели действий (значок печатной платы), чтобы устанавливать, обновлять или удалять платформы и библиотеки — без необходимости запоминать команды.\n\n[Открыть представление Arduino](command:workbench.view.extension.arduinoCli)",
   "walkthrough.blockly.title": "Дополнительно: программирование с помощью блоков",
-  "walkthrough.blockly.description": "Предпочитаете перетаскивать блоки вместо набора C++? Установите родственное расширение **Blocks Editor** — визуальный редактор в стиле Scratch, который генерирует настоящий код Arduino, а также собирает и загружает его через это расширение.\n\n[Установить Blocks Editor](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nЭто совершенно необязательно — это расширение полностью работает само по себе."
+  "walkthrough.blockly.description": "Предпочитаете перетаскивать блоки вместо набора C++? Установите родственное расширение **Blocks Editor** — визуальный редактор в стиле Scratch, который генерирует настоящий код Arduino, а также собирает и загружает его через это расширение.\n\n[Установить Blocks Editor](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nЭто совершенно необязательно — это расширение полностью работает само по себе.",
+  "command.installArduinoSkill": "Arduino CLI: Установить навык для Claude Code"
 }

@@ -154,5 +154,8 @@
   "Serial log saved to {0}": "Sériový protokol uložen do {0}",
   "Open": "Otevřít",
   "Reveal in File Explorer": "Zobrazit v Průzkumníku souborů",
-  "Export Plotter Data": "Exportovat data plotteru"
+  "Export Plotter Data": "Exportovat data plotteru",
+  "Open a workspace folder first to install the Arduino skill.": "Nejprve otevřete složku pracovního prostoru, abyste mohli nainstalovat dovednost Arduino.",
+  "Could not install the Arduino skill: {0}": "Nepodařilo se nainstalovat dovednost Arduino: {0}",
+  "Arduino skill installed in {0}. Start a Claude Code session in this folder and it will be available.": "Dovednost Arduino byla nainstalována do {0}. Spusťte v této složce relaci Claude Code a bude k dispozici."
 }

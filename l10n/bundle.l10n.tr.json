@@ -154,5 +154,8 @@
   "Serial log saved to {0}": "Seri günlük {0} konumuna kaydedildi",
   "Open": "Aç",
   "Reveal in File Explorer": "Dosya Gezgini'nde Göster",
-  "Export Plotter Data": "Çizici Verilerini Dışa Aktar"
+  "Export Plotter Data": "Çizici Verilerini Dışa Aktar",
+  "Open a workspace folder first to install the Arduino skill.": "Arduino becerisini yüklemek için önce bir çalışma alanı klasörü açın.",
+  "Could not install the Arduino skill: {0}": "Arduino becerisi yüklenemedi: {0}",
+  "Arduino skill installed in {0}. Start a Claude Code session in this folder and it will be available.": "Arduino becerisi {0} konumuna yüklendi. Bu klasörde bir Claude Code oturumu başlatın; kullanılabilir olacak."
 }

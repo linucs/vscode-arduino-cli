@@ -154,5 +154,8 @@
   "Serial log saved to {0}": "シリアルログを {0} に保存しました",
   "Open": "開く",
   "Reveal in File Explorer": "ファイルエクスプローラーで表示",
-  "Export Plotter Data": "プロッターのデータをエクスポート"
+  "Export Plotter Data": "プロッターのデータをエクスポート",
+  "Open a workspace folder first to install the Arduino skill.": "Arduino スキルをインストールするには、まずワークスペースフォルダーを開いてください。",
+  "Could not install the Arduino skill: {0}": "Arduino スキルをインストールできませんでした: {0}",
+  "Arduino skill installed in {0}. Start a Claude Code session in this folder and it will be available.": "Arduino スキルを {0} にインストールしました。このフォルダーで Claude Code セッションを開始すると利用できます。"
 }

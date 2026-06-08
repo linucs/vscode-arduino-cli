@@ -84,5 +84,6 @@
   "walkthrough.manage.title": "Manage cores & libraries",
   "walkthrough.manage.description": "Open the **Arduino** view in the Activity Bar (the circuit-board icon) to install, update, or remove platforms and libraries — no commands to memorize.\n\n[Open the Arduino view](command:workbench.view.extension.arduinoCli)",
   "walkthrough.blockly.title": "Optional: program with blocks",
-  "walkthrough.blockly.description": "Prefer dragging blocks to typing C++? Install the sister extension **Blocks Editor** — a visual, Scratch-like editor that generates real Arduino code and builds & uploads through this extension.\n\n[Install Blocks Editor](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nIt's completely optional — this extension works fully on its own."
+  "walkthrough.blockly.description": "Prefer dragging blocks to typing C++? Install the sister extension **Blocks Editor** — a visual, Scratch-like editor that generates real Arduino code and builds & uploads through this extension.\n\n[Install Blocks Editor](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nIt's completely optional — this extension works fully on its own.",
+  "command.installArduinoSkill": "Arduino CLI: Install Claude Code Skill"
 }

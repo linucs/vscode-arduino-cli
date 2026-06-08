@@ -4,6 +4,7 @@ import type { BoardManager } from "./boardManager";
 import type { PlatformManager } from "./platformManager";
 import { resolveSketch } from "./sketch";
 import { prepareExecution } from "./profileMode";
+import { tail } from "./compile";
 import type { Port } from "./proto/types";
 
 /**
@@ -15,6 +16,9 @@ import type { Port } from "./proto/types";
  * runs a compile first (see extension.ts).
  */
 export class Uploader {
+  /** Tail of the last `run()`'s output, for the LLM `upload` tool (esp. on failure). */
+  private lastOutput = "";
+
   constructor(
     private readonly client: ArduinoClient,
     private readonly boards: BoardManager,
@@ -22,8 +26,14 @@ export class Uploader {
     private readonly output: vscode.OutputChannel,
   ) {}
 
+  /** Captured stdout/stderr tail from the most recent `run()`. */
+  getLastOutput(): string {
+    return this.lastOutput;
+  }
+
   /** Upload the resolved sketch to the selected board/port. Returns true on success. */
   async run(target?: vscode.Uri | string): Promise<boolean> {
+    this.lastOutput = "";
     const sketch = await resolveSketch(this.client, { target });
     if (!sketch) {
       return false;
@@ -73,6 +83,11 @@ export class Uploader {
       async (progress, token) => {
         const ac = new AbortController();
         token.onCancellationRequested(() => ac.abort());
+        const captured: string[] = [];
+        const append = (s: string) => {
+          this.output.append(s);
+          captured.push(s);
+        };
         try {
           await this.client.upload(
             {
@@ -84,13 +99,14 @@ export class Uploader {
               ...(exec.instance ? { instance: exec.instance } : {}),
             },
             {
-              out: (s) => this.output.append(s),
-              err: (s) => this.output.append(s),
+              out: append,
+              err: append,
               progress: (t) =>
                 progress.report({ message: t.message || t.name }),
             },
             ac.signal,
           );
+          this.lastOutput = tail(captured.join(""));
           vscode.window.showInformationMessage(
             vscode.l10n.t("Upload complete."),
           );
@@ -100,6 +116,10 @@ export class Uploader {
             this.output.appendLine("[upload] cancelled");
             return false;
           }
+          this.lastOutput = tail(
+            captured.join("") +
+              `\n[upload] failed: ${err instanceof Error ? err.message : String(err)}`,
+          );
           this.output.appendLine(
             `[upload] failed: ${err instanceof Error ? err.message : String(err)}`,
           );
