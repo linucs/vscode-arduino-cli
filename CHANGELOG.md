@@ -4,6 +4,20 @@ All notable changes to the "Arduino CLI IDE" extension will be documented in thi
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.2.0] - 2026-06-08
+
+### Added
+
+- **GitHub Copilot integration** — the extension now contributes eight Language
+  Model tools that Copilot (and other Chat participants) can call to drive
+  `arduino-cli`: report the current build status, compile, upload, search boards,
+  get board details, search libraries, install a library, and install a core.
+  Ask Copilot Chat to compile or fix a build and it can act through the daemon.
+- **Install Arduino skill** — a new command, **Arduino: Install Arduino Skill**,
+  copies a bundled Claude Code skill into `.claude/skills/arduino-cli/` in the
+  current workspace, so a Claude Code session learns how to drive `arduino-cli`
+  for this project. Re-run it after upgrading the extension to refresh the files.
+
 ## [0.1.1] - 2026-06-07
 
 ### Added

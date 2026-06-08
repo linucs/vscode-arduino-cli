@@ -6,6 +6,13 @@ Code Arduino sketches in **plain VS Code** — compile, upload, monitor, and deb
 
 ---
 
+## v0.2.0 — 2026-06-08
+
+- **Works with GitHub Copilot** — Copilot Chat can now drive `arduino-cli` for you through eight new Language Model tools: check build status, compile, upload, search boards, get board details, search libraries, install a library, and install a core. Ask Copilot to compile your sketch or fix a build error and it can do it through the daemon.
+- **Install Arduino Skill** — a new command drops a bundled Claude Code skill into `.claude/skills/arduino-cli/` in your workspace, teaching a Claude Code session how to build, upload, and troubleshoot sketches with `arduino-cli`. Re-run it after an upgrade to refresh.
+
+---
+
 ## v0.1.1 — 2026-06-07
 
 - **Saved-file follow-up actions** — saving a serial log, exporting plotter data, or archiving a sketch now offers an **Open** or **Reveal in File Explorer** action straight from the confirmation toast.
