@@ -85,5 +85,7 @@
   "walkthrough.manage.description": "Abre la vista **Arduino** en la barra de actividades (el icono de placa de circuito) para instalar, actualizar o eliminar plataformas y bibliotecas, sin comandos que memorizar.\n\n[Abrir la vista de Arduino](command:workbench.view.extension.arduinoCli)",
   "walkthrough.blockly.title": "Opcional: programa con bloques",
   "walkthrough.blockly.description": "¿Prefieres arrastrar bloques en lugar de escribir C++? Instala la extensión hermana **Blocks Editor**: un editor visual al estilo de Scratch que genera código Arduino real y compila y sube a través de esta extensión.\n\n[Instalar Blocks Editor](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nEs completamente opcional: esta extensión funciona perfectamente por sí sola.",
-  "command.installArduinoSkill": "Arduino CLI: Instalar skill de Claude Code"
+  "command.installArduinoSkill": "Arduino CLI: Instalar skill de Claude Code",
+  "command.setMonitorLineEnding": "Arduino CLI: Establecer fin de línea serie",
+  "config.monitorLineEnding": "Fin de línea que se añade a los mensajes que escribes en el monitor serie antes de enviarlos."
 }

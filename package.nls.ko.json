@@ -85,5 +85,7 @@
   "walkthrough.manage.description": "활동 표시줄의 **Arduino** 뷰(회로 기판 아이콘)를 열어 플랫폼과 라이브러리를 설치, 업데이트, 제거하세요 — 명령어를 외울 필요가 없습니다.\n\n[Arduino 뷰 열기](command:workbench.view.extension.arduinoCli)",
   "walkthrough.blockly.title": "선택 사항: 블록으로 프로그래밍",
   "walkthrough.blockly.description": "C++를 입력하는 것보다 블록을 드래그하는 것을 선호하시나요? 자매 확장인 **Blocks Editor**를 설치하세요 — 실제 Arduino 코드를 생성하고 이 확장을 통해 빌드 및 업로드하는 시각적인 Scratch 방식의 편집기입니다.\n\n[Blocks Editor 설치](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\n완전히 선택 사항입니다 — 이 확장은 단독으로도 완전히 작동합니다.",
-  "command.installArduinoSkill": "Arduino CLI: Claude Code 스킬 설치"
+  "command.installArduinoSkill": "Arduino CLI: Claude Code 스킬 설치",
+  "command.setMonitorLineEnding": "Arduino CLI: 시리얼 줄 바꿈 설정",
+  "config.monitorLineEnding": "시리얼 모니터에 입력한 메시지를 보내기 전에 덧붙이는 줄 바꿈 문자입니다."
 }

@@ -85,5 +85,7 @@
   "walkthrough.manage.description": "Otwórz widok **Arduino** na pasku aktywności (ikona płytki drukowanej), aby instalować, aktualizować lub usuwać platformy i biblioteki — bez zapamiętywania poleceń.\n\n[Otwórz widok Arduino](command:workbench.view.extension.arduinoCli)",
   "walkthrough.blockly.title": "Opcjonalnie: programuj za pomocą bloków",
   "walkthrough.blockly.description": "Wolisz przeciągać bloki zamiast pisać w C++? Zainstaluj siostrzane rozszerzenie **Blocks Editor** — wizualny edytor w stylu Scratcha, który generuje prawdziwy kod Arduino oraz buduje i wgrywa go za pomocą tego rozszerzenia.\n\n[Zainstaluj Blocks Editor](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nJest całkowicie opcjonalny — to rozszerzenie działa w pełni samodzielnie.",
-  "command.installArduinoSkill": "Arduino CLI: Zainstaluj umiejętność Claude Code"
+  "command.installArduinoSkill": "Arduino CLI: Zainstaluj umiejętność Claude Code",
+  "command.setMonitorLineEnding": "Arduino CLI: Ustaw zakończenie wiersza portu szeregowego",
+  "config.monitorLineEnding": "Zakończenie wiersza dołączane do wiadomości wpisywanych w monitorze szeregowym przed ich wysłaniem."
 }

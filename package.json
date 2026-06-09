@@ -189,6 +189,10 @@
         "title": "%command.saveSerialLog%"
       },
       {
+        "command": "arduinoCli.setMonitorLineEnding",
+        "title": "%command.setMonitorLineEnding%"
+      },
+      {
         "command": "arduinoCli.addLibrary",
         "title": "%command.addLibrary%",
         "icon": "$(add)"
@@ -424,6 +428,12 @@
           "type": "boolean",
           "default": true,
           "description": "%config.monitorAutoReconnect%"
+        },
+        "arduinoCli.monitor.lineEnding": {
+          "type": "string",
+          "enum": ["none", "lf", "cr", "crlf"],
+          "default": "lf",
+          "description": "%config.monitorLineEnding%"
         },
         "arduinoCli.autoInstallPlatform": {
           "type": "boolean",

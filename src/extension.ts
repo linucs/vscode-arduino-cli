@@ -24,7 +24,7 @@ import {
 } from "./profileManager";
 import { registerArduinoLmTools } from "./chat/lmTools";
 import { installArduinoSkill } from "./skill/installSkill";
-import { SerialMonitor } from "./serialMonitor";
+import { SerialMonitor, pickSerialLineEnding } from "./serialMonitor";
 import { syncToDaemon, watchSettings } from "./settingsSync";
 import { archiveSketch, newSketch, resolveSketch } from "./sketch";
 import { Uploader } from "./upload";
@@ -188,6 +188,11 @@ export async function activate(ctx: vscode.ExtensionContext) {
     ),
     vscode.commands.registerCommand("arduinoCli.saveSerialLog", () =>
       withReady((d) => d.monitor.saveLog()),
+    ),
+    // Daemon-independent: changes a setting an open monitor reads live. No
+    // withReady, so it never spawns the daemon just to pick a line ending.
+    vscode.commands.registerCommand("arduinoCli.setMonitorLineEnding", () =>
+      pickSerialLineEnding(),
     ),
     vscode.commands.registerCommand("arduinoCli.addLibrary", () =>
       withReady(async (d) => {

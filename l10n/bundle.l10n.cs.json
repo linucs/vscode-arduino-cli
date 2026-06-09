@@ -157,5 +157,12 @@
   "Export Plotter Data": "Exportovat data plotteru",
   "Open a workspace folder first to install the Arduino skill.": "Nejprve otevřete složku pracovního prostoru, abyste mohli nainstalovat dovednost Arduino.",
   "Could not install the Arduino skill: {0}": "Nepodařilo se nainstalovat dovednost Arduino: {0}",
-  "Arduino skill installed in {0}. Start a Claude Code session in this folder and it will be available.": "Dovednost Arduino byla nainstalována do {0}. Spusťte v této složce relaci Claude Code a bude k dispozici."
+  "Arduino skill installed in {0}. Start a Claude Code session in this folder and it will be available.": "Dovednost Arduino byla nainstalována do {0}. Spusťte v této složce relaci Claude Code a bude k dispozici.",
+  "No line ending": "Bez konce řádku",
+  "Newline (LF)": "Nový řádek (LF)",
+  "Carriage return (CR)": "Návrat vozíku (CR)",
+  "Both NL & CR (CRLF)": "Oba NL a CR (CRLF)",
+  "Serial Line Ending": "Konec řádku sériové linky",
+  "Serial line ending for messages you send (click to change)": "Konec řádku sériové linky pro odesílané zprávy (kliknutím změníte)",
+  "Open Serial Plotter": "Otevřít sériový plotr"
 }

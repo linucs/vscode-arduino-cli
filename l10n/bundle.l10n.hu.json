@@ -157,5 +157,12 @@
   "Export Plotter Data": "Plotteradatok exportálása",
   "Open a workspace folder first to install the Arduino skill.": "Az Arduino skill telepítéséhez először nyisson meg egy munkaterület-mappát.",
   "Could not install the Arduino skill: {0}": "Az Arduino skill telepítése sikertelen: {0}",
-  "Arduino skill installed in {0}. Start a Claude Code session in this folder and it will be available.": "Az Arduino skill telepítve ide: {0}. Indítson egy Claude Code munkamenetet ebben a mappában, és elérhető lesz."
+  "Arduino skill installed in {0}. Start a Claude Code session in this folder and it will be available.": "Az Arduino skill telepítve ide: {0}. Indítson egy Claude Code munkamenetet ebben a mappában, és elérhető lesz.",
+  "No line ending": "Nincs sorvég",
+  "Newline (LF)": "Új sor (LF)",
+  "Carriage return (CR)": "Kocsivissza (CR)",
+  "Both NL & CR (CRLF)": "Mindkettő NL és CR (CRLF)",
+  "Serial Line Ending": "Soros sorvég",
+  "Serial line ending for messages you send (click to change)": "Soros sorvég a küldött üzenetekhez (kattintson a módosításhoz)",
+  "Open Serial Plotter": "Soros plotter megnyitása"
 }

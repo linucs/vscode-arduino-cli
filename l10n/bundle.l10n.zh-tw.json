@@ -157,5 +157,12 @@
   "Export Plotter Data": "匯出繪圖儀資料",
   "Open a workspace folder first to install the Arduino skill.": "請先開啟工作區資料夾以安裝 Arduino 技能。",
   "Could not install the Arduino skill: {0}": "無法安裝 Arduino 技能：{0}",
-  "Arduino skill installed in {0}. Start a Claude Code session in this folder and it will be available.": "Arduino 技能已安裝到 {0}。在此資料夾中啟動 Claude Code 工作階段即可使用。"
+  "Arduino skill installed in {0}. Start a Claude Code session in this folder and it will be available.": "Arduino 技能已安裝到 {0}。在此資料夾中啟動 Claude Code 工作階段即可使用。",
+  "No line ending": "無行結尾",
+  "Newline (LF)": "換行 (LF)",
+  "Carriage return (CR)": "歸位 (CR)",
+  "Both NL & CR (CRLF)": "兩者 NL 和 CR (CRLF)",
+  "Serial Line Ending": "序列埠行結尾",
+  "Serial line ending for messages you send (click to change)": "傳送訊息的序列埠行結尾（按一下變更）",
+  "Open Serial Plotter": "開啟序列繪圖器"
 }

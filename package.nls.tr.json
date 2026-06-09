@@ -85,5 +85,7 @@
   "walkthrough.manage.description": "Platformları ve kitaplıkları kurmak, güncellemek veya kaldırmak için Etkinlik Çubuğundaki **Arduino** görünümünü (devre kartı simgesi) açın — ezberlenecek komut yok.\n\n[Arduino görünümünü aç](command:workbench.view.extension.arduinoCli)",
   "walkthrough.blockly.title": "İsteğe bağlı: bloklarla programlayın",
   "walkthrough.blockly.description": "C++ yazmak yerine blokları sürüklemeyi mi tercih edersiniz? Kardeş uzantı **Blocks Editor**'ü kurun — gerçek Arduino kodu üreten ve bu uzantı aracılığıyla derleyip yükleyen, Scratch benzeri görsel bir düzenleyici.\n\n[Blocks Editor'ü Kur](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\nTamamen isteğe bağlıdır — bu uzantı kendi başına tam olarak çalışır.",
-  "command.installArduinoSkill": "Arduino CLI: Claude Code becerisini yükle"
+  "command.installArduinoSkill": "Arduino CLI: Claude Code becerisini yükle",
+  "command.setMonitorLineEnding": "Arduino CLI: Seri satır sonunu ayarla",
+  "config.monitorLineEnding": "Seri monitöre yazdığınız iletilere gönderilmeden önce eklenen satır sonu."
 }

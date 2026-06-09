@@ -157,5 +157,12 @@
   "Export Plotter Data": "プロッターのデータをエクスポート",
   "Open a workspace folder first to install the Arduino skill.": "Arduino スキルをインストールするには、まずワークスペースフォルダーを開いてください。",
   "Could not install the Arduino skill: {0}": "Arduino スキルをインストールできませんでした: {0}",
-  "Arduino skill installed in {0}. Start a Claude Code session in this folder and it will be available.": "Arduino スキルを {0} にインストールしました。このフォルダーで Claude Code セッションを開始すると利用できます。"
+  "Arduino skill installed in {0}. Start a Claude Code session in this folder and it will be available.": "Arduino スキルを {0} にインストールしました。このフォルダーで Claude Code セッションを開始すると利用できます。",
+  "No line ending": "改行なし",
+  "Newline (LF)": "改行 (LF)",
+  "Carriage return (CR)": "復帰 (CR)",
+  "Both NL & CR (CRLF)": "両方 NL & CR (CRLF)",
+  "Serial Line Ending": "シリアルの改行コード",
+  "Serial line ending for messages you send (click to change)": "送信メッセージのシリアル改行コード（クリックで変更）",
+  "Open Serial Plotter": "シリアルプロッターを開く"
 }

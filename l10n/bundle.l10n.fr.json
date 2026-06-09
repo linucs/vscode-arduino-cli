@@ -157,5 +157,12 @@
   "Export Plotter Data": "Exporter les données du traceur",
   "Open a workspace folder first to install the Arduino skill.": "Ouvrez d'abord un dossier d'espace de travail pour installer le skill Arduino.",
   "Could not install the Arduino skill: {0}": "Impossible d'installer le skill Arduino : {0}",
-  "Arduino skill installed in {0}. Start a Claude Code session in this folder and it will be available.": "Skill Arduino installé dans {0}. Démarrez une session Claude Code dans ce dossier pour l'utiliser."
+  "Arduino skill installed in {0}. Start a Claude Code session in this folder and it will be available.": "Skill Arduino installé dans {0}. Démarrez une session Claude Code dans ce dossier pour l'utiliser.",
+  "No line ending": "Aucune fin de ligne",
+  "Newline (LF)": "Saut de ligne (LF)",
+  "Carriage return (CR)": "Retour chariot (CR)",
+  "Both NL & CR (CRLF)": "Les deux NL et CR (CRLF)",
+  "Serial Line Ending": "Fin de ligne série",
+  "Serial line ending for messages you send (click to change)": "Fin de ligne série pour les messages envoyés (cliquez pour changer)",
+  "Open Serial Plotter": "Ouvrir le traceur série"
 }

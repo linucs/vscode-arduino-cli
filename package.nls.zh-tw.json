@@ -85,5 +85,7 @@
   "walkthrough.manage.description": "開啟活動列中的 **Arduino** 檢視（電路板圖示）以安裝、更新或移除平台與程式庫 —— 無需記憶任何命令。\n\n[開啟 Arduino 檢視](command:workbench.view.extension.arduinoCli)",
   "walkthrough.blockly.title": "選用：以積木方式編程",
   "walkthrough.blockly.description": "比起撰寫 C++，更喜歡拖曳積木嗎？安裝姊妹擴充功能 **Blocks Editor** —— 一個視覺化、類似 Scratch 的編輯器，可產生真正的 Arduino 程式碼，並透過此擴充功能建置與上傳。\n\n[安裝 Blocks Editor](command:extension.open?%5B%22linucs.blocks-editor%22%5D)\n\n它完全是選用的 —— 此擴充功能本身即可完整運作。",
-  "command.installArduinoSkill": "Arduino CLI：安裝 Claude Code 技能"
+  "command.installArduinoSkill": "Arduino CLI：安裝 Claude Code 技能",
+  "command.setMonitorLineEnding": "Arduino CLI：設定序列埠行結尾",
+  "config.monitorLineEnding": "在傳送前，附加到你在序列埠監視器中輸入的訊息後的行結尾。"
 }

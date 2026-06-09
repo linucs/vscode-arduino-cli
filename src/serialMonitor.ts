@@ -12,6 +12,64 @@ import { resolveExecution } from "./profileMode";
 import { splitLines, parseTelemetryLine } from "./telemetryParser";
 import type { MonitorResponse, Port } from "./proto/types";
 
+/** Line-ending modes offered for terminal→tx, mirroring the Arduino IDE monitor. */
+type LineEnding = "none" | "lf" | "cr" | "crlf";
+
+/** Bytes appended to each line sent to the port, per mode. */
+const LINE_ENDING_SUFFIX: Record<LineEnding, string> = {
+  none: "",
+  lf: "\n",
+  cr: "\r",
+  crlf: "\r\n",
+};
+
+/** Short status-bar label per mode (technical tokens, intentionally untranslated). */
+const LINE_ENDING_LABEL: Record<LineEnding, string> = {
+  none: "None",
+  lf: "LF",
+  cr: "CR",
+  crlf: "CRLF",
+};
+
+/** Read the configured line ending, defaulting to LF (the historic behavior). */
+function currentLineEnding(): LineEnding {
+  const v = vscode.workspace
+    .getConfiguration("arduinoCli")
+    .get<string>("monitor.lineEnding", "lf");
+  return (["none", "lf", "cr", "crlf"] as const).includes(v as LineEnding)
+    ? (v as LineEnding)
+    : "lf";
+}
+
+/**
+ * QuickPick to choose the serial line ending, persisting it to settings. Daemon-
+ * independent (pure config), so it can run from the palette without a session;
+ * any open monitor re-renders its status bar via the config-change listener.
+ */
+export async function pickSerialLineEnding(): Promise<void> {
+  const current = currentLineEnding();
+  const items: (vscode.QuickPickItem & { id: LineEnding })[] = [
+    { id: "none", label: vscode.l10n.t("No line ending") },
+    { id: "lf", label: vscode.l10n.t("Newline (LF)") },
+    { id: "cr", label: vscode.l10n.t("Carriage return (CR)") },
+    { id: "crlf", label: vscode.l10n.t("Both NL & CR (CRLF)") },
+  ];
+  for (const it of items) {
+    if (it.id === current) {
+      it.description = "✓";
+    }
+  }
+  const pick = await vscode.window.showQuickPick(items, {
+    title: vscode.l10n.t("Serial Line Ending"),
+  });
+  if (!pick) {
+    return;
+  }
+  await vscode.workspace
+    .getConfiguration("arduinoCli")
+    .update("monitor.lineEnding", pick.id, vscode.ConfigurationTarget.Global);
+}
+
 interface Session {
   terminal: vscode.Terminal;
   port: Port;
@@ -41,12 +99,48 @@ export class SerialMonitor {
   private debugSnapshot: { fqbn: string; portConfig?: object } | undefined;
   /** Line buffer for parsing telemetry across rx chunk boundaries. */
   private plotLineBuf = "";
+  /** Status-bar line-ending selector, visible only while a session is open. */
+  private readonly lineEndingStatus: vscode.StatusBarItem;
+  /** Status-bar plotter shortcut, visible only while a session is open. */
+  private readonly plotterStatus: vscode.StatusBarItem;
+  private readonly configWatch: vscode.Disposable;
 
   constructor(
     private readonly client: ArduinoClient,
     private readonly boards: BoardManager,
     private readonly output: vscode.OutputChannel,
-  ) {}
+  ) {
+    this.lineEndingStatus = vscode.window.createStatusBarItem(
+      vscode.StatusBarAlignment.Left,
+      99,
+    );
+    this.lineEndingStatus.command = "arduinoCli.setMonitorLineEnding";
+    this.renderLineEndingStatus();
+
+    this.plotterStatus = vscode.window.createStatusBarItem(
+      vscode.StatusBarAlignment.Left,
+      98,
+    );
+    this.plotterStatus.text = "$(graph-line)";
+    this.plotterStatus.command = "arduinoCli.openPlotter";
+    this.plotterStatus.tooltip = vscode.l10n.t("Open Serial Plotter");
+
+    // Keep the line-ending status bar in sync when the setting is changed
+    // elsewhere (the Settings UI, or another window).
+    this.configWatch = vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration("arduinoCli.monitor.lineEnding")) {
+        this.renderLineEndingStatus();
+      }
+    });
+  }
+
+  /** Repaint the line-ending status bar from the current setting. */
+  private renderLineEndingStatus(): void {
+    this.lineEndingStatus.text = `$(arrow-down) ${LINE_ENDING_LABEL[currentLineEnding()]}`;
+    this.lineEndingStatus.tooltip = vscode.l10n.t(
+      "Serial line ending for messages you send (click to change)",
+    );
+  }
 
   /** Open a monitor on the selected port, or focus the existing one. */
   async openOrFocus(sketchTarget?: vscode.Uri | string): Promise<void> {
@@ -206,6 +300,9 @@ export class SerialMonitor {
 
   dispose(): void {
     this.closeSession();
+    this.lineEndingStatus.dispose();
+    this.plotterStatus.dispose();
+    this.configWatch.dispose();
   }
 
   // --- session lifecycle ----------------------------------------------------
@@ -274,6 +371,9 @@ export class SerialMonitor {
     });
     this.session = session;
     session.terminal.show();
+    this.renderLineEndingStatus();
+    this.lineEndingStatus.show();
+    this.plotterStatus.show();
     PlotterPanel.current()?.notifyConnected();
   }
 
@@ -284,6 +384,8 @@ export class SerialMonitor {
     }
     s.closing = true;
     this.plotLineBuf = "";
+    this.lineEndingStatus.hide();
+    this.plotterStatus.hide();
     PlotterPanel.current()?.notifyDisconnected();
     try {
       s.stream?.close(); // graceful: daemon closes the port then the stream
@@ -321,7 +423,12 @@ export class SerialMonitor {
       if (ch === "\r") {
         session.write.fire("\r\n");
         try {
-          session.stream?.sendData(Buffer.from(session.lineBuf + "\n", "utf8"));
+          session.stream?.sendData(
+            Buffer.from(
+              session.lineBuf + LINE_ENDING_SUFFIX[currentLineEnding()],
+              "utf8",
+            ),
+          );
         } catch {
           /* stream gone */
         }
