@@ -1,4 +1,12 @@
 {
+  "Category": "类别",
+  "Maintainer": "维护者",
+  "License": "许可证",
+  "Built-in": "内置",
+  "Provides": "提供",
+  "Open Example — {0}": "打开示例 — {0}",
+  "Choose an example to open": "选择要打开的示例",
+  "“{0}” has no examples.": "“{0}” 没有示例。",
   "arduino-cli daemon v{0}": "arduino-cli 守护进程 v{0}",
   "Arduino CLI: daemon restarted": "Arduino CLI：守护进程已重启",
   "Arduino CLI: {0}": "Arduino CLI：{0}",

@@ -345,6 +345,8 @@ export interface LibraryRelease {
   website: string;
   category: string;
   license: string;
+  /** Value of the `includes` field in library.properties. */
+  provides_includes: string[];
 }
 
 /** lib.proto — SearchedLibrary */
@@ -365,9 +367,26 @@ export interface LibrarySearchResponse {
 export interface Library {
   name: string;
   author: string;
+  maintainer: string;
   sentence: string;
+  paragraph: string;
   version: string;
   install_dir: string;
+  /** Value of the `url` field in library.properties (project/repo page). */
+  website: string;
+  /** Value of the `category` field in library.properties. */
+  category: string;
+  /** Value of the `license` field in library.properties. */
+  license: string;
+  /** Absolute paths to the library's example sketch directories. */
+  examples: string[];
+  /** Value of the `includes` field, or include files at the source root. */
+  provides_includes: string[];
+  /**
+   * For platform-bundled libraries, the platform that contains it
+   * (e.g. `arduino:avr@1.8.2`); empty otherwise.
+   */
+  container_platform: string;
   types: string[];
   /** Enum string, e.g. LIBRARY_LOCATION_USER. */
   location: string;

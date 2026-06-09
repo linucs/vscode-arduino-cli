@@ -1,4 +1,12 @@
 {
+  "Category": "Kategoria",
+  "Maintainer": "Opiekun",
+  "License": "Licencja",
+  "Built-in": "Wbudowana",
+  "Provides": "Udostępnia",
+  "Open Example — {0}": "Otwórz przykład — {0}",
+  "Choose an example to open": "Wybierz przykład do otwarcia",
+  "“{0}” has no examples.": "„{0}” nie ma przykładów.",
   "arduino-cli daemon v{0}": "demon arduino-cli v{0}",
   "Arduino CLI: daemon restarted": "Arduino CLI: demon uruchomiony ponownie",
   "Arduino CLI: {0}": "Arduino CLI: {0}",

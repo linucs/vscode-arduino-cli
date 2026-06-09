@@ -60,6 +60,8 @@
   "command.libUninstall": "Odinstalovat",
   "command.libUpgrade": "Upgradovat",
   "command.libChangeVersion": "Změnit verzi…",
+  "command.libOpenWebsite": "Otevřít úložiště / web",
+  "command.libOpenExample": "Otevřít příklad…",
   "command.libAddToProfile": "Přidat do profilu",
   "command.profileLibRemove": "Odebrat z profilu",
   "command.refreshProfileLibraries": "Obnovit knihovny profilu",

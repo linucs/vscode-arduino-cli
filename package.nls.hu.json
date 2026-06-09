@@ -60,6 +60,8 @@
   "command.libUninstall": "Eltávolítás",
   "command.libUpgrade": "Frissítés",
   "command.libChangeVersion": "Verzió módosítása…",
+  "command.libOpenWebsite": "Adattár / weboldal megnyitása",
+  "command.libOpenExample": "Példa megnyitása…",
   "command.libAddToProfile": "Hozzáadás a profilhoz",
   "command.profileLibRemove": "Eltávolítás a profilból",
   "command.refreshProfileLibraries": "A profil programkönyvtárainak frissítése",

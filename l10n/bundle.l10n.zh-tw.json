@@ -1,4 +1,12 @@
 {
+  "Category": "類別",
+  "Maintainer": "維護者",
+  "License": "授權",
+  "Built-in": "內建",
+  "Provides": "提供",
+  "Open Example — {0}": "開啟範例 — {0}",
+  "Choose an example to open": "選擇要開啟的範例",
+  "“{0}” has no examples.": "「{0}」沒有範例。",
   "arduino-cli daemon v{0}": "arduino-cli 守護程序 v{0}",
   "Arduino CLI: daemon restarted": "Arduino CLI：守護程序已重新啟動",
   "Arduino CLI: {0}": "Arduino CLI：{0}",

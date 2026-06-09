@@ -235,6 +235,16 @@
         "icon": "$(versions)"
       },
       {
+        "command": "arduinoCli.lib.openWebsite",
+        "title": "%command.libOpenWebsite%",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "arduinoCli.lib.openExample",
+        "title": "%command.libOpenExample%",
+        "icon": "$(file-code)"
+      },
+      {
         "command": "arduinoCli.lib.addToProfile",
         "title": "%command.libAddToProfile%",
         "icon": "$(pin)"
@@ -369,7 +379,7 @@
         },
         {
           "command": "arduinoCli.lib.upgrade",
-          "when": "view == arduinoCli.libraries && viewItem == arduinoLibInstalledUpdatable",
+          "when": "view == arduinoCli.libraries && viewItem =~ /^arduinoLibInstalledUpdatable/",
           "group": "inline@1"
         },
         {
@@ -378,14 +388,34 @@
           "group": "inline@2"
         },
         {
+          "command": "arduinoCli.lib.openExample",
+          "when": "view == arduinoCli.libraries && viewItem =~ /hasEx/",
+          "group": "1_lib@1"
+        },
+        {
+          "command": "arduinoCli.lib.openWebsite",
+          "when": "view == arduinoCli.libraries && viewItem =~ /hasWeb/",
+          "group": "1_lib@2"
+        },
+        {
           "command": "arduinoCli.lib.changeVersion",
           "when": "view == arduinoCli.libraries && viewItem =~ /^arduinoLibInstalled/",
-          "group": "1_lib@1"
+          "group": "1_lib@3"
         },
         {
           "command": "arduinoCli.profileLib.remove",
           "when": "view == arduinoCli.profileLibraries && viewItem == arduinoProfileLib",
           "group": "inline@0"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "arduinoCli.lib.openWebsite",
+          "when": "false"
+        },
+        {
+          "command": "arduinoCli.lib.openExample",
+          "when": "false"
         }
       ],
       "editor/title": [

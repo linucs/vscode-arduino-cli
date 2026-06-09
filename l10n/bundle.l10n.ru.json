@@ -1,4 +1,12 @@
 {
+  "Category": "Категория",
+  "Maintainer": "Сопровождающий",
+  "License": "Лицензия",
+  "Built-in": "Встроенная",
+  "Provides": "Предоставляет",
+  "Open Example — {0}": "Открыть пример — {0}",
+  "Choose an example to open": "Выберите пример для открытия",
+  "“{0}” has no examples.": "«{0}» не содержит примеров.",
   "arduino-cli daemon v{0}": "демон arduino-cli v{0}",
   "Arduino CLI: daemon restarted": "Arduino CLI: демон перезапущен",
   "Arduino CLI: {0}": "Arduino CLI: {0}",

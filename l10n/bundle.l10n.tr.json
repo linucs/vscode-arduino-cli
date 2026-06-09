@@ -1,4 +1,12 @@
 {
+  "Category": "Kategori",
+  "Maintainer": "Bakımcı",
+  "License": "Lisans",
+  "Built-in": "Yerleşik",
+  "Provides": "Sağlar",
+  "Open Example — {0}": "Örneği aç — {0}",
+  "Choose an example to open": "Açılacak örneği seçin",
+  "“{0}” has no examples.": "\"{0}\" örnek içermiyor.",
   "arduino-cli daemon v{0}": "arduino-cli arka plan hizmeti v{0}",
   "Arduino CLI: daemon restarted": "Arduino CLI: arka plan hizmeti yeniden başlatıldı",
   "Arduino CLI: {0}": "Arduino CLI: {0}",

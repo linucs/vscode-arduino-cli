@@ -1,4 +1,12 @@
 {
+  "Category": "범주",
+  "Maintainer": "관리자",
+  "License": "라이선스",
+  "Built-in": "내장",
+  "Provides": "제공",
+  "Open Example — {0}": "예제 열기 — {0}",
+  "Choose an example to open": "열 예제를 선택하세요",
+  "“{0}” has no examples.": "\"{0}\"에 예제가 없습니다.",
   "arduino-cli daemon v{0}": "arduino-cli 데몬 v{0}",
   "Arduino CLI: daemon restarted": "Arduino CLI: 데몬을 다시 시작했습니다",
   "Arduino CLI: {0}": "Arduino CLI: {0}",

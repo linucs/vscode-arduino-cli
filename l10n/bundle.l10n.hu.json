@@ -1,4 +1,12 @@
 {
+  "Category": "Kategória",
+  "Maintainer": "Karbantartó",
+  "License": "Licenc",
+  "Built-in": "Beépített",
+  "Provides": "Biztosítja",
+  "Open Example — {0}": "Példa megnyitása – {0}",
+  "Choose an example to open": "Válassz egy megnyitandó példát",
+  "“{0}” has no examples.": "A(z) „{0}” nem tartalmaz példákat.",
   "arduino-cli daemon v{0}": "arduino-cli démon v{0}",
   "Arduino CLI: daemon restarted": "Arduino CLI: a démon újraindult",
   "Arduino CLI: {0}": "Arduino CLI: {0}",

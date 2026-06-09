@@ -60,6 +60,8 @@
   "command.libUninstall": "제거",
   "command.libUpgrade": "업그레이드",
   "command.libChangeVersion": "버전 변경…",
+  "command.libOpenWebsite": "저장소 / 웹사이트 열기",
+  "command.libOpenExample": "예제 열기…",
   "command.libAddToProfile": "프로필에 추가",
   "command.profileLibRemove": "프로필에서 제거",
   "command.refreshProfileLibraries": "프로필 라이브러리 새로 고침",

@@ -60,6 +60,8 @@
   "command.libUninstall": "アンインストール",
   "command.libUpgrade": "更新",
   "command.libChangeVersion": "バージョンを変更…",
+  "command.libOpenWebsite": "リポジトリ / Web サイトを開く",
+  "command.libOpenExample": "例を開く…",
   "command.libAddToProfile": "プロファイルに追加",
   "command.profileLibRemove": "プロファイルから削除",
   "command.refreshProfileLibraries": "プロファイルのライブラリを再読み込み",

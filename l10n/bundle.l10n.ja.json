@@ -1,4 +1,12 @@
 {
+  "Category": "カテゴリ",
+  "Maintainer": "メンテナー",
+  "License": "ライセンス",
+  "Built-in": "組み込み",
+  "Provides": "提供",
+  "Open Example — {0}": "例を開く — {0}",
+  "Choose an example to open": "開く例を選択",
+  "“{0}” has no examples.": "「{0}」には例がありません。",
   "arduino-cli daemon v{0}": "arduino-cli デーモン v{0}",
   "Arduino CLI: daemon restarted": "Arduino CLI: デーモンを再起動しました",
   "Arduino CLI: {0}": "Arduino CLI: {0}",

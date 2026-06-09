@@ -60,6 +60,8 @@
   "command.libUninstall": "解除安裝",
   "command.libUpgrade": "升級",
   "command.libChangeVersion": "變更版本…",
+  "command.libOpenWebsite": "開啟存放庫 / 網站",
+  "command.libOpenExample": "開啟範例…",
   "command.libAddToProfile": "新增至設定檔",
   "command.profileLibRemove": "從設定檔移除",
   "command.refreshProfileLibraries": "重新整理設定檔中的程式庫",

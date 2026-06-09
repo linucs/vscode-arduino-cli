@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import type { ArduinoClient } from "./arduinoClient";
-import type { SearchedLibrary } from "./proto/types";
+import type { LibraryRelease, SearchedLibrary } from "./proto/types";
 import { promptVersion } from "./versionPick";
 
 /**
@@ -19,7 +19,19 @@ export class LibraryManager {
 
   /** Installed libraries plus the set of names that have an upgrade available. */
   async listInstalled(): Promise<{
-    installed: { name: string; version: string; sentence: string }[];
+    installed: {
+      name: string;
+      version: string;
+      sentence: string;
+      paragraph: string;
+      maintainer: string;
+      license: string;
+      category: string;
+      containerPlatform: string;
+      website: string;
+      examples: string[];
+      providesIncludes: string[];
+    }[];
     updatable: Set<string>;
   }> {
     const [all, upd] = await Promise.all([
@@ -30,6 +42,14 @@ export class LibraryManager {
       name: il.library.name,
       version: il.library.version,
       sentence: il.library.sentence,
+      paragraph: il.library.paragraph ?? "",
+      maintainer: il.library.maintainer ?? "",
+      license: il.library.license ?? "",
+      category: il.library.category ?? "",
+      containerPlatform: il.library.container_platform ?? "",
+      website: il.library.website ?? "",
+      examples: il.library.examples ?? [],
+      providesIncludes: il.library.provides_includes ?? [],
     }));
     const updatable = new Set(
       (upd.installed_libraries ?? []).map((il) => il.library.name),
@@ -133,7 +153,7 @@ export class LibraryManager {
             qp.items = (res.libraries ?? []).map((l) => ({
               label: l.name,
               description: l.latest?.version,
-              detail: l.latest?.sentence,
+              detail: describeRelease(l.latest),
               alwaysShow: true, // server already matched — show every result
               lib: l,
             }));
@@ -355,4 +375,17 @@ export class LibraryManager {
 
 function labelOf(name: string, version: string): string {
   return version ? `${name}@${version}` : name;
+}
+
+/**
+ * One-line description for a search result: the library's `sentence`, extended
+ * with `paragraph` when it adds detail (paragraph often repeats the sentence).
+ */
+function describeRelease(release: LibraryRelease | undefined): string {
+  const sentence = release?.sentence ?? "";
+  // const paragraph = release?.paragraph ?? "";
+  // if (paragraph && paragraph !== sentence) {
+  //   return sentence ? `${sentence} ${paragraph}` : paragraph;
+  // }
+  return sentence;
 }

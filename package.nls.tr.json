@@ -60,6 +60,8 @@
   "command.libUninstall": "Kaldır",
   "command.libUpgrade": "Yükselt",
   "command.libChangeVersion": "Sürümü Değiştir…",
+  "command.libOpenWebsite": "Depoyu / web sitesini aç",
+  "command.libOpenExample": "Örneği aç…",
   "command.libAddToProfile": "Profile Ekle",
   "command.profileLibRemove": "Profilden Kaldır",
   "command.refreshProfileLibraries": "Profil Kitaplıklarını Yenile",

@@ -7,6 +7,7 @@ import { DaemonManager } from "./daemon";
 import { DebugManager } from "./debug";
 import { IntelliSenseManager } from "./intellisense";
 import { Indexes } from "./indexes";
+import { openLibraryExample } from "./libraryExample";
 import { LibraryManager } from "./libraryManager";
 import { LibraryTreeProvider, type LibNode } from "./libraryView";
 import { checkForUpdates, cleanDownloadCache } from "./maintenance";
@@ -304,6 +305,34 @@ export async function activate(ctx: vscode.ExtensionContext) {
           }
         }
       }),
+    ),
+    // Read-only actions (no daemon work, no afterLibraryChange).
+    vscode.commands.registerCommand(
+      "arduinoCli.lib.openWebsite",
+      (node: LibNode | undefined) => {
+        if (node?.kind === "lib" && node.website) {
+          void vscode.env.openExternal(vscode.Uri.parse(node.website));
+        }
+      },
+    ),
+    vscode.commands.registerCommand(
+      "arduinoCli.lib.openExample",
+      async (node: LibNode | undefined) => {
+        if (node?.kind !== "lib") {
+          return;
+        }
+        const folder = await openLibraryExample(node.name, node.examples);
+        if (!folder) {
+          return;
+        }
+        // Generate c_cpp_properties.json for the freshly-opened example, else
+        // cpptools reports the library's headers as missing — opening a sketch
+        // is not itself an IntelliSense trigger. Use scheduleConfigure (not
+        // configure) to match every other auto-trigger: silent, and gated by the
+        // `intellisense.autoConfigure` setting. It resolves the now-active example
+        // .ino and writes the config into its own root.
+        await withReady(async (d) => d.intellisense.scheduleConfigure());
+      },
     ),
   );
 

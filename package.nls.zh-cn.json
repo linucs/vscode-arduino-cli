@@ -60,6 +60,8 @@
   "command.libUninstall": "卸载",
   "command.libUpgrade": "升级",
   "command.libChangeVersion": "更改版本…",
+  "command.libOpenWebsite": "打开仓库 / 网站",
+  "command.libOpenExample": "打开示例…",
   "command.libAddToProfile": "添加到配置文件",
   "command.profileLibRemove": "从配置文件中移除",
   "command.refreshProfileLibraries": "刷新配置文件中的库",

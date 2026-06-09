@@ -60,6 +60,8 @@
   "command.libUninstall": "Désinstaller",
   "command.libUpgrade": "Mettre à jour",
   "command.libChangeVersion": "Changer de version…",
+  "command.libOpenWebsite": "Ouvrir le dépôt / site web",
+  "command.libOpenExample": "Ouvrir l'exemple…",
   "command.libAddToProfile": "Ajouter au profil",
   "command.profileLibRemove": "Retirer du profil",
   "command.refreshProfileLibraries": "Actualiser les bibliothèques du profil",

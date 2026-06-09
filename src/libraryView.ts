@@ -15,7 +15,19 @@ export interface LibNode {
   name: string;
   version: string;
   sentence: string;
+  paragraph: string;
+  maintainer: string;
+  license: string;
+  category: string;
+  /** Owning platform for bundled libraries (e.g. `arduino:avr`); "" otherwise. */
+  containerPlatform: string;
   updatable: boolean;
+  /** `url` from library.properties; "" when the library declares none. */
+  website: string;
+  /** Absolute paths to the library's example sketch directories. */
+  examples: string[];
+  /** Header files the library provides (from `includes` / source root). */
+  providesIncludes: string[];
 }
 
 export class LibraryTreeProvider implements vscode.TreeDataProvider<LibNode> {
@@ -43,11 +55,22 @@ export class LibraryTreeProvider implements vscode.TreeDataProvider<LibNode> {
     item.description = node.updatable
       ? vscode.l10n.t("{0} — update available", node.version)
       : node.version;
-    item.tooltip = node.sentence || undefined;
+    item.tooltip = buildTooltip(node);
     item.iconPath = new vscode.ThemeIcon(node.updatable ? "arrow-up" : "library");
-    item.contextValue = node.updatable
-      ? "arduinoLibInstalledUpdatable"
-      : "arduinoLibInstalled";
+    // Compose availability flags so the context menu can gate the website/example
+    // actions; keep the `arduinoLibInstalled[Updatable]` prefix the other menus
+    // match against.
+    let cv = "arduinoLibInstalled";
+    if (node.updatable) {
+      cv += "Updatable";
+    }
+    if (node.website) {
+      cv += " hasWeb";
+    }
+    if (node.examples.length) {
+      cv += " hasEx";
+    }
+    item.contextValue = cv;
     return item;
   }
 
@@ -73,7 +96,15 @@ export class LibraryTreeProvider implements vscode.TreeDataProvider<LibNode> {
           name: l.name,
           version: l.version,
           sentence: l.sentence,
+          paragraph: l.paragraph,
+          maintainer: l.maintainer,
+          license: l.license,
+          category: l.category,
+          containerPlatform: l.containerPlatform,
           updatable: updatable.has(l.name),
+          website: l.website,
+          examples: l.examples,
+          providesIncludes: l.providesIncludes,
         }));
     } catch (err) {
       this.items = [];
@@ -82,4 +113,38 @@ export class LibraryTreeProvider implements vscode.TreeDataProvider<LibNode> {
       );
     }
   }
+}
+
+/**
+ * Hover card for an installed library: name/version header, description, then a
+ * metadata block (category, maintainer, license, owning platform, provided
+ * headers). Values are appended as text so library metadata can't inject markup.
+ */
+function buildTooltip(node: LibNode): vscode.MarkdownString {
+  const md = new vscode.MarkdownString();
+  md.appendMarkdown(`**${node.name}** ${node.version}\n\n`);
+  if (node.sentence) {
+    md.appendText(node.sentence);
+    md.appendMarkdown("\n\n");
+  }
+  if (node.paragraph && node.paragraph !== node.sentence) {
+    md.appendText(node.paragraph);
+    md.appendMarkdown("\n\n");
+  }
+  const meta: [string, string][] = [
+    [vscode.l10n.t("Category"), node.category],
+    [vscode.l10n.t("Maintainer"), node.maintainer],
+    [vscode.l10n.t("License"), node.license],
+    [vscode.l10n.t("Built-in"), node.containerPlatform],
+    [vscode.l10n.t("Provides"), node.providesIncludes.join(", ")],
+  ];
+  const rows = meta.filter(([, value]) => value);
+  rows.forEach(([label, value], i) => {
+    md.appendMarkdown(`**${label}:** `);
+    md.appendText(value);
+    if (i < rows.length - 1) {
+      md.appendMarkdown("\n\n");
+    }
+  });
+  return md;
 }
