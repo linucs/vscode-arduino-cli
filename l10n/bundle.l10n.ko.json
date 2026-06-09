@@ -165,12 +165,12 @@
   "Export Plotter Data": "플로터 데이터 내보내기",
   "Open a workspace folder first to install the Arduino skill.": "Arduino 스킬을 설치하려면 먼저 작업 영역 폴더를 여세요.",
   "Could not install the Arduino skill: {0}": "Arduino 스킬을 설치할 수 없습니다: {0}",
-  "Arduino skill installed in {0}. Start a Claude Code session in this folder and it will be available.": "Arduino 스킬을 {0}에 설치했습니다. 이 폴더에서 Claude Code 세션을 시작하면 사용할 수 있습니다.",
   "No line ending": "줄 바꿈 없음",
   "Newline (LF)": "줄 바꿈 (LF)",
   "Carriage return (CR)": "캐리지 리턴 (CR)",
   "Both NL & CR (CRLF)": "둘 다 NL & CR (CRLF)",
   "Serial Line Ending": "시리얼 줄 바꿈",
   "Serial line ending for messages you send (click to change)": "보내는 메시지의 시리얼 줄 바꿈 (클릭하여 변경)",
-  "Open Serial Plotter": "시리얼 플로터 열기"
+  "Open Serial Plotter": "시리얼 플로터 열기",
+  "Arduino AI assistant configured: GitHub Copilot instructions and Claude Code skill installed in this folder.": "Arduino AI 어시스턴트가 구성되었습니다: GitHub Copilot 지침과 Claude Code 스킬이 이 폴더에 설치되었습니다."
 }

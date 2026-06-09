@@ -165,12 +165,12 @@
   "Export Plotter Data": "Eksportuj dane plotera",
   "Open a workspace folder first to install the Arduino skill.": "Najpierw otwórz folder obszaru roboczego, aby zainstalować umiejętność Arduino.",
   "Could not install the Arduino skill: {0}": "Nie można zainstalować umiejętności Arduino: {0}",
-  "Arduino skill installed in {0}. Start a Claude Code session in this folder and it will be available.": "Umiejętność Arduino zainstalowana w {0}. Uruchom sesję Claude Code w tym folderze, aby z niej korzystać.",
   "No line ending": "Bez zakończenia wiersza",
   "Newline (LF)": "Nowa linia (LF)",
   "Carriage return (CR)": "Powrót karetki (CR)",
   "Both NL & CR (CRLF)": "Oba NL i CR (CRLF)",
   "Serial Line Ending": "Zakończenie wiersza portu szeregowego",
   "Serial line ending for messages you send (click to change)": "Zakończenie wiersza portu szeregowego dla wysyłanych wiadomości (kliknij, aby zmienić)",
-  "Open Serial Plotter": "Otwórz plotter szeregowy"
+  "Open Serial Plotter": "Otwórz plotter szeregowy",
+  "Arduino AI assistant configured: GitHub Copilot instructions and Claude Code skill installed in this folder.": "Skonfigurowano asystenta AI Arduino: instrukcje GitHub Copilot i umiejętność Claude Code zainstalowane w tym folderze."
 }

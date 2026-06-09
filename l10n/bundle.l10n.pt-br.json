@@ -165,12 +165,12 @@
   "Export Plotter Data": "Exportar dados do plotter",
   "Open a workspace folder first to install the Arduino skill.": "Abra primeiro uma pasta do espaço de trabalho para instalar a skill do Arduino.",
   "Could not install the Arduino skill: {0}": "Não foi possível instalar a skill do Arduino: {0}",
-  "Arduino skill installed in {0}. Start a Claude Code session in this folder and it will be available.": "Skill do Arduino instalada em {0}. Inicie uma sessão do Claude Code nesta pasta para usá-la.",
   "No line ending": "Sem fim de linha",
   "Newline (LF)": "Nova linha (LF)",
   "Carriage return (CR)": "Retorno de carro (CR)",
   "Both NL & CR (CRLF)": "Ambos NL e CR (CRLF)",
   "Serial Line Ending": "Fim de linha serial",
   "Serial line ending for messages you send (click to change)": "Fim de linha serial para as mensagens enviadas (clique para alterar)",
-  "Open Serial Plotter": "Abrir o plotter serial"
+  "Open Serial Plotter": "Abrir o plotter serial",
+  "Arduino AI assistant configured: GitHub Copilot instructions and Claude Code skill installed in this folder.": "Assistente de IA do Arduino configurado: instruções do GitHub Copilot e skill do Claude Code instaladas nesta pasta."
 }

@@ -23,8 +23,7 @@ import {
   removeProfileLibrary,
   setDefaultProfile,
 } from "./profileManager";
-import { registerArduinoLmTools } from "./chat/lmTools";
-import { installArduinoSkill } from "./skill/installSkill";
+import { installAiAssistants } from "./skill/installSkill";
 import { SerialMonitor, pickSerialLineEnding } from "./serialMonitor";
 import { syncToDaemon, watchSettings } from "./settingsSync";
 import { archiveSketch, newSketch, resolveSketch } from "./sketch";
@@ -446,15 +445,12 @@ export async function activate(ctx: vscode.ExtensionContext) {
     sketchYamlWatcher.onDidDelete(onSketchYaml),
   );
 
-  // GitHub Copilot Language Model Tools (driven via the live, lazily-started
-  // client) + the one-click Claude Code skill installer.
+  // One-click setup of the shared AI-assistant config (a single reference.md
+  // feeds both the Copilot agent-mode instructions file and the Claude Code
+  // skill); both drive arduino-cli via the shell. No wrapper tools to maintain.
   ctx.subscriptions.push(
-    ...registerArduinoLmTools(ensureReady, {
-      afterLibraryChange,
-      afterPlatformChange,
-    }),
     vscode.commands.registerCommand("arduinoCli.installArduinoSkill", () =>
-      installArduinoSkill(ctx),
+      installAiAssistants(ctx),
     ),
   );
 

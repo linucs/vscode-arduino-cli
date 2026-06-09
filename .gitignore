@@ -5,5 +5,8 @@ out/
 *.vsix
 .DS_Store
 *.log
-.claude/
+.claude/**
+!.claude/skills/
+!.claude/skills/arduino-cli/
+!.claude/skills/arduino-cli/**
 CLAUDE.md
