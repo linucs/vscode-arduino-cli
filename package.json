@@ -245,6 +245,16 @@
         "icon": "$(file-code)"
       },
       {
+        "command": "arduinoCli.lib.groupByCategory",
+        "title": "%command.libGroupByCategory%",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "arduinoCli.lib.ungroup",
+        "title": "%command.libUngroup%",
+        "icon": "$(list-flat)"
+      },
+      {
         "command": "arduinoCli.lib.addToProfile",
         "title": "%command.libAddToProfile%",
         "icon": "$(pin)"
@@ -314,6 +324,16 @@
           "command": "arduinoCli.upgradeLibraries",
           "when": "view == arduinoCli.libraries",
           "group": "navigation@2"
+        },
+        {
+          "command": "arduinoCli.lib.groupByCategory",
+          "when": "view == arduinoCli.libraries && !arduinoCli.librariesGrouped",
+          "group": "navigation@3"
+        },
+        {
+          "command": "arduinoCli.lib.ungroup",
+          "when": "view == arduinoCli.libraries && arduinoCli.librariesGrouped",
+          "group": "navigation@3"
         },
         {
           "command": "arduinoCli.installLibraryZip",
@@ -416,6 +436,14 @@
         {
           "command": "arduinoCli.lib.openExample",
           "when": "false"
+        },
+        {
+          "command": "arduinoCli.lib.groupByCategory",
+          "when": "false"
+        },
+        {
+          "command": "arduinoCli.lib.ungroup",
+          "when": "false"
         }
       ],
       "editor/title": [
@@ -515,6 +543,11 @@
           "type": "boolean",
           "default": true,
           "description": "%config.intellisenseAutoConfigure%"
+        },
+        "arduinoCli.libraries.groupByCategory": {
+          "type": "boolean",
+          "default": false,
+          "description": "%config.librariesGroupByCategory%"
         }
       }
     },

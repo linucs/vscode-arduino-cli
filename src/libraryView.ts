@@ -30,9 +30,25 @@ export interface LibNode {
   providesIncludes: string[];
 }
 
-export class LibraryTreeProvider implements vscode.TreeDataProvider<LibNode> {
+/** A category grouping node (parent of {@link LibNode}s when grouping is on). */
+export interface LibCategoryNode {
+  kind: "category";
+  label: string;
+  libs: LibNode[];
+}
+
+/** Either tree level. The `kind` discriminator drives rendering and commands. */
+export type LibTreeNode = LibCategoryNode | LibNode;
+
+/** Daemon's default category for libraries without one; matched verbatim so our
+ * fallback merges with it instead of forming a separate group. */
+const UNCATEGORIZED = "Uncategorized";
+
+export class LibraryTreeProvider
+  implements vscode.TreeDataProvider<LibTreeNode>
+{
   private readonly _onDidChangeTreeData = new vscode.EventEmitter<
-    LibNode | undefined | void
+    LibTreeNode | undefined | void
   >();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
@@ -47,41 +63,44 @@ export class LibraryTreeProvider implements vscode.TreeDataProvider<LibNode> {
     this._onDidChangeTreeData.fire();
   }
 
-  getTreeItem(node: LibNode): vscode.TreeItem {
-    const item = new vscode.TreeItem(
-      node.name,
-      vscode.TreeItemCollapsibleState.None,
-    );
-    item.description = node.updatable
-      ? vscode.l10n.t("{0} — update available", node.version)
-      : node.version;
-    item.tooltip = buildTooltip(node);
-    item.iconPath = new vscode.ThemeIcon(node.updatable ? "arrow-up" : "library");
-    // Compose availability flags so the context menu can gate the website/example
-    // actions; keep the `arduinoLibInstalled[Updatable]` prefix the other menus
-    // match against.
-    let cv = "arduinoLibInstalled";
-    if (node.updatable) {
-      cv += "Updatable";
-    }
-    if (node.website) {
-      cv += " hasWeb";
-    }
-    if (node.examples.length) {
-      cv += " hasEx";
-    }
-    item.contextValue = cv;
-    return item;
+  getTreeItem(node: LibTreeNode): vscode.TreeItem {
+    return node.kind === "category"
+      ? categoryItem(node)
+      : libItem(node);
   }
 
-  async getChildren(node?: LibNode): Promise<LibNode[]> {
+  async getChildren(node?: LibTreeNode): Promise<LibTreeNode[]> {
     if (node) {
-      return [];
+      return node.kind === "category" ? node.libs : [];
     }
     if (!this.loaded) {
       await this.load();
     }
-    return this.items;
+    return this.grouped() ? this.categories() : this.items;
+  }
+
+  /** Whether the view groups libraries under category nodes. */
+  private grouped(): boolean {
+    return vscode.workspace
+      .getConfiguration("arduinoCli")
+      .get<boolean>("libraries.groupByCategory", false);
+  }
+
+  /** Group the already-name-sorted `items` into category nodes (sorted). */
+  private categories(): LibCategoryNode[] {
+    const byCategory = new Map<string, LibNode[]>();
+    for (const lib of this.items) {
+      const key = lib.category || UNCATEGORIZED;
+      const bucket = byCategory.get(key);
+      if (bucket) {
+        bucket.push(lib);
+      } else {
+        byCategory.set(key, [lib]);
+      }
+    }
+    return [...byCategory.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([label, libs]) => ({ kind: "category" as const, label, libs }));
   }
 
   private async load(): Promise<void> {
@@ -113,6 +132,46 @@ export class LibraryTreeProvider implements vscode.TreeDataProvider<LibNode> {
       );
     }
   }
+}
+
+/** Tree item for a single installed library. */
+function libItem(node: LibNode): vscode.TreeItem {
+  const item = new vscode.TreeItem(
+    node.name,
+    vscode.TreeItemCollapsibleState.None,
+  );
+  item.description = node.updatable
+    ? vscode.l10n.t("{0} — update available", node.version)
+    : node.version;
+  item.tooltip = buildTooltip(node);
+  item.iconPath = new vscode.ThemeIcon(node.updatable ? "arrow-up" : "library");
+  // Compose availability flags so the context menu can gate the website/example
+  // actions; keep the `arduinoLibInstalled[Updatable]` prefix the other menus
+  // match against.
+  let cv = "arduinoLibInstalled";
+  if (node.updatable) {
+    cv += "Updatable";
+  }
+  if (node.website) {
+    cv += " hasWeb";
+  }
+  if (node.examples.length) {
+    cv += " hasEx";
+  }
+  item.contextValue = cv;
+  return item;
+}
+
+/** Tree item for a category grouping node. */
+function categoryItem(node: LibCategoryNode): vscode.TreeItem {
+  const item = new vscode.TreeItem(
+    node.label,
+    vscode.TreeItemCollapsibleState.Expanded,
+  );
+  item.description = String(node.libs.length);
+  item.iconPath = new vscode.ThemeIcon("folder");
+  item.contextValue = "arduinoLibCategory";
+  return item;
 }
 
 /**

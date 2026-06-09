@@ -334,7 +334,23 @@ export async function activate(ctx: vscode.ExtensionContext) {
         await withReady(async (d) => d.intellisense.scheduleConfigure());
       },
     ),
+    // Group-by-category toggle: the two commands just write the setting; the
+    // config listener below repaints the tree and flips the button. Single
+    // source of truth = the setting.
+    vscode.commands.registerCommand("arduinoCli.lib.groupByCategory", () =>
+      setLibrariesGrouped(true),
+    ),
+    vscode.commands.registerCommand("arduinoCli.lib.ungroup", () =>
+      setLibrariesGrouped(false),
+    ),
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration("arduinoCli.libraries.groupByCategory")) {
+        syncLibrariesGroupedContext();
+        void libraryView?.refresh();
+      }
+    }),
   );
+  syncLibrariesGroupedContext(); // establish the button state at startup
 
   // Platforms (cores) tree view — mirror of the Libraries view, on the global
   // instance. Resolves the live PlatformManager lazily so it survives daemon
@@ -562,6 +578,25 @@ async function ensureReady(): Promise<Deps> {
     debug: debugManager,
     intellisense,
   };
+}
+
+/** Persist the group-by-category preference (the tree reads it back). */
+function setLibrariesGrouped(value: boolean): Thenable<void> {
+  return vscode.workspace
+    .getConfiguration("arduinoCli")
+    .update("libraries.groupByCategory", value, vscode.ConfigurationTarget.Global);
+}
+
+/** Mirror the setting into a context key so the right view/title button shows. */
+function syncLibrariesGroupedContext(): void {
+  const grouped = vscode.workspace
+    .getConfiguration("arduinoCli")
+    .get<boolean>("libraries.groupByCategory", false);
+  void vscode.commands.executeCommand(
+    "setContext",
+    "arduinoCli.librariesGrouped",
+    grouped,
+  );
 }
 
 /** Refresh the library view and reconfigure IntelliSense (installed set changed). */
