@@ -6,6 +6,16 @@ Code Arduino sketches in **plain VS Code** — compile, upload, monitor, and deb
 
 ---
 
+## v0.3.0 — 2026-06-09
+
+- **Serial line ending** — the serial monitor status bar shows the active line ending (None / NL / CR / NL+CR) with a one-click picker. The chosen ending is appended to every message you send to the board.
+- **Open library examples** — new **Open Library Example** command opens any example sketch from an installed library in the editor (read-only, so you can't accidentally edit the library source). **Open Library Website** opens the library's home page.
+- **Library grouping** — toggle **Group by Category** in the Installed Libraries toolbar to organise libraries by their category.
+- **Unified AI assistant** — **Install Arduino Skill** now drops a single skill that works with both GitHub Copilot Chat and Claude Code, instead of separate setups.
+- **Removed** — the eight Copilot Language Model tools from v0.2.0 have been removed; the skill-based approach covers the same use cases and works across AI assistants.
+
+---
+
 ## v0.2.0 — 2026-06-08
 
 - **Works with GitHub Copilot** — Copilot Chat can now drive `arduino-cli` for you through eight new Language Model tools: check build status, compile, upload, search boards, get board details, search libraries, install a library, and install a core. Ask Copilot to compile your sketch or fix a build error and it can do it through the daemon.

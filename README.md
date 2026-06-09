@@ -76,6 +76,7 @@ Everything below is available from the **Command Palette** (`Ctrl/Cmd+Shift+P`),
 | Arduino CLI: Open Serial Monitor | Read text from the board's serial port |
 | Arduino CLI: Open Serial Plotter | Graph live numeric data streaming over serial |
 | Arduino CLI: Save Serial Log… | Save the captured serial output to a file |
+| Arduino CLI: Set Serial Line Ending | Choose what line ending is appended when sending to the board (None / NL / CR / NL+CR) |
 
 **Platforms / cores**
 
@@ -95,6 +96,8 @@ Everything below is available from the **Command Palette** (`Ctrl/Cmd+Shift+P`),
 | Arduino CLI: Download Library Archive (cache only)… | Pre-download a library without installing |
 | Arduino CLI: Upgrade All Libraries | Update every installed library |
 | Arduino CLI: Update Libraries Index | Refresh the list of available libraries |
+| Arduino CLI: Open Library Example… | Open an example sketch from an installed library (read-only) |
+| Arduino CLI: Open Library Website… | Open the home page for an installed library |
 
 **Build profiles** (`sketch.yaml`)
 

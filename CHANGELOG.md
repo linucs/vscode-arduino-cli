@@ -4,6 +4,36 @@ All notable changes to the "Arduino CLI IDE" extension will be documented in thi
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.3.0] - 2026-06-09
+
+### Added
+
+- **Serial line ending** — the serial monitor status bar now shows the active line
+  ending (None / NL / CR / NL+CR) and lets you change it with one click or via the
+  new **Arduino CLI: Set Serial Line Ending** command. The chosen ending is appended
+  to every message sent to the board.
+- **Open library examples** — a new **Arduino CLI: Open Library Example** command
+  opens any example sketch from an installed library directly in the editor (the
+  example folder is opened read-only so you don't accidentally modify the library's
+  source). A complementary **Open Library Website** command opens the library's home
+  page in the browser.
+- **Library grouping** — the Installed Libraries tree view can now group libraries
+  by category. Toggle grouping on or off with the new **Group by Category** /
+  **Ungroup** toolbar action.
+
+### Changed
+
+- **Unified AI assistant setup** — the **Install Arduino Skill** command now
+  installs a single, unified skill that works with both GitHub Copilot Chat and
+  Claude Code, replacing the two separate setup paths.
+
+### Removed
+
+- **GitHub Copilot Language Model tools** — the eight LM tools contributed to
+  Copilot Chat in v0.2.0 have been removed. The AI assistant integration is now
+  handled entirely through the installed skill (see above), which is more
+  maintainable and works across AI assistants.
+
 ## [0.2.0] - 2026-06-08
 
 ### Added
@@ -83,5 +113,7 @@ talks to it over local gRPC — no reimplementation of arduino-cli, just an edit
 - **Maintenance** — check for `arduino-cli` updates and clean the download cache.
 - **Localization** — the UI is translated into 14 languages.
 
+[0.3.0]: https://github.com/linucs/vscode-arduino-cli/releases/tag/v0.3.0
+[0.2.0]: https://github.com/linucs/vscode-arduino-cli/releases/tag/v0.2.0
 [0.1.1]: https://github.com/linucs/vscode-arduino-cli/releases/tag/v0.1.1
 [0.0.1]: https://github.com/linucs/vscode-arduino-cli/releases/tag/v0.0.1
