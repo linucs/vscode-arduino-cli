@@ -172,5 +172,6 @@
   "Serial Line Ending": "串口行结束符",
   "Serial line ending for messages you send (click to change)": "发送消息的串口行结束符（点击更改）",
   "Open Serial Plotter": "打开串口绘图仪",
-  "Arduino AI assistant configured: skill installed for Claude Code and GitHub Copilot in this folder.": "已配置 Arduino AI 助手：已将适用于 Claude Code 和 GitHub Copilot 的技能安装到此文件夹。"
+  "Arduino AI assistant configured: skill installed for Claude Code and GitHub Copilot in this folder.": "已配置 Arduino AI 助手：已将适用于 Claude Code 和 GitHub Copilot 的技能安装到此文件夹。",
+  "Select the folder to set up the Arduino AI assistant in": "选择要设置 Arduino AI 助手的文件夹"
 }

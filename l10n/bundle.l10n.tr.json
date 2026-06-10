@@ -172,5 +172,6 @@
   "Serial Line Ending": "Seri satır sonu",
   "Serial line ending for messages you send (click to change)": "Gönderdiğiniz iletiler için seri satır sonu (değiştirmek için tıklayın)",
   "Open Serial Plotter": "Seri plotter'ı aç",
-  "Arduino AI assistant configured: skill installed for Claude Code and GitHub Copilot in this folder.": "Arduino yapay zekâ asistanı yapılandırıldı: Claude Code ve GitHub Copilot için beceri bu klasöre yüklendi."
+  "Arduino AI assistant configured: skill installed for Claude Code and GitHub Copilot in this folder.": "Arduino yapay zekâ asistanı yapılandırıldı: Claude Code ve GitHub Copilot için beceri bu klasöre yüklendi.",
+  "Select the folder to set up the Arduino AI assistant in": "Arduino yapay zekâ asistanının kurulacağı klasörü seçin"
 }

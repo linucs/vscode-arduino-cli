@@ -1,6 +1,7 @@
 import * as path from "node:path";
 import * as fs from "node:fs/promises";
 import * as vscode from "vscode";
+import { resolveActiveWorkspaceRoot } from "../workspaceRoot";
 
 const SKILL_REL = path.join(".claude", "skills", "arduino-cli");
 
@@ -17,7 +18,9 @@ const SKILL_REL = path.join(".claude", "skills", "arduino-cli");
 export async function installAiAssistants(
   context: vscode.ExtensionContext,
 ): Promise<void> {
-  const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  const root = await resolveActiveWorkspaceRoot(
+    vscode.l10n.t("Select the folder to set up the Arduino AI assistant in"),
+  );
   if (!root) {
     vscode.window.showWarningMessage(
       vscode.l10n.t("Open a workspace folder first to install the Arduino skill."),

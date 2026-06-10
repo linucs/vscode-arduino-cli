@@ -172,5 +172,6 @@
   "Serial Line Ending": "Окончание строки последовательного порта",
   "Serial line ending for messages you send (click to change)": "Окончание строки для отправляемых сообщений (нажмите, чтобы изменить)",
   "Open Serial Plotter": "Открыть последовательный плоттер",
-  "Arduino AI assistant configured: skill installed for Claude Code and GitHub Copilot in this folder.": "ИИ-ассистент Arduino настроен: навык установлен для Claude Code и GitHub Copilot в этой папке."
+  "Arduino AI assistant configured: skill installed for Claude Code and GitHub Copilot in this folder.": "ИИ-ассистент Arduino настроен: навык установлен для Claude Code и GitHub Copilot в этой папке.",
+  "Select the folder to set up the Arduino AI assistant in": "Выберите папку для настройки ИИ-ассистента Arduino"
 }
