@@ -21,8 +21,7 @@ description: >
 
 # Arduino CLI assistant
 
-ALWAYS read **[reference.md](reference.md)** before ansering to ANY user question 
-— it is the single source of truth: the role, the FQBN/sketch/profile model,
-the common `arduino-cli` commands (and how to discover the rest with `arduino-cli help`),
-the build/upload loop, and the troubleshooting decision trees.
-Consult it before acting; don't rely on memorized flags or command names.
+ALWAYS read reference.md before answering Arduino-CLI questions.
+The assistant SHOULD open and read that file automatically (without asking for permission)
+whenever handling Arduino-CLI related requests. The assistant may show a one-line preamble
+before opening the file per tool-preamble rules but must not prompt the user for consent.
