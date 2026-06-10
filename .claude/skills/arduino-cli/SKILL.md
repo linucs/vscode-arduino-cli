@@ -21,7 +21,7 @@ description: >
 
 # Arduino CLI assistant
 
-ALWAYS read reference.md before answering Arduino-CLI questions.
+ALWAYS read `.claude/skills/arduino-cli/reference.md` before answering Arduino-CLI questions.
 The assistant SHOULD open and read that file automatically (without asking for permission)
 whenever handling Arduino-CLI related requests. The assistant may show a one-line preamble
 before opening the file per tool-preamble rules but must not prompt the user for consent.

@@ -22,10 +22,10 @@ const COPILOT_INSTRUCTIONS_REL = path.join(
  *   triggers. We just copy the skill dir.
  * - **GitHub Copilot** does NOT read `.claude/skills/`. In VS Code it reads
  *   instruction files from `.github/instructions/*.instructions.md`, gated by an
- *   `applyTo` glob. We *generate* that file with `applyTo: "**"` (injected on
- *   every request) and have it instruct the agent to read the same
- *   `.claude/skills/arduino-cli/reference.md` Claude loads lazily — so both hosts
- *   share one source of truth instead of a duplicated copy.
+ *   `applyTo` glob. We *derive* that file from the very same `SKILL.md` (strip its
+ *   frontmatter, prepend an `applyTo: "**"` header) so Copilot gets the exact
+ *   guidance Claude reads natively — one source of truth, no hand-written copy to
+ *   drift.
  *
  * Both hosts then drive `arduino-cli` via the shell — no wrapper tools.
  */
@@ -51,9 +51,9 @@ export async function installAiAssistants(
     const destDir = path.join(root, SKILL_REL);
     await fs.cp(srcDir, destDir, { recursive: true });
 
-    // GitHub Copilot: generate an instructions file that points Copilot at the
-    // skill's reference, so it has the same guidance Claude loads lazily.
-    await writeCopilotInstructions(root);
+    // GitHub Copilot: generate an instructions file derived from SKILL.md, so it
+    // has the same guidance Claude reads natively.
+    await writeCopilotInstructions(srcDir, root);
   } catch (err) {
     vscode.window.showErrorMessage(
       vscode.l10n.t(
@@ -72,27 +72,52 @@ export async function installAiAssistants(
 }
 
 /**
- * Generate the Copilot instructions file: an `applyTo: "**"` header (injected on
- * every request) plus a directive to read the skill's `reference.md`. This is a
- * dedicated, fully-generated file, so it is overwritten wholesale on re-install.
+ * Generate the Copilot instructions file by DERIVING it from the skill's own
+ * `SKILL.md` — strip the YAML frontmatter, prepend an `applyTo: "**"` header (so
+ * Copilot injects it on every request) plus an auto-read directive. Claude Code
+ * reads `SKILL.md` natively; Copilot reads this derived copy. There is no separate
+ * hand-written string to drift out of sync.
+ *
+ * Why a derivation works without rewriting any paths: `SKILL.md` references
+ * `reference.md` by its **workspace-root-relative** path
+ * (`.claude/skills/arduino-cli/reference.md`), which BOTH hosts resolve from the
+ * workspace root — even though this generated file lives under `.github/`.
+ *
+ * Fully generated → overwritten wholesale on re-install.
  */
-async function writeCopilotInstructions(root: string): Promise<void> {
-  const content = [
+async function writeCopilotInstructions(
+  srcDir: string,
+  root: string,
+): Promise<void> {
+  const skill = await fs.readFile(path.join(srcDir, "SKILL.md"), "utf8");
+
+  const header = [
     "---",
     'applyTo: "**"',
     "---",
     "",
-    "# Arduino CLI assistant",
+    "<!-- Generated from .claude/skills/arduino-cli/SKILL.md by the Arduino CLI extension",
+    '     ("Arduino CLI: Set Up AI Assistant"). Edits here are overwritten on re-install —',
+    "     change the skill instead. -->",
     "",
-    "ALWAYS read .claude/skills/arduino-cli/reference.md before answering Arduino-CLI questions.",
-    "The assistant SHOULD open and read that file automatically (without asking for permission)",
-    "whenever handling Arduino-CLI related requests. The assistant may show a one-line preamble",
-    "before opening the file per tool-preamble rules but must not prompt the user for consent.",
+    "The following is MANDATORY whenever the user asks an Arduino or `arduino-cli`",
+    "question, or works on a `.ino` sketch. Follow it exactly — the directives below",
+    "are not optional.",
+    "",
+    "---",
     "",
   ].join("\n");
+
+  const content = header + stripFrontmatter(skill).trimStart() + "\n";
 
   const destPath = path.join(root, COPILOT_INSTRUCTIONS_REL);
   await fs.mkdir(path.dirname(destPath), { recursive: true });
   await fs.writeFile(destPath, content, "utf8");
+}
+
+/** Drop a leading `---`…`---` YAML frontmatter block, if present. */
+function stripFrontmatter(md: string): string {
+  const m = /^---\r?\n[\s\S]*?\r?\n---\r?\n/.exec(md);
+  return m ? md.slice(m[0].length) : md;
 }
 
