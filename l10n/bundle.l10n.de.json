@@ -172,5 +172,5 @@
   "Serial Line Ending": "Serielles Zeilenende",
   "Serial line ending for messages you send (click to change)": "Serielles Zeilenende für gesendete Nachrichten (zum Ändern klicken)",
   "Open Serial Plotter": "Seriellen Plotter öffnen",
-  "Arduino AI assistant configured: GitHub Copilot instructions and Claude Code skill installed in this folder.": "Arduino-KI-Assistent konfiguriert: GitHub-Copilot-Anweisungen und Claude-Code-Skill in diesem Ordner installiert."
+  "Arduino AI assistant configured: skill installed for Claude Code and GitHub Copilot in this folder.": "Arduino-KI-Assistent konfiguriert: Skill für Claude Code und GitHub Copilot in diesem Ordner installiert."
 }

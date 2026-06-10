@@ -172,5 +172,5 @@
   "Serial Line Ending": "Soros sorvég",
   "Serial line ending for messages you send (click to change)": "Soros sorvég a küldött üzenetekhez (kattintson a módosításhoz)",
   "Open Serial Plotter": "Soros plotter megnyitása",
-  "Arduino AI assistant configured: GitHub Copilot instructions and Claude Code skill installed in this folder.": "Arduino AI-asszisztens beállítva: a GitHub Copilot utasítások és a Claude Code készség telepítve ebbe a mappába."
+  "Arduino AI assistant configured: skill installed for Claude Code and GitHub Copilot in this folder.": "Arduino AI-asszisztens beállítva: a készség telepítve a Claude Code és a GitHub Copilot számára ebbe a mappába."
 }

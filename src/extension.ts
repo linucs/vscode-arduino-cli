@@ -445,9 +445,9 @@ export async function activate(ctx: vscode.ExtensionContext) {
     sketchYamlWatcher.onDidDelete(onSketchYaml),
   );
 
-  // One-click setup of the shared AI-assistant config (a single reference.md
-  // feeds both the Copilot agent-mode instructions file and the Claude Code
-  // skill); both drive arduino-cli via the shell. No wrapper tools to maintain.
+  // One-click setup of the shared AI-assistant config: one skill under
+  // `.claude/skills/` that both Claude Code and Copilot auto-discover; both drive
+  // arduino-cli via the shell. No wrapper tools, no per-host duplication to maintain.
   ctx.subscriptions.push(
     vscode.commands.registerCommand("arduinoCli.installArduinoSkill", () =>
       installAiAssistants(ctx),

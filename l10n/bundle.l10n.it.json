@@ -172,5 +172,5 @@
   "Serial Line Ending": "Fine riga seriale",
   "Serial line ending for messages you send (click to change)": "Fine riga seriale per i messaggi inviati (clic per cambiare)",
   "Open Serial Plotter": "Apri il plotter seriale",
-  "Arduino AI assistant configured: GitHub Copilot instructions and Claude Code skill installed in this folder.": "Assistente AI per Arduino configurato: istruzioni per GitHub Copilot e skill per Claude Code installate in questa cartella."
+  "Arduino AI assistant configured: skill installed for Claude Code and GitHub Copilot in this folder.": "Assistente AI per Arduino configurato: skill installata per Claude Code e GitHub Copilot in questa cartella."
 }

@@ -172,5 +172,5 @@
   "Serial Line Ending": "シリアルの改行コード",
   "Serial line ending for messages you send (click to change)": "送信メッセージのシリアル改行コード（クリックで変更）",
   "Open Serial Plotter": "シリアルプロッターを開く",
-  "Arduino AI assistant configured: GitHub Copilot instructions and Claude Code skill installed in this folder.": "Arduino AI アシスタントを設定しました: GitHub Copilot の指示と Claude Code スキルをこのフォルダーにインストールしました。"
+  "Arduino AI assistant configured: skill installed for Claude Code and GitHub Copilot in this folder.": "Arduino AI アシスタントを設定しました: Claude Code と GitHub Copilot 用のスキルをこのフォルダーにインストールしました。"
 }

@@ -172,5 +172,5 @@
   "Serial Line Ending": "Konec řádku sériové linky",
   "Serial line ending for messages you send (click to change)": "Konec řádku sériové linky pro odesílané zprávy (kliknutím změníte)",
   "Open Serial Plotter": "Otevřít sériový plotr",
-  "Arduino AI assistant configured: GitHub Copilot instructions and Claude Code skill installed in this folder.": "Asistent AI pro Arduino nakonfigurován: pokyny GitHub Copilot a dovednost Claude Code nainstalovány do této složky."
+  "Arduino AI assistant configured: skill installed for Claude Code and GitHub Copilot in this folder.": "Asistent AI pro Arduino nakonfigurován: dovednost nainstalována pro Claude Code a GitHub Copilot do této složky."
 }

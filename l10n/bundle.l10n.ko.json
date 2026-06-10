@@ -172,5 +172,5 @@
   "Serial Line Ending": "시리얼 줄 바꿈",
   "Serial line ending for messages you send (click to change)": "보내는 메시지의 시리얼 줄 바꿈 (클릭하여 변경)",
   "Open Serial Plotter": "시리얼 플로터 열기",
-  "Arduino AI assistant configured: GitHub Copilot instructions and Claude Code skill installed in this folder.": "Arduino AI 어시스턴트가 구성되었습니다: GitHub Copilot 지침과 Claude Code 스킬이 이 폴더에 설치되었습니다."
+  "Arduino AI assistant configured: skill installed for Claude Code and GitHub Copilot in this folder.": "Arduino AI 어시스턴트가 구성되었습니다: Claude Code 및 GitHub Copilot용 스킬이 이 폴더에 설치되었습니다."
 }
