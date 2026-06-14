@@ -454,9 +454,7 @@ export class SerialMonitor {
     }
     const { lines, rest } = splitLines(this.plotLineBuf, chunk);
     this.plotLineBuf = rest;
-    const points = lines
-      .map(parseTelemetryLine)
-      .filter((p): p is NonNullable<typeof p> => p !== undefined);
+    const points = lines.flatMap(parseTelemetryLine);
     if (points.length > 0) {
       plotter.postData(points);
     }

@@ -120,6 +120,42 @@ body {
   color: var(--vscode-foreground) !important;
 }
 
+.log-panel {
+  display: none;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.log-panel.visible {
+  display: flex;
+}
+
+.log-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 90px;
+  padding: 4px 8px;
+  border: 1px solid var(--vscode-panel-border, #444);
+  border-radius: 4px;
+  background: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+}
+
+.log-card .log-name {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--vscode-descriptionForeground, #888);
+}
+
+.log-card .log-value {
+  font-family: var(--vscode-editor-font-family, monospace);
+  font-size: 13px;
+  color: var(--vscode-foreground);
+  word-break: break-word;
+}
+
 .disconnected {
   display: none;
   padding: 12px;

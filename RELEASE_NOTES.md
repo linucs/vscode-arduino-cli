@@ -6,6 +6,13 @@ Code Arduino sketches in **plain VS Code** — compile, upload, monitor, and deb
 
 ---
 
+## v0.4.1 — 2026-06-14
+
+- **Richer Serial Plotter** — the plotter now speaks more of the [Teleplot](https://github.com/nesnes/teleplot) protocol. Add a **unit** to a series with `§` (e.g. `>temp:23.5§°C`), send **several samples on one line** separated by `;` (e.g. `>temp:1:23.4;2:23.6`), show a **text status** as a labelled card with the `|t` flag (e.g. `>state:Running|t`), and give **XY scatter** points an explicit timestamp (`>pos:12:8:1627551892437|xy`). The README's Serial Plotting section documents the full format with Arduino examples.
+- **Changed** — XY scatter points now use a single series name (`>name:x:y|xy`) instead of the old two-name shape, matching Teleplot.
+
+---
+
 ## v0.4.0 — 2026-06-14
 
 - **Manage profile libraries** — the renamed **Project libraries** view now lets you manage the libraries pinned to a `sketch.yaml` build profile. Use **Add Library to Profile** to add one and the inline action to remove one — the profile's `libraries:` list stays in sync, no hand-editing the YAML.

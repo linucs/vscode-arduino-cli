@@ -31,10 +31,12 @@
   let tsData = [[]];
   /** @type {uPlot | null} */
   let tsChart = null;
-  /** @type {Map<string, {x:number[],y:number[]}>} XY datasets keyed by "nameX:nameY" */
+  /** @type {Map<string, {x:number[],y:number[]}>} XY datasets keyed by series name */
   const xyDatasets = new Map();
   /** @type {Map<string, uPlot>} */
   const xyCharts = new Map();
+  /** @type {Map<string, HTMLElement>} text/log value cards keyed by series name */
+  const logCards = new Map();
 
   /** Baseline timestamp (first data point) so the X axis shows relative seconds. */
   let t0 = 0;
@@ -42,6 +44,7 @@
   const chartsEl = document.getElementById("charts");
   const tsContainer = document.getElementById("ts-chart");
   const xyContainer = document.getElementById("xy-charts");
+  const logPanel = document.getElementById("log-panel");
   const pauseBtn = document.getElementById("btn-pause");
   const statusEl = document.getElementById("status");
   const disconnectedEl = document.getElementById("disconnected");
@@ -103,13 +106,14 @@
     tsChart = new uPlot(opts, tsData, tsContainer);
   }
 
-  function addTsSeries(name) {
+  function addTsSeries(name, unit) {
     const idx = tsData.length;
     seriesMap.set(name, idx);
     // Backfill with nulls for existing timestamps
     tsData.push(new Array(tsData[0].length).fill(null));
     const color = PALETTE[(idx - 1) % PALETTE.length];
-    tsChart.addSeries({ label: name, stroke: color, width: 1.5 }, idx);
+    const label = unit ? name + " (" + unit + ")" : name;
+    tsChart.addSeries({ label, stroke: color, width: 1.5 }, idx);
     tsChart.setData(tsData);
     // Legend grew — shrink the canvas so the total still fits.
     tsChart.setSize({ width: tsContainer.clientWidth - 16, height: tsChartHeight() });
@@ -137,8 +141,8 @@
       legend: { show: true },
       scales: { x: { time: false }, y: {} },
       axes: [
-        { label: key.split(":")[0], stroke: axisStroke, grid: { stroke: gridStroke } },
-        { label: key.split(":")[1], stroke: axisStroke, grid: { stroke: gridStroke } },
+        { label: "X", stroke: axisStroke, grid: { stroke: gridStroke } },
+        { label: "Y", stroke: axisStroke, grid: { stroke: gridStroke } },
       ],
       series: [
         {},
@@ -156,6 +160,26 @@
     return chart;
   }
 
+  // --- text/log values (the `|t` flag) ---
+  function showLogEntry(name, text) {
+    let card = logCards.get(name);
+    if (!card) {
+      card = document.createElement("div");
+      card.className = "log-card";
+      const nameEl = document.createElement("span");
+      nameEl.className = "log-name";
+      nameEl.textContent = name;
+      const valueEl = document.createElement("span");
+      valueEl.className = "log-value";
+      card.appendChild(nameEl);
+      card.appendChild(valueEl);
+      logPanel.appendChild(card);
+      logCards.set(name, card);
+      logPanel.classList.add("visible");
+    }
+    card.querySelector(".log-value").textContent = text;
+  }
+
   // --- data handling ---
   function handleData(points) {
     if (paused) return;
@@ -164,12 +188,12 @@
 
     for (const p of points) {
       if (p.type === "value") {
-        const { name, value, timestamp } = p.point;
+        const { name, value, timestamp, unit } = p.point;
         const t = timestamp != null ? timestamp / 1000 : Date.now() / 1000;
         if (t0 === 0) t0 = t;
 
         if (!seriesMap.has(name)) {
-          addTsSeries(name);
+          addTsSeries(name, unit);
         }
         const idx = seriesMap.get(name);
 
@@ -180,10 +204,9 @@
         }
         tsUpdated = true;
       } else if (p.type === "xy") {
-        const { nameX, nameY, x, y } = p.point;
-        const key = nameX + ":" + nameY;
-        const chart = getOrCreateXyChart(key);
-        const dataset = xyDatasets.get(key);
+        const { name, x, y } = p.point;
+        const chart = getOrCreateXyChart(name);
+        const dataset = xyDatasets.get(name);
         dataset.x.push(x);
         dataset.y.push(y);
         // Trim
@@ -193,6 +216,8 @@
           dataset.y.splice(0, excess);
         }
         chart.setData([dataset.x, dataset.y]);
+      } else if (p.type === "text") {
+        showLogEntry(p.point.name, p.point.text);
       }
     }
 
@@ -233,6 +258,9 @@
     for (const [, chart] of xyCharts) chart.destroy();
     xyCharts.clear();
     xyContainer.innerHTML = "";
+    logCards.clear();
+    logPanel.innerHTML = "";
+    logPanel.classList.remove("visible");
     statusEl.textContent = "0 pts";
   });
 
@@ -252,7 +280,7 @@
     // XY datasets
     for (const [key, ds] of xyDatasets) {
       rows.push("");
-      rows.push(key.replace(":", ",") + " (XY)");
+      rows.push(key + " (XY)");
       rows.push("x,y");
       for (let i = 0; i < ds.x.length; i++) {
         rows.push(ds.x[i] + "," + ds.y[i]);

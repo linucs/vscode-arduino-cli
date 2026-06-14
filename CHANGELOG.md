@@ -4,6 +4,31 @@ All notable changes to the "Arduino CLI IDE" extension will be documented in thi
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.4.1] - 2026-06-14
+
+### Added
+
+- **Richer Serial Plotter (Teleplot subset)** — the plotter now understands more
+  of the [Teleplot](https://github.com/nesnes/teleplot) serial protocol:
+  - **Units** — a `§unit` suffix (e.g. `>temp:23.5§°C`) labels the series with its
+    unit in the legend.
+  - **Multiple points per line** — `;` separates several samples for one series in
+    a single line (e.g. `>temp:1:23.4;2:23.6;3:23.9`), handy for batching or
+    replaying buffered data.
+  - **Text/log values** — the `|t` flag (e.g. `>state:Running|t`) shows a value as
+    a labelled card instead of plotting it.
+  - **XY scatter timestamps** — XY points accept an explicit millisecond timestamp
+    (`>pos:12:8:1627551892437|xy`).
+
+  The Serial Plotting section of the README documents the full supported grammar
+  with Arduino examples.
+
+### Changed
+
+- **XY scatter format** — scatter points now use a single series name
+  (`>name:x:y|xy`) instead of the previous two-name `>nameX:nameY:x:y|xy` shape,
+  matching Teleplot.
+
 ## [0.4.0] - 2026-06-14
 
 ### Added

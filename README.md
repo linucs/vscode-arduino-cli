@@ -126,6 +126,102 @@ Everything below is available from the **Command Palette** (`Ctrl/Cmd+Shift+P`),
 | Arduino CLI: Clean Download Cache | Free up cached downloads |
 | Arduino CLI: Show Daemon Version / Restart Daemon | Diagnose the background daemon |
 
+## Plotting serial data
+
+The **Serial Plotter** graphs live numbers streaming from your board. It speaks a
+subset of the [Teleplot](https://github.com/nesnes/teleplot) serial protocol, so
+the same `Serial.print` lines that work with the Teleplot tool work here too.
+
+**The rule:** a line is plotted only if it starts with a `>` marker. Every other
+line is treated as ordinary log text and ignored by the plotter (so you can keep
+printing human-readable messages alongside your data). A trailing newline ends
+each message — use `Serial.println(...)`, not `Serial.print(...)`.
+
+### Formats
+
+The general shape of a telemetry line is `>name[:timestamp]:value[§unit][|flags]`:
+
+| Line | Meaning |
+|------|---------|
+| `>name:value` | One point on series **name**, timestamped on arrival |
+| `>name:timestamp:value` | One point with an explicit millisecond timestamp |
+| `>name:value§unit` | A point carrying a **unit** (shown in the legend) |
+| `>name:t1:v1;t2:v2;t3:v3` | **Several points** for one series in a single line |
+| `>name:x:y\|xy` | One **XY scatter** point (plot x against y) |
+| `>name:x:y:timestamp\|xy` | An XY point with an explicit millisecond timestamp |
+| `>name:text\|t` | A **text/log value** — shown as a labelled card, not plotted |
+
+- **`name`** is the series label — points sharing a name are drawn together.
+- **`value`**, **`x`**, **`y`** must parse as numbers (integer, decimal, negative,
+  or scientific, e.g. `42`, `23.5`, `-33.8`, `1.2e3`). A non-numeric value is
+  dropped — unless the `|t` flag marks it as text.
+- **`timestamp`** is milliseconds (e.g. from `millis()`); when omitted, the point
+  is stamped with the time it arrives in VS Code.
+- **`§unit`** (a `§` after the value) labels the series with a unit, e.g. `°C`.
+- **`;`** separates several points for the same series in one line — handy for
+  batching or replaying buffered samples.
+- The **`|xy`** flag marks a scatter point; the **`|t`** flag marks a text value.
+
+This is a subset of Teleplot: 3D shapes (`3D|…`) and remote function calls are
+not supported.
+
+### Arduino examples
+
+Plot a single time series:
+
+```cpp
+void loop() {
+  float temp = readTemperature();
+  Serial.print(">temp:");
+  Serial.println(temp);          // → >temp:23.5
+  delay(100);
+}
+```
+
+Plot several series at once (one `>` line each):
+
+```cpp
+Serial.print(">temp:");  Serial.println(temp);
+Serial.print(">humidity:"); Serial.println(hum);
+```
+
+Attach a unit (appears in the legend):
+
+```cpp
+Serial.print(">temp:");
+Serial.print(temp);
+Serial.println("§°C");           // → >temp:23.5§°C
+```
+
+Stamp points with the board's own clock:
+
+```cpp
+Serial.print(">temp:");
+Serial.print(millis());
+Serial.print(":");
+Serial.println(temp);            // → >temp:1627551892437:23.5
+```
+
+Plot an XY scatter point (e.g. a position):
+
+```cpp
+Serial.print(">pos:");
+Serial.print(x);
+Serial.print(":");
+Serial.print(y);
+Serial.println("|xy");           // → >pos:12:8|xy
+```
+
+Show a text status as a labelled card (not plotted):
+
+```cpp
+Serial.println(">state:Running|t");
+```
+
+> **Tip:** mix freely. Lines without a leading `>` (like `Serial.println("Booting…")`)
+> still show up in the **Serial Monitor** but are skipped by the plotter, so a
+> single sketch can log status text and stream plottable data on the same port.
+
 ## IntelliSense (code completion)
 
 When you select a board, the extension can generate VS Code's `c_cpp_properties.json` with the right include paths and defines for that board — so go-to-definition, hover docs, and autocompletion work for the Arduino core and your libraries. Install Microsoft's **C/C++** extension to get the most out of it. This stays on automatically (`arduinoCli.intellisense.autoConfigure`) and refreshes when the board or libraries change.
