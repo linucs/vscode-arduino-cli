@@ -73,7 +73,7 @@
   "viewContainer.arduino": "Arduino platformok és programkönyvtárak",
   "view.platforms": "Telepített platformok",
   "view.libraries": "Telepített programkönyvtárak",
-  "view.profileLibraries": "Arduino CLI profil programkönyvtárai",
+  "view.profileLibraries": "Projekt programkönyvtárai",
   "command.showVersion": "Arduino CLI: Démon verziójának megjelenítése",
   "command.restartDaemon": "Arduino CLI: Démon újraindítása",
   "walkthrough.title": "Ismerkedés az Arduino CLI-vel",

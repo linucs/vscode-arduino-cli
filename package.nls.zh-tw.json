@@ -73,7 +73,7 @@
   "viewContainer.arduino": "Arduino 平台與程式庫",
   "view.platforms": "已安裝的平台",
   "view.libraries": "已安裝的程式庫",
-  "view.profileLibraries": "Arduino CLI 設定檔中的程式庫",
+  "view.profileLibraries": "專案程式庫",
   "command.showVersion": "Arduino CLI：顯示守護程序版本",
   "command.restartDaemon": "Arduino CLI：重新啟動守護程序",
   "walkthrough.title": "開始使用 Arduino CLI",

@@ -73,7 +73,7 @@
   "viewContainer.arduino": "Arduino Platformları ve Kitaplıkları",
   "view.platforms": "Kurulu Platformlar",
   "view.libraries": "Kurulu Kitaplıklar",
-  "view.profileLibraries": "Arduino CLI profil kitaplıkları",
+  "view.profileLibraries": "Proje kitaplıkları",
   "command.showVersion": "Arduino CLI: Arka Plan Hizmeti Sürümünü Göster",
   "command.restartDaemon": "Arduino CLI: Arka Plan Hizmetini Yeniden Başlat",
   "walkthrough.title": "Arduino CLI ile Başlayın",

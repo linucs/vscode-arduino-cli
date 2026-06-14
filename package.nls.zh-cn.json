@@ -73,7 +73,7 @@
   "viewContainer.arduino": "Arduino 平台与库",
   "view.platforms": "已安装的平台",
   "view.libraries": "已安装的库",
-  "view.profileLibraries": "Arduino CLI 配置文件中的库",
+  "view.profileLibraries": "项目库",
   "command.showVersion": "Arduino CLI：显示守护进程版本",
   "command.restartDaemon": "Arduino CLI：重启守护进程",
   "walkthrough.title": "Arduino CLI 入门",

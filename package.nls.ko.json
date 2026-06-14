@@ -73,7 +73,7 @@
   "viewContainer.arduino": "Arduino 플랫폼 및 라이브러리",
   "view.platforms": "설치된 플랫폼",
   "view.libraries": "설치된 라이브러리",
-  "view.profileLibraries": "Arduino CLI 프로필 라이브러리",
+  "view.profileLibraries": "프로젝트 라이브러리",
   "command.showVersion": "Arduino CLI: 데몬 버전 표시",
   "command.restartDaemon": "Arduino CLI: 데몬 다시 시작",
   "walkthrough.title": "Arduino CLI 시작하기",

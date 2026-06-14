@@ -73,7 +73,7 @@
   "viewContainer.arduino": "Arduino プラットフォームとライブラリ",
   "view.platforms": "インストール済みプラットフォーム",
   "view.libraries": "インストール済みライブラリ",
-  "view.profileLibraries": "Arduino CLI プロファイルのライブラリ",
+  "view.profileLibraries": "プロジェクトのライブラリ",
   "command.showVersion": "Arduino CLI: デーモンのバージョンを表示",
   "command.restartDaemon": "Arduino CLI: デーモンを再起動",
   "walkthrough.title": "Arduino CLI をはじめよう",

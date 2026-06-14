@@ -73,7 +73,7 @@
   "viewContainer.arduino": "Piattaforme & Librerie Arduino",
   "view.platforms": "Piattaforme installate",
   "view.libraries": "Librerie installate",
-  "view.profileLibraries": "Librerie del profilo Arduino CLI",
+  "view.profileLibraries": "Librerie del progetto",
   "command.showVersion": "Arduino CLI: Mostra versione del daemon",
   "command.restartDaemon": "Arduino CLI: Riavvia daemon",
   "walkthrough.title": "Inizia con Arduino CLI",

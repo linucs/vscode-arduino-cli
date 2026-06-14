@@ -73,7 +73,7 @@
   "viewContainer.arduino": "Платформы и библиотеки Arduino",
   "view.platforms": "Установленные платформы",
   "view.libraries": "Установленные библиотеки",
-  "view.profileLibraries": "Arduino CLI библиотеки профиля",
+  "view.profileLibraries": "Библиотеки проекта",
   "command.showVersion": "Arduino CLI: Показать версию демона",
   "command.restartDaemon": "Arduino CLI: Перезапустить демон",
   "walkthrough.title": "Начало работы с Arduino CLI",

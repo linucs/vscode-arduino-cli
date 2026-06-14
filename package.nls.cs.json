@@ -73,7 +73,7 @@
   "viewContainer.arduino": "Platformy a knihovny Arduino",
   "view.platforms": "Nainstalované platformy",
   "view.libraries": "Nainstalované knihovny",
-  "view.profileLibraries": "Arduino CLI knihovny profilu",
+  "view.profileLibraries": "Knihovny projektu",
   "command.showVersion": "Arduino CLI: Zobrazit verzi démona",
   "command.restartDaemon": "Arduino CLI: Restartovat démona",
   "walkthrough.title": "Začínáme s Arduino CLI",
