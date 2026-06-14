@@ -6,6 +6,15 @@ Code Arduino sketches in **plain VS Code** — compile, upload, monitor, and deb
 
 ---
 
+## v0.4.0 — 2026-06-14
+
+- **Manage profile libraries** — the renamed **Project libraries** view now lets you manage the libraries pinned to a `sketch.yaml` build profile. Use **Add Library to Profile** to add one and the inline action to remove one — the profile's `libraries:` list stays in sync, no hand-editing the YAML.
+- **Confirm before removing** — uninstalling a library or core, or removing a library from a profile, now asks for a confirmation first, the same way from the tree, the command palette, or the picker.
+- **Eager daemon start** — opening a project that contains a `sketch.yaml` now starts the `arduino-cli` daemon right away, so profile mode resolves immediately. On by default; turn off `arduinoCli.eagerDaemonStart` to keep the daemon starting lazily on first use.
+- **Fixed** — messages coming from the daemon now show up correctly localized (the client waits for the daemon to be ready before talking to it).
+
+---
+
 ## v0.3.0 — 2026-06-09
 
 - **Serial line ending** — the serial monitor status bar shows the active line ending (None / NL / CR / NL+CR) with a one-click picker. The chosen ending is appended to every message you send to the board.

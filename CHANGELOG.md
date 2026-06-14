@@ -4,6 +4,30 @@ All notable changes to the "Arduino CLI IDE" extension will be documented in thi
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.4.0] - 2026-06-14
+
+### Added
+
+- **Profile library management** — the **Project libraries** view (renamed from
+  *Profile Libraries*) now lets you manage the libraries pinned to a `sketch.yaml`
+  build profile. A new **Arduino CLI: Add Library to Profile** command adds a
+  library to the active profile, and an inline action removes one — keeping the
+  profile's `libraries:` list in sync without hand-editing the YAML.
+- **Confirmation prompts for destructive actions** — uninstalling a library or
+  core, and removing a library from a profile, now ask for a modal confirmation
+  first. Every entry point (tree inline action, command palette, interactive
+  picker) confirms the same way.
+- **Eager daemon start** — a new `eagerDaemonStart` setting starts the
+  `arduino-cli` daemon as soon as a project containing a `sketch.yaml` is opened,
+  so profile mode resolves immediately. Enabled by default; turn it off to keep
+  the daemon starting lazily on the first command that needs it.
+
+### Fixed
+
+- **Localized daemon messages** — the client now waits for the gRPC channel to be
+  ready before issuing calls, and daemon readiness is detected from its address,
+  so localized strings coming from the daemon resolve correctly.
+
 ## [0.3.0] - 2026-06-09
 
 ### Added
