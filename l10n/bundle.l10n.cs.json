@@ -177,5 +177,7 @@
   "Remove": "Odebrat",
   "Remove library \"{0}\"?": "Odebrat knihovnu \"{0}\"?",
   "Remove platform \"{0}\"?": "Odebrat platformu \"{0}\"?",
-  "Remove \"{0}\" from profile \"{1}\"?": "Odebrat \"{0}\" z profilu \"{1}\"?"
+  "Remove \"{0}\" from profile \"{1}\"?": "Odebrat \"{0}\" z profilu \"{1}\"?",
+  "Arduino CLI IDE updated to v{0}": "Arduino CLI IDE byl aktualizován na verzi {0}",
+  "What's New": "Novinky"
 }

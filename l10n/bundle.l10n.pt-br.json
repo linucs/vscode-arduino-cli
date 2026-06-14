@@ -177,5 +177,7 @@
   "Remove": "Remover",
   "Remove library \"{0}\"?": "Remover a biblioteca \"{0}\"?",
   "Remove platform \"{0}\"?": "Remover a plataforma \"{0}\"?",
-  "Remove \"{0}\" from profile \"{1}\"?": "Remover \"{0}\" do perfil \"{1}\"?"
+  "Remove \"{0}\" from profile \"{1}\"?": "Remover \"{0}\" do perfil \"{1}\"?",
+  "Arduino CLI IDE updated to v{0}": "Arduino CLI IDE atualizado para a v{0}",
+  "What's New": "Novidades"
 }
