@@ -173,5 +173,9 @@
   "Serial line ending for messages you send (click to change)": "Soros sorvég a küldött üzenetekhez (kattintson a módosításhoz)",
   "Open Serial Plotter": "Soros plotter megnyitása",
   "Arduino AI assistant configured: skill installed for Claude Code and GitHub Copilot in this folder.": "Arduino AI-asszisztens beállítva: a készség telepítve a Claude Code és a GitHub Copilot számára ebbe a mappába.",
-  "Select the folder to set up the Arduino AI assistant in": "Válassza ki a mappát, amelyben az Arduino AI-asszisztenst beállítja"
+  "Select the folder to set up the Arduino AI assistant in": "Válassza ki a mappát, amelyben az Arduino AI-asszisztenst beállítja",
+  "Remove": "Eltávolítás",
+  "Remove library \"{0}\"?": "Eltávolítja a(z) \"{0}\" programkönyvtárat?",
+  "Remove platform \"{0}\"?": "Eltávolítja a(z) \"{0}\" platformot?",
+  "Remove \"{0}\" from profile \"{1}\"?": "Eltávolítja a(z) \"{0}\" elemet a(z) \"{1}\" profilból?"
 }

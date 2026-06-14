@@ -173,5 +173,9 @@
   "Serial line ending for messages you send (click to change)": "Fin de línea serie para los mensajes que envías (haz clic para cambiar)",
   "Open Serial Plotter": "Abrir el trazador serie",
   "Arduino AI assistant configured: skill installed for Claude Code and GitHub Copilot in this folder.": "Asistente de IA de Arduino configurado: skill instalada para Claude Code y GitHub Copilot en esta carpeta.",
-  "Select the folder to set up the Arduino AI assistant in": "Selecciona la carpeta en la que configurar el asistente de IA de Arduino"
+  "Select the folder to set up the Arduino AI assistant in": "Selecciona la carpeta en la que configurar el asistente de IA de Arduino",
+  "Remove": "Quitar",
+  "Remove library \"{0}\"?": "¿Quitar la biblioteca \"{0}\"?",
+  "Remove platform \"{0}\"?": "¿Quitar la plataforma \"{0}\"?",
+  "Remove \"{0}\" from profile \"{1}\"?": "¿Quitar \"{0}\" del perfil \"{1}\"?"
 }

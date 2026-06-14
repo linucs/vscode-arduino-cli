@@ -158,6 +158,11 @@
         "title": "%command.addLibraryToProfile%"
       },
       {
+        "command": "arduinoCli.profileLib.add",
+        "title": "%command.profileLibAdd%",
+        "icon": "$(add)"
+      },
+      {
         "command": "arduinoCli.removeLibraryFromProfile",
         "title": "%command.removeLibraryFromProfile%"
       },
@@ -300,7 +305,9 @@
         {
           "id": "arduinoCli.libraries",
           "name": "%view.libraries%"
-        },
+        }
+      ],
+      "explorer": [
         {
           "id": "arduinoCli.profileLibraries",
           "name": "%view.profileLibraries%",
@@ -351,9 +358,14 @@
           "group": "1_install@3"
         },
         {
-          "command": "arduinoCli.refreshProfileLibraries",
+          "command": "arduinoCli.profileLib.add",
           "when": "view == arduinoCli.profileLibraries",
           "group": "navigation@0"
+        },
+        {
+          "command": "arduinoCli.refreshProfileLibraries",
+          "when": "view == arduinoCli.profileLibraries",
+          "group": "navigation@1"
         },
         {
           "command": "arduinoCli.installPlatform",
@@ -430,6 +442,10 @@
       ],
       "commandPalette": [
         {
+          "command": "arduinoCli.profileLib.add",
+          "when": "false"
+        },
+        {
           "command": "arduinoCli.lib.openWebsite",
           "when": "false"
         },
@@ -497,6 +513,11 @@
           "type": "boolean",
           "default": true,
           "description": "%config.autoInstallPlatform%"
+        },
+        "arduinoCli.eagerDaemonStart": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.eagerDaemonStart%"
         },
         "arduinoCli.boardManagerUrls": {
           "type": "array",

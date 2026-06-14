@@ -14,6 +14,7 @@ import { checkForUpdates, cleanDownloadCache } from "./maintenance";
 import { PlatformManager } from "./platformManager";
 import { PlatformTreeProvider, type PlatNode } from "./platformView";
 import {
+  addBrowsedLibraryToProfile,
   addInstalledLibraryToProfile,
   addLibraryToProfile,
   createProfile,
@@ -37,6 +38,15 @@ import {
 let context: vscode.ExtensionContext;
 let daemon: DaemonManager | undefined;
 let client: ArduinoClient | undefined;
+/**
+ * In-flight daemon-start + client connect + instance Init, shared by all
+ * concurrent `ensureReady` callers. Without it, several views resolving at once
+ * (the daemon takes seconds to become reachable) each build their own client and
+ * race to overwrite the `client` global — leaving managers wired to a client
+ * whose instance was never initialized ("instance not initialized"). Cleared on
+ * settle so a failed start can be retried and a daemon restart re-initializes.
+ */
+let clientInitInFlight: Promise<ArduinoClient> | undefined;
 let boards: BoardManager | undefined;
 let compiler: Compiler | undefined;
 let uploader: Uploader | undefined;
@@ -235,6 +245,14 @@ export async function activate(ctx: vscode.ExtensionContext) {
     vscode.window.onDidChangeActiveTextEditor(() => void refreshProfileContext()),
     vscode.commands.registerCommand("arduinoCli.refreshProfileLibraries", () =>
       profileLibraryView?.refresh(),
+    ),
+    // View-title "+": browse the library index and add the pick to the active
+    // profile — no profile-name / library-name prompts (cf. addLibraryToProfile).
+    vscode.commands.registerCommand("arduinoCli.profileLib.add", () =>
+      withReady(async (d) => {
+        await addBrowsedLibraryToProfile(d.client, d.libraries, activeProfile);
+        profileLibraryView?.refresh();
+      }),
     ),
     vscode.commands.registerCommand(
       "arduinoCli.lib.addToProfile",
@@ -454,10 +472,49 @@ export async function activate(ctx: vscode.ExtensionContext) {
     ),
   );
 
-  // The daemon is NOT started here: spawning it requires arduino-cli on PATH and
-  // is pointless until the user runs a command. It starts lazily on first use
-  // (see ensureReady / withReady), so users without arduino-cli — or who only use
-  // another toolchain — pay no cost and get no spawn error at activation.
+  // The daemon is otherwise NOT started here: spawning it requires arduino-cli on
+  // PATH and is pointless until the user runs a command. It starts lazily on first
+  // use (see ensureReady / withReady), so users without arduino-cli — or who only
+  // use another toolchain — pay no cost and get no spawn error at activation.
+  //
+  // Exception (opt-out via `arduinoCli.eagerDaemonStart`): when the workspace is a
+  // real arduino-cli project — it contains a `sketch.yaml` — start the daemon now
+  // so the daemon-authoritative `refreshProfileContext` can resolve profile mode
+  // at launch. Without this, the Explorer's Profile Libraries view is gated on
+  // `arduinoCli.profileMode`, which only resolves once the daemon is up — but the
+  // gated-off view can't itself trigger the lazy start, so it would stay hidden
+  // until the user visited the Arduino activity-bar container. A `sketch.yaml` is
+  // arduino-cli-specific (other toolchains use their own manifest), so this does
+  // not start the daemon for non-Arduino or other-toolchain workspaces.
+  void maybeEagerStart();
+}
+
+/**
+ * Opt-out eager daemon start for arduino-cli projects. Gated on the
+ * `arduinoCli.eagerDaemonStart` setting and the presence of a `sketch.yaml` in
+ * the workspace. Best-effort: a spawn failure (no arduino-cli on PATH) is
+ * swallowed so there is still no activation-time error toast — profile mode just
+ * stays off, exactly as in the strictly-lazy path.
+ */
+async function maybeEagerStart(): Promise<void> {
+  const enabled = vscode.workspace
+    .getConfiguration("arduinoCli")
+    .get<boolean>("eagerDaemonStart", true);
+  if (!enabled || vscode.workspace.workspaceFolders === undefined) {
+    return;
+  }
+  const found = await vscode.workspace.findFiles("**/sketch.yaml", undefined, 1);
+  if (found.length === 0) {
+    return;
+  }
+  try {
+    await ensureReady();
+    // The daemon-authoritative pass (firstReadyHooks) already ran inside
+    // ensureReady; profile mode is now resolved for the active sketch.
+  } catch {
+    // No arduino-cli on PATH (ENOENT) or a transient start failure: leave profile
+    // mode off and let a later explicit command surface the error via withReady.
+  }
 }
 
 export async function deactivate() {
@@ -484,36 +541,65 @@ export interface Deps {
 }
 
 /** Lazily starts the daemon, initializes the client, and wires the managers. */
+/**
+ * Bring up the daemon, connect the gRPC client, and Init its instance — exactly
+ * once even under concurrent callers. Returns the ready client (instance set).
+ *
+ * Serialized via {@link clientInitInFlight}: the first caller runs the bring-up,
+ * everyone else awaits the same promise, so the `client` global is only ever
+ * assigned the single fully-initialized client. The promise is cleared on settle
+ * — on failure so the next command retries cleanly, on success so a later daemon
+ * restart (which nulls `client`) re-runs the bring-up.
+ */
+function ensureClientReady(): Promise<ArduinoClient> {
+  if (client?.ready) {
+    return Promise.resolve(client);
+  }
+  if (!clientInitInFlight) {
+    clientInitInFlight = (async () => {
+      if (!daemon) {
+        throw new Error("daemon manager not initialized");
+      }
+      await daemon.start();
+      let c = client;
+      if (!c) {
+        c = new ArduinoClient(daemon.address, (line) => output.appendLine(line));
+        c.connect();
+        // Block until the channel can actually reach the daemon. The daemon-ready
+        // signal from start() can be a timed guess (its ready line is localized),
+        // so without this gate the first call may fire fail-fast against an
+        // unbound port and reject with "UNAVAILABLE: No connection established".
+        await c.waitForReady();
+        // Assign only after connect()/waitForReady so a throw here doesn't strand
+        // a half-built client (the next attempt rebuilds from scratch).
+        client = c;
+      }
+      if (!c.ready) {
+        // Create+Init the daemon instance. Gated on readiness — NOT on client
+        // existence — so a first init that failed (daemon slow to listen,
+        // transient gRPC error) is retried on the next command instead of
+        // leaving a client whose every call throws "instance not initialized".
+        // Drop the client on failure so a later attempt starts clean.
+        try {
+          await c.initInstance();
+        } catch (err) {
+          client = undefined;
+          throw err;
+        }
+      }
+      return c;
+    })().finally(() => {
+      clientInitInFlight = undefined;
+    });
+  }
+  return clientInitInFlight;
+}
+
 async function ensureReady(): Promise<Deps> {
-  if (!daemon) {
-    throw new Error("daemon manager not initialized");
-  }
-  await daemon.start();
-  if (!client) {
-    const c = new ArduinoClient(daemon.address, (line) => output.appendLine(line));
-    c.connect();
-    // Block until the channel can actually reach the daemon. The daemon-ready
-    // signal from start() can be a timed guess (its ready line is localized), so
-    // without this gate the first call may fire fail-fast against an unbound
-    // port and reject with "UNAVAILABLE: No connection established".
-    await c.waitForReady();
-    // Assign only after connect()/waitForReady so a throw here doesn't strand a
-    // half-built client (the next ensureReady rebuilds from scratch).
-    client = c;
-  }
-  if (!client.ready) {
-    // Create+Init the daemon instance. Gated on readiness — NOT on client
-    // existence — so a first init that failed (daemon slow to listen, transient
-    // gRPC error) is retried on the next command instead of leaving a client
-    // whose every call throws "instance not initialized". Drop the client on
-    // failure so a later attempt starts clean.
-    try {
-      await client.initInstance();
-    } catch (err) {
-      client = undefined;
-      throw err;
-    }
-  }
+  // Daemon + client + instance: serialized so concurrent callers never build
+  // racing clients (see clientInitInFlight). Below this line `client` is the
+  // single ready client, so the manager wiring (no awaits) is race-free.
+  const client = await ensureClientReady();
   if (!boards) {
     boards = new BoardManager(client, context, output);
     boards.restartWatch();

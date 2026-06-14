@@ -173,5 +173,9 @@
   "Serial line ending for messages you send (click to change)": "Konec řádku sériové linky pro odesílané zprávy (kliknutím změníte)",
   "Open Serial Plotter": "Otevřít sériový plotr",
   "Arduino AI assistant configured: skill installed for Claude Code and GitHub Copilot in this folder.": "Asistent AI pro Arduino nakonfigurován: dovednost nainstalována pro Claude Code a GitHub Copilot do této složky.",
-  "Select the folder to set up the Arduino AI assistant in": "Vyberte složku, ve které se má nastavit AI asistent pro Arduino"
+  "Select the folder to set up the Arduino AI assistant in": "Vyberte složku, ve které se má nastavit AI asistent pro Arduino",
+  "Remove": "Odebrat",
+  "Remove library \"{0}\"?": "Odebrat knihovnu \"{0}\"?",
+  "Remove platform \"{0}\"?": "Odebrat platformu \"{0}\"?",
+  "Remove \"{0}\" from profile \"{1}\"?": "Odebrat \"{0}\" z profilu \"{1}\"?"
 }

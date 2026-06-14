@@ -2,10 +2,12 @@ import * as vscode from "vscode";
 import type { ArduinoClient } from "./arduinoClient";
 import type { BoardManager } from "./boardManager";
 import type { PlatformManager } from "./platformManager";
+import type { LibraryManager } from "./libraryManager";
 import type { ProfileLibraryReference } from "./proto/types";
 import type { LibNode } from "./libraryView";
 import type { ProfileContext, ProfileLibNode } from "./profileLibraryView";
 import { resolveSketch } from "./sketch";
+import { confirmRemoval } from "./confirm";
 
 /**
  * ProfileLibAdd + consistent reporting (added and already-present). The single
@@ -47,6 +49,15 @@ export async function applyProfileLibRemove(
   profileName: string,
   library: ProfileLibraryReference,
 ): Promise<void> {
+  const libName =
+    library.index_library?.name ?? library.local_library?.path ?? "?";
+  if (
+    !(await confirmRemoval(
+      vscode.l10n.t('Remove "{0}" from profile "{1}"?', libName, profileName),
+    ))
+  ) {
+    return;
+  }
   const res = await client.profileLibRemove(sketchPath, profileName, library);
   const removed = (res.removed_libraries ?? [])
     .map((l) => l.index_library?.name)
@@ -82,6 +93,29 @@ export async function addInstalledLibraryToProfile(
     name: node.name,
     version: node.version,
   });
+}
+
+/**
+ * Browse the library index (search QuickPick → version) and add the chosen
+ * library to the active profile — the friendly counterpart to the prompt-based
+ * {@link addLibraryToProfile}. Reuses {@link LibraryManager.pickLibraryFromIndex}
+ * for the picker and the shared {@link pinLibraryToProfile} add path, and uses
+ * the already-resolved profile context (no profile-name prompt). No-op outside
+ * profile mode.
+ */
+export async function addBrowsedLibraryToProfile(
+  client: ArduinoClient,
+  libraries: LibraryManager,
+  profile: ProfileContext | undefined,
+): Promise<void> {
+  if (!profile) {
+    return;
+  }
+  const lib = await libraries.pickLibraryFromIndex();
+  if (!lib) {
+    return;
+  }
+  await pinLibraryToProfile(client, profile, lib);
 }
 
 /** Remove a profile-library tree node from the profile (inline tree action). */

@@ -173,5 +173,9 @@
   "Serial line ending for messages you send (click to change)": "Gönderdiğiniz iletiler için seri satır sonu (değiştirmek için tıklayın)",
   "Open Serial Plotter": "Seri plotter'ı aç",
   "Arduino AI assistant configured: skill installed for Claude Code and GitHub Copilot in this folder.": "Arduino yapay zekâ asistanı yapılandırıldı: Claude Code ve GitHub Copilot için beceri bu klasöre yüklendi.",
-  "Select the folder to set up the Arduino AI assistant in": "Arduino yapay zekâ asistanının kurulacağı klasörü seçin"
+  "Select the folder to set up the Arduino AI assistant in": "Arduino yapay zekâ asistanının kurulacağı klasörü seçin",
+  "Remove": "Kaldır",
+  "Remove library \"{0}\"?": "\"{0}\" kitaplığı kaldırılsın mı?",
+  "Remove platform \"{0}\"?": "\"{0}\" platformu kaldırılsın mı?",
+  "Remove \"{0}\" from profile \"{1}\"?": "\"{0}\", \"{1}\" profilinden kaldırılsın mı?"
 }

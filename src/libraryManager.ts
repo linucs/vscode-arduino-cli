@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import type { ArduinoClient } from "./arduinoClient";
 import type { LibraryRelease, SearchedLibrary } from "./proto/types";
 import { promptVersion } from "./versionPick";
+import { confirmRemoval } from "./confirm";
 
 /**
  * Library operations: search/list (reads) and install/uninstall/upgrade
@@ -82,6 +83,27 @@ export class LibraryManager {
     return (await this.installByName(lib.name, version))
       ? { name: lib.name, version }
       : undefined;
+  }
+
+  /**
+   * Browse the Arduino library index (the same search QuickPick + version picker
+   * as {@link addLibrary}) and return the chosen `{name, version}` WITHOUT
+   * installing it — for callers that route the choice elsewhere, e.g. pinning to
+   * a build profile via `ProfileLibAdd` (the daemon resolves/installs it there).
+   * Returns `undefined` if either step is cancelled.
+   */
+  async pickLibraryFromIndex(): Promise<
+    { name: string; version: string } | undefined
+  > {
+    const lib = await this.pickLibraryViaSearch();
+    if (!lib) {
+      return undefined;
+    }
+    const version = await this.pickVersion(lib);
+    if (version === undefined) {
+      return undefined;
+    }
+    return { name: lib.name, version };
   }
 
   /**
@@ -262,7 +284,10 @@ export class LibraryManager {
     );
   }
 
-  uninstallByName(name: string): Promise<boolean> {
+  async uninstallByName(name: string): Promise<boolean> {
+    if (!(await confirmRemoval(vscode.l10n.t('Remove library "{0}"?', name)))) {
+      return false;
+    }
     return this.runOp(
       vscode.l10n.t("Uninstalling {0}…", name),
       (onStatus, signal) =>

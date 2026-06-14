@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import type { ArduinoClient } from "./arduinoClient";
 import type { PlatformSummary } from "./proto/types";
 import { promptVersion } from "./versionPick";
+import { confirmRemoval } from "./confirm";
 
 /**
  * Platform/core management: search, install, uninstall, upgrade — plus
@@ -141,8 +142,11 @@ export class PlatformManager {
 
   // --- by-id mutations (used by the tree view's inline actions) ------------
 
-  uninstallById(pkg: string, arch: string): Promise<boolean> {
+  async uninstallById(pkg: string, arch: string): Promise<boolean> {
     const id = `${pkg}:${arch}`;
+    if (!(await confirmRemoval(vscode.l10n.t('Remove platform "{0}"?', id)))) {
+      return false;
+    }
     return this.withProgress(
       vscode.l10n.t("Uninstalling {0}…", id),
       (onStatus, signal) =>
