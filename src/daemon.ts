@@ -55,8 +55,14 @@ export class DaemonManager {
       proc.stdout?.on("data", (chunk: Buffer) => {
         const text = chunk.toString();
         this.output.append(text);
-        // The daemon prints "Daemon is now listening on ..." when ready.
-        if (/listening/i.test(text)) {
+        // The daemon prints a ready line that includes its bound address, e.g.
+        // "Daemon is now listening on 127.0.0.1:50051" — but that prose is
+        // localized (Italian: "Deamon è ora in ascolto su 127.0.0.1:50051"), so
+        // matching English words would never fire on a non-English daemon. The
+        // address itself is locale-independent and present in every variant, so
+        // detect on that. This is only an early-exit optimisation — the channel
+        // is authoritatively gated by ArduinoClient.waitForReady afterwards.
+        if (text.includes(this.address)) {
           onReady();
         }
       });

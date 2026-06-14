@@ -492,8 +492,13 @@ async function ensureReady(): Promise<Deps> {
   if (!client) {
     const c = new ArduinoClient(daemon.address, (line) => output.appendLine(line));
     c.connect();
-    // Assign only after connect() so a throw here doesn't strand a half-built
-    // client (the next ensureReady rebuilds from scratch).
+    // Block until the channel can actually reach the daemon. The daemon-ready
+    // signal from start() can be a timed guess (its ready line is localized), so
+    // without this gate the first call may fire fail-fast against an unbound
+    // port and reject with "UNAVAILABLE: No connection established".
+    await c.waitForReady();
+    // Assign only after connect()/waitForReady so a throw here doesn't strand a
+    // half-built client (the next ensureReady rebuilds from scratch).
     client = c;
   }
   if (!client.ready) {

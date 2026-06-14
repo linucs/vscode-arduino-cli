@@ -172,6 +172,27 @@ export class ArduinoClient {
     this.client = this.service;
   }
 
+  /**
+   * Block until the gRPC channel can actually reach the daemon, or reject after
+   * `timeoutMs`. grpc-js calls are fail-fast: a unary call issued before the
+   * daemon has bound its port rejects immediately with "UNAVAILABLE: No
+   * connection established" instead of waiting. The daemon can take several
+   * seconds to bind on first run (config/index load), so we gate the first call
+   * on the channel becoming READY rather than on a timed guess.
+   */
+  waitForReady(timeoutMs = 20000): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.client) {
+        reject(new Error("gRPC client not connected"));
+        return;
+      }
+      const deadline = new Date(Date.now() + timeoutMs);
+      this.client.waitForReady(deadline, (err) =>
+        err ? reject(err) : resolve(),
+      );
+    });
+  }
+
   /** Create + Init an instance. Init is server-streaming progress; we await its end. */
   async initInstance(): Promise<ArduinoInstance> {
     const instance = await this.createAndInit({});
