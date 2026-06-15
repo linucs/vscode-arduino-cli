@@ -119,15 +119,18 @@
       },
       {
         "command": "arduinoCli.boardDetails",
-        "title": "%command.boardDetails%"
+        "title": "%command.boardDetails%",
+        "icon": "$(info)"
       },
       {
         "command": "arduinoCli.uploadUsingProgrammer",
-        "title": "%command.uploadUsingProgrammer%"
+        "title": "%command.uploadUsingProgrammer%",
+        "icon": "$(zap)"
       },
       {
         "command": "arduinoCli.burnBootloader",
-        "title": "%command.burnBootloader%"
+        "title": "%command.burnBootloader%",
+        "icon": "$(flame)"
       },
       {
         "command": "arduinoCli.newSketch",
@@ -482,6 +485,26 @@
           "command": "arduinoCli.debug",
           "when": "resourceExtname == .ino && arduinoCli.debugSupported",
           "group": "navigation@4"
+        },
+        {
+          "command": "arduinoCli.uploadUsingProgrammer",
+          "when": "resourceExtname == .ino",
+          "group": "1_upload@1"
+        },
+        {
+          "command": "arduinoCli.burnBootloader",
+          "when": "resourceExtname == .ino",
+          "group": "1_upload@2"
+        },
+        {
+          "command": "arduinoCli.openPlotter",
+          "when": "resourceExtname == .ino",
+          "group": "2_serial@1"
+        },
+        {
+          "command": "arduinoCli.boardDetails",
+          "when": "resourceExtname == .ino",
+          "group": "3_board@1"
         }
       ]
     },

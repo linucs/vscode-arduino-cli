@@ -179,5 +179,8 @@
   "Remove platform \"{0}\"?": "Odebrat platformu \"{0}\"?",
   "Remove \"{0}\" from profile \"{1}\"?": "Odebrat \"{0}\" z profilu \"{1}\"?",
   "Arduino CLI IDE updated to v{0}": "Arduino CLI IDE byl aktualizován na verzi {0}",
-  "What's New": "Novinky"
+  "What's New": "Novinky",
+  "Compile the current sketch": "Zkompilovat aktuální sketch",
+  "Upload the current sketch to the board": "Nahrát aktuální sketch do desky",
+  "Open the Serial Monitor": "Otevřít sériový monitor"
 }

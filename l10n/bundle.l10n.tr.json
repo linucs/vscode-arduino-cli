@@ -179,5 +179,8 @@
   "Remove platform \"{0}\"?": "\"{0}\" platformu kaldırılsın mı?",
   "Remove \"{0}\" from profile \"{1}\"?": "\"{0}\", \"{1}\" profilinden kaldırılsın mı?",
   "Arduino CLI IDE updated to v{0}": "Arduino CLI IDE v{0} sürümüne güncellendi",
-  "What's New": "Yenilikler"
+  "What's New": "Yenilikler",
+  "Compile the current sketch": "Geçerli çizimi derle",
+  "Upload the current sketch to the board": "Geçerli çizimi karta yükle",
+  "Open the Serial Monitor": "Seri monitörü aç"
 }

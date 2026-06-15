@@ -10,3 +10,4 @@ out/
 !.claude/skills/arduino-cli/
 !.claude/skills/arduino-cli/**
 CLAUDE.md
+*.code-workspace

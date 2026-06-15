@@ -2,6 +2,7 @@ import * as path from "node:path";
 import * as vscode from "vscode";
 import { ArduinoClient } from "./arduinoClient";
 import { BoardManager } from "./boardManager";
+import { StatusBarActions } from "./statusBarActions";
 import { Compiler } from "./compile";
 import { DaemonManager } from "./daemon";
 import { DebugManager } from "./debug";
@@ -48,6 +49,7 @@ let client: ArduinoClient | undefined;
  */
 let clientInitInFlight: Promise<ArduinoClient> | undefined;
 let boards: BoardManager | undefined;
+let statusBarActions: StatusBarActions | undefined;
 let compiler: Compiler | undefined;
 let uploader: Uploader | undefined;
 let monitor: SerialMonitor | undefined;
@@ -603,6 +605,10 @@ async function ensureReady(): Promise<Deps> {
   if (!boards) {
     boards = new BoardManager(client, context, output);
     boards.restartWatch();
+  }
+  if (!statusBarActions) {
+    statusBarActions = new StatusBarActions();
+    context.subscriptions.push(statusBarActions);
   }
   if (!platforms) {
     platforms = new PlatformManager(client, output);
