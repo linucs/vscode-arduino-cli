@@ -9,6 +9,7 @@ test/**
 scripts/**
 .claude/**
 .gitignore
+.nvmrc
 .yarnrc
 esbuild.js
 eslint.config.mjs
@@ -22,8 +23,6 @@ images/icon.svg
 yarn.lock
 *.vsix
 *.code-workspace
-.github/**
-RELEASE_NOTES.md
 
 # Keep last: re-include the bundled skill so no earlier ignore (e.g. **/*.ts,
 # **/*.map) drops a skill resource from the package. The whole dir is shipped and
