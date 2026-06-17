@@ -154,16 +154,20 @@ async function pickCandidatePath(
     }
     return undefined;
   }
-  if (inos.length === 1) {
-    return inos[0].fsPath;
+
+  // A single sketch folder may hold a primary `.ino` plus secondary `.ino`
+  // "tabs" — those are one sketch, not several. Disambiguate by enclosing
+  // folder, not by raw file count, so multi-tab sketches don't look ambiguous.
+  const sketchDirs = [...new Set(inos.map((u) => path.dirname(u.fsPath)))];
+  if (sketchDirs.length === 1) {
+    return sketchDirs[0];
   }
 
-  // If the active file lives next to one of the sketches, prefer that one.
+  // If the active file lives in one of the sketch folders, prefer that one.
   if (active?.scheme === "file") {
     const dir = path.dirname(active.fsPath);
-    const sameDir = inos.find((u) => path.dirname(u.fsPath) === dir);
-    if (sameDir) {
-      return sameDir.fsPath;
+    if (sketchDirs.includes(dir)) {
+      return dir;
     }
   }
 
@@ -173,10 +177,10 @@ async function pickCandidatePath(
     return undefined;
   }
   const pick = await vscode.window.showQuickPick(
-    inos.map((u) => ({
-      label: path.basename(u.fsPath),
-      description: vscode.workspace.asRelativePath(u),
-      fsPath: u.fsPath,
+    sketchDirs.map((dir) => ({
+      label: path.basename(dir),
+      description: vscode.workspace.asRelativePath(dir),
+      fsPath: dir,
     })),
     {
       title: vscode.l10n.t("Select Sketch"),
