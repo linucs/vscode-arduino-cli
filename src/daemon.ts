@@ -2,6 +2,22 @@ import { ChildProcess, spawn } from "node:child_process";
 import * as vscode from "vscode";
 
 /**
+ * Thrown when the daemon executable cannot be found (spawn ENOENT): the
+ * `arduinoCli.path` setting is wrong or arduino-cli simply isn't installed.
+ * Carries the resolved path that failed so callers can offer recovery actions
+ * (pick the executable, open the download page) instead of a dead-end error.
+ */
+export class ArduinoCliNotFoundError extends Error {
+  constructor(
+    message: string,
+    readonly cliPath: string,
+  ) {
+    super(message);
+    this.name = "ArduinoCliNotFoundError";
+  }
+}
+
+/**
  * Manages the lifecycle of the `arduino-cli daemon` child process.
  *
  * The daemon exposes the ArduinoCoreService gRPC API on a local TCP port.
@@ -25,7 +41,17 @@ export class DaemonManager {
   private get cliPath(): string {
     return vscode.workspace
       .getConfiguration("arduinoCli")
-      .get<string>("path", "arduino-cli");
+      .get<string>("path", "arduino-cli")
+      .trim();
+  }
+
+  /** Single actionable "not found" message, shared by the empty-path and
+   * ENOENT cases so both surface the exact same recovery flow. */
+  private notFoundMessage(cliPath: string): string {
+    return vscode.l10n.t(
+      'arduino-cli not found at "{0}". Set "arduinoCli.path" or install arduino-cli.',
+      cliPath,
+    );
   }
 
   /**
@@ -37,12 +63,20 @@ export class DaemonManager {
       return;
     }
 
+    // An empty/blank `arduinoCli.path` would spawn("") and fail with an opaque
+    // error (EINVAL/ENOENT depending on platform). Treat it as "not found" up
+    // front so callers get the exact same actionable recovery as a wrong path.
+    const cliPath = this.cliPath;
+    if (!cliPath) {
+      throw new ArduinoCliNotFoundError(this.notFoundMessage(cliPath), cliPath);
+    }
+
     const args = ["daemon", "--port", String(this.port)];
-    this.output.appendLine(`[daemon] ${this.cliPath} ${args.join(" ")}`);
+    this.output.appendLine(`[daemon] ${cliPath} ${args.join(" ")}`);
 
     return new Promise<void>((resolve, reject) => {
       let settled = false;
-      const proc = spawn(this.cliPath, args, { stdio: "pipe" });
+      const proc = spawn(cliPath, args, { stdio: "pipe" });
       this.proc = proc;
 
       const onReady = () => {
@@ -74,21 +108,31 @@ export class DaemonManager {
       proc.on("error", (err: NodeJS.ErrnoException) => {
         if (!settled) {
           settled = true;
+          // Spawn failed: there is no live process. Clear it so a later start()
+          // (e.g. after the user fixes arduinoCli.path) actually re-spawns
+          // instead of early-returning on a stale, dead handle.
+          this.proc = undefined;
           // ENOENT = the executable isn't on PATH (or `arduinoCli.path` is wrong):
           // the common case when arduino-cli simply isn't installed. Give one
           // actionable message instead of a raw spawn error.
-          const message =
-            err.code === "ENOENT"
-              ? vscode.l10n.t(
-                  'arduino-cli not found at "{0}". Set "arduinoCli.path" or install arduino-cli.',
-                  this.cliPath,
-                )
-              : vscode.l10n.t(
+          if (err.code === "ENOENT") {
+            reject(
+              new ArduinoCliNotFoundError(
+                this.notFoundMessage(cliPath),
+                cliPath,
+              ),
+            );
+          } else {
+            reject(
+              new Error(
+                vscode.l10n.t(
                   "Failed to start arduino-cli daemon ({0}): {1}",
-                  this.cliPath,
+                  cliPath,
                   err.message,
-                );
-          reject(new Error(message));
+                ),
+              ),
+            );
+          }
         }
       });
 

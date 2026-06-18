@@ -182,5 +182,8 @@
   "What's New": "Neuigkeiten",
   "Compile the current sketch": "Aktuellen Sketch kompilieren",
   "Upload the current sketch to the board": "Aktuellen Sketch auf das Board hochladen",
-  "Open the Serial Monitor": "Seriellen Monitor öffnen"
+  "Open the Serial Monitor": "Seriellen Monitor öffnen",
+  "Select path…": "Pfad auswählen…",
+  "Download arduino-cli": "arduino-cli herunterladen",
+  "Select the arduino-cli executable": "Wählen Sie die ausführbare Datei arduino-cli"
 }

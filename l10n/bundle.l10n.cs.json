@@ -182,5 +182,8 @@
   "What's New": "Novinky",
   "Compile the current sketch": "Zkompilovat aktuální sketch",
   "Upload the current sketch to the board": "Nahrát aktuální sketch do desky",
-  "Open the Serial Monitor": "Otevřít sériový monitor"
+  "Open the Serial Monitor": "Otevřít sériový monitor",
+  "Select path…": "Vybrat cestu…",
+  "Download arduino-cli": "Stáhnout arduino-cli",
+  "Select the arduino-cli executable": "Vyberte spustitelný soubor arduino-cli"
 }

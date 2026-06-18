@@ -286,6 +286,10 @@
         "title": "%command.restartDaemon%"
       },
       {
+        "command": "arduinoCli.selectPath",
+        "title": "%command.selectPath%"
+      },
+      {
         "command": "arduinoCli.installArduinoSkill",
         "title": "%command.installArduinoSkill%"
       }
@@ -514,7 +518,7 @@
         "arduinoCli.path": {
           "type": "string",
           "default": "arduino-cli",
-          "description": "%config.path%"
+          "markdownDescription": "%config.pathMarkdown%"
         },
         "arduinoCli.daemonPort": {
           "type": "number",

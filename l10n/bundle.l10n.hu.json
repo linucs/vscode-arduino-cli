@@ -182,5 +182,8 @@
   "What's New": "Újdonságok",
   "Compile the current sketch": "Aktuális vázlat fordítása",
   "Upload the current sketch to the board": "Aktuális vázlat feltöltése a panelra",
-  "Open the Serial Monitor": "Soros monitor megnyitása"
+  "Open the Serial Monitor": "Soros monitor megnyitása",
+  "Select path…": "Elérési út kiválasztása…",
+  "Download arduino-cli": "arduino-cli letöltése",
+  "Select the arduino-cli executable": "Válassza ki az arduino-cli végrehajtható fájlt"
 }

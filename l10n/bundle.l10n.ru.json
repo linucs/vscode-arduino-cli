@@ -182,5 +182,8 @@
   "What's New": "Что нового",
   "Compile the current sketch": "Скомпилировать текущий скетч",
   "Upload the current sketch to the board": "Загрузить текущий скетч на плату",
-  "Open the Serial Monitor": "Открыть монитор порта"
+  "Open the Serial Monitor": "Открыть монитор порта",
+  "Select path…": "Выбрать путь…",
+  "Download arduino-cli": "Скачать arduino-cli",
+  "Select the arduino-cli executable": "Выберите исполняемый файл arduino-cli"
 }

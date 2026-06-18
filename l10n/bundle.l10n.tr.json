@@ -182,5 +182,8 @@
   "What's New": "Yenilikler",
   "Compile the current sketch": "Geçerli çizimi derle",
   "Upload the current sketch to the board": "Geçerli çizimi karta yükle",
-  "Open the Serial Monitor": "Seri monitörü aç"
+  "Open the Serial Monitor": "Seri monitörü aç",
+  "Select path…": "Yolu seç…",
+  "Download arduino-cli": "arduino-cli'yi indir",
+  "Select the arduino-cli executable": "arduino-cli yürütülebilir dosyasını seçin"
 }

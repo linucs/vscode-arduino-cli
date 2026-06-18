@@ -4,7 +4,7 @@ import { ArduinoClient } from "./arduinoClient";
 import { BoardManager } from "./boardManager";
 import { StatusBarActions } from "./statusBarActions";
 import { Compiler } from "./compile";
-import { DaemonManager } from "./daemon";
+import { ArduinoCliNotFoundError, DaemonManager } from "./daemon";
 import { DebugManager } from "./debug";
 import { IntelliSenseManager } from "./intellisense";
 import { Indexes } from "./indexes";
@@ -86,6 +86,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
     vscode.commands.registerCommand("arduinoCli.showVersion", showVersion),
     vscode.commands.registerCommand("arduinoCli.restartDaemon", restartDaemon),
+    vscode.commands.registerCommand("arduinoCli.selectPath", selectCliPath),
     vscode.commands.registerCommand("arduinoCli.selectBoard", () =>
       withReady((d) => d.boards.selectBoard()),
     ),
@@ -756,8 +757,58 @@ async function withReady(action: (deps: Deps) => Promise<unknown>): Promise<void
     const deps = await ensureReady();
     await action(deps);
   } catch (err) {
-    vscode.window.showErrorMessage(vscode.l10n.t("Arduino CLI: {0}", asMessage(err)));
+    await reportReadyError(err);
   }
+}
+
+/** Where to obtain arduino-cli when it is not installed. */
+const ARDUINO_CLI_DOWNLOAD_URL =
+  "https://docs.arduino.cc/arduino-cli/installation/#download";
+
+/**
+ * Surface a daemon/startup failure. When the cause is a missing arduino-cli
+ * executable, offer concrete recovery — pick the binary (file picker) or open
+ * the download page — instead of a dead-end error toast.
+ */
+async function reportReadyError(err: unknown): Promise<void> {
+  if (err instanceof ArduinoCliNotFoundError) {
+    const select = vscode.l10n.t("Select path…");
+    const download = vscode.l10n.t("Download arduino-cli");
+    const choice = await vscode.window.showErrorMessage(
+      vscode.l10n.t("Arduino CLI: {0}", err.message),
+      select,
+      download,
+    );
+    if (choice === select) {
+      await selectCliPath();
+    } else if (choice === download) {
+      await vscode.env.openExternal(vscode.Uri.parse(ARDUINO_CLI_DOWNLOAD_URL));
+    }
+    return;
+  }
+  vscode.window.showErrorMessage(vscode.l10n.t("Arduino CLI: {0}", asMessage(err)));
+}
+
+/**
+ * Open a file picker for the arduino-cli executable and persist the chosen path
+ * to the `arduinoCli.path` user setting, then restart the daemon so the new
+ * path takes effect (the settings watcher does not cover `path`).
+ */
+async function selectCliPath(): Promise<void> {
+  const picked = await vscode.window.showOpenDialog({
+    canSelectMany: false,
+    canSelectFolders: false,
+    openLabel: vscode.l10n.t("Select"),
+    title: vscode.l10n.t("Select the arduino-cli executable"),
+  });
+  const file = picked?.[0];
+  if (!file) {
+    return;
+  }
+  await vscode.workspace
+    .getConfiguration("arduinoCli")
+    .update("path", file.fsPath, vscode.ConfigurationTarget.Global);
+  await restartDaemon();
 }
 
 async function showVersion() {
@@ -795,7 +846,7 @@ async function restartDaemon() {
       vscode.l10n.t("Arduino CLI: daemon restarted"),
     );
   } catch (err) {
-    vscode.window.showErrorMessage(vscode.l10n.t("Arduino CLI: {0}", asMessage(err)));
+    await reportReadyError(err);
   }
 }
 

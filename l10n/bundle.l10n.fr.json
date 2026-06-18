@@ -182,5 +182,8 @@
   "What's New": "Nouveautés",
   "Compile the current sketch": "Compiler le croquis actuel",
   "Upload the current sketch to the board": "Téléverser le croquis actuel vers la carte",
-  "Open the Serial Monitor": "Ouvrir le moniteur série"
+  "Open the Serial Monitor": "Ouvrir le moniteur série",
+  "Select path…": "Sélectionner le chemin…",
+  "Download arduino-cli": "Télécharger arduino-cli",
+  "Select the arduino-cli executable": "Sélectionnez l'exécutable arduino-cli"
 }

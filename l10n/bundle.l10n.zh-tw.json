@@ -182,5 +182,8 @@
   "What's New": "新增功能",
   "Compile the current sketch": "編譯目前的草稿",
   "Upload the current sketch to the board": "將目前的草稿上傳到開發板",
-  "Open the Serial Monitor": "開啟序列埠監控視窗"
+  "Open the Serial Monitor": "開啟序列埠監控視窗",
+  "Select path…": "選擇路徑…",
+  "Download arduino-cli": "下載 arduino-cli",
+  "Select the arduino-cli executable": "選擇 arduino-cli 可執行檔"
 }
