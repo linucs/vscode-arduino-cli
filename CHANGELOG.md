@@ -6,12 +6,31 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-06-23
+
+### Added
+
+- **Status bar actions** — Compile, Upload, and Serial Monitor now have quick
+  buttons in the status bar, available alongside the existing `editor/title`
+  toolbar buttons.
+- **Select the `arduino-cli` executable** — a new **Select Executable Path**
+  command (and a *Browse…* link in the `arduinoCli.path` setting) lets you point
+  the extension at a specific `arduino-cli` binary. When the executable can't be
+  found, the daemon now surfaces an actionable error with a recovery option
+  instead of a bare ENOENT.
+
 ### Changed
 
 - **Renamed to "Arduino Sketch Studio"** — the extension's Marketplace display
   name, command category, and settings section are now **Arduino Sketch Studio**
   (formerly "Arduino CLI IDE"). This is a branding change only; command IDs,
   settings keys, and the underlying `arduino-cli` integration are unchanged.
+
+### Fixed
+
+- **Multi-tab sketches** — sketch resolution now uses the enclosing sketch
+  folder instead of counting open files, so actions target the right sketch when
+  several tabs of it are open.
 
 ## [0.4.1] - 2026-06-14
 

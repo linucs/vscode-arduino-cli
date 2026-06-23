@@ -8,7 +8,14 @@ Code Arduino sketches in **plain VS Code** — compile, upload, monitor, and deb
 
 ## Unreleased
 
+---
+
+## v0.5.0 — 2026-06-23
+
 - **Renamed to "Arduino Sketch Studio"** — the extension is now called **Arduino Sketch Studio** (formerly "Arduino CLI IDE") on the Marketplace, and its commands and settings group under that name. Branding only — command IDs, settings keys, and the `arduino-cli` integration are unchanged.
+- **Status bar actions** — Compile, Upload, and Serial Monitor now have one-click buttons in the status bar, right next to the editor toolbar buttons.
+- **Pick your `arduino-cli`** — a new **Select Executable Path** command (and a *Browse…* link in the `arduinoCli.path` setting) lets you point at a specific `arduino-cli` binary, and a missing executable now shows an actionable error with a way to fix it instead of a cryptic failure.
+- **Fixed** — opening a sketch across several tabs no longer confuses which sketch an action targets; resolution now keys off the enclosing sketch folder.
 
 ---
 
