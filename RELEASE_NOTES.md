@@ -1,8 +1,14 @@
-# Arduino CLI IDE — Release Notes
+# Arduino Sketch Studio — Release Notes
 
 Code Arduino sketches in **plain VS Code** — compile, upload, monitor, and debug right from the editor. A thin wrapper around the official [`arduino-cli`](https://github.com/arduino/arduino-cli): it runs the `arduino-cli` daemon in the background and gives you buttons, menus, and tree views for what it already does, with no separate IDE on top.
 
 > **Requires `arduino-cli`** on your `PATH` (or set `arduinoCli.path`). It isn't bundled — that's what keeps the extension small. See the [installation guide](https://arduino.github.io/arduino-cli/latest/installation/). Prefer building programs by dragging blocks? Install the sister extension [**Blocks Editor**](https://marketplace.visualstudio.com/items?itemName=linucs.blocks-editor) — it generates real Arduino code and uses this extension's Compile/Upload buttons to build and flash.
+
+---
+
+## Unreleased
+
+- **Renamed to "Arduino Sketch Studio"** — the extension is now called **Arduino Sketch Studio** (formerly "Arduino CLI IDE") on the Marketplace, and its commands and settings group under that name. Branding only — command IDs, settings keys, and the `arduino-cli` integration are unchanged.
 
 ---
 

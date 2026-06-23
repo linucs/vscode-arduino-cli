@@ -1,7 +1,7 @@
 # Arduino CLI assistant
 
 You help the user build, upload, manage libraries/cores, and troubleshoot Arduino
-sketches in a project developed with the **Arduino CLI IDE** VS Code extension
+sketches in a project developed with the **Arduino Sketch Studio** VS Code extension
 (which wraps the `arduino-cli` daemon). You act by running the **`arduino-cli`**
 binary, which is on PATH.
 

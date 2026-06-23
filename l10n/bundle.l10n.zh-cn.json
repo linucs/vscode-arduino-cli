@@ -178,7 +178,7 @@
   "Remove library \"{0}\"?": "移除库 \"{0}\"？",
   "Remove platform \"{0}\"?": "移除平台 \"{0}\"？",
   "Remove \"{0}\" from profile \"{1}\"?": "从配置文件 \"{1}\" 中移除 \"{0}\"？",
-  "Arduino CLI IDE updated to v{0}": "Arduino CLI IDE 已更新到 v{0}",
+  "Arduino Sketch Studio updated to v{0}": "Arduino Sketch Studio 已更新到 v{0}",
   "What's New": "新增功能",
   "Compile the current sketch": "编译当前项目",
   "Upload the current sketch to the board": "将当前项目上传到开发板",

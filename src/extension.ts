@@ -863,11 +863,11 @@ function asMessage(err: unknown): string {
  */
 function maybeAnnounceVersion(ctx: vscode.ExtensionContext): void {
   const currentVersion = ctx.extension.packageJSON.version as string;
-  const lastVersion = ctx.globalState.get<string>("walkthroughVersion");
+  const lastVersion = ctx.globalState.get<string>("lastVersion");
   if (lastVersion === currentVersion) {
     return;
   }
-  void ctx.globalState.update("walkthroughVersion", currentVersion);
+  void ctx.globalState.update("lastVersion", currentVersion);
 
   if (lastVersion === undefined) {
     // Fresh install → Get Started walkthrough.
@@ -889,12 +889,18 @@ async function showUpdateNotification(
 ): Promise<void> {
   const whatsNew = vscode.l10n.t("What's New");
   const choice = await vscode.window.showInformationMessage(
-    vscode.l10n.t("Arduino CLI IDE updated to v{0}", version),
+    vscode.l10n.t("Arduino Sketch Studio updated to v{0}", version),
     whatsNew,
   );
   if (choice === whatsNew) {
-    const uri = vscode.Uri.joinPath(ctx.extensionUri, "CHANGELOG.md");
-    void vscode.commands.executeCommand("markdown.showPreview", uri);
+    // Open the extension's native Changelog tab (rendered by VS Code from the
+    // bundled CHANGELOG.md) rather than previewing the file by path, which is
+    // unreliable in the installed layout.
+    void vscode.commands.executeCommand(
+      "extension.open",
+      ctx.extension.id,
+      "changelog",
+    );
   }
 }
 

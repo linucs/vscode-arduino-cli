@@ -178,7 +178,7 @@
   "Remove library \"{0}\"?": "ライブラリ \"{0}\" を削除しますか？",
   "Remove platform \"{0}\"?": "プラットフォーム \"{0}\" を削除しますか？",
   "Remove \"{0}\" from profile \"{1}\"?": "プロファイル \"{1}\" から \"{0}\" を削除しますか？",
-  "Arduino CLI IDE updated to v{0}": "Arduino CLI IDE が v{0} に更新されました",
+  "Arduino Sketch Studio updated to v{0}": "Arduino Sketch Studio が v{0} に更新されました",
   "What's New": "新機能",
   "Compile the current sketch": "現在のスケッチをコンパイル",
   "Upload the current sketch to the board": "現在のスケッチをボードにアップロード",

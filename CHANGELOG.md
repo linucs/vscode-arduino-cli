@@ -1,8 +1,17 @@
 # Change Log
 
-All notable changes to the "Arduino CLI IDE" extension will be documented in this file.
+All notable changes to the "Arduino Sketch Studio" extension will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
+
+## [Unreleased]
+
+### Changed
+
+- **Renamed to "Arduino Sketch Studio"** — the extension's Marketplace display
+  name, command category, and settings section are now **Arduino Sketch Studio**
+  (formerly "Arduino CLI IDE"). This is a branding change only; command IDs,
+  settings keys, and the underlying `arduino-cli` integration are unchanged.
 
 ## [0.4.1] - 2026-06-14
 

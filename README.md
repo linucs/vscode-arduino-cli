@@ -1,22 +1,41 @@
-# Arduino CLI IDE
+# Arduino Sketch Studio for VS Code
 
-**Code Arduino sketches in plain VS Code — compile, upload, monitor, and debug right from the editor.**
+**Build and run the Arduino sketches you design with blocks — in plain VS Code.**
 
-![Arduino CLI IDE in action — compiling, uploading, and plotting serial data inside VS Code](images/demo.gif)
+![Arduino Sketch Studio in action — compiling, uploading, and plotting serial data inside VS Code](images/demo.gif)
 
-This extension is a **thin wrapper** around the official [`arduino-cli`](https://github.com/arduino/arduino-cli). It doesn't reinvent anything: it spawns the `arduino-cli` daemon in the background and gives you buttons, menus, and tree views for the things it already does. You get a **stock VS Code experience** for Arduino — the editor, extensions, themes, and keybindings you already use — with none of a separate IDE on top.
+Design a sketch with drag-and-drop blocks in
+**[Blocks Editor](https://marketplace.visualstudio.com/items?itemName=linucs.blocks-editor)**,
+then compile, upload and monitor it here, without leaving the editor. This
+extension is the **run half** of that workflow: Blocks Editor writes the sketch,
+Arduino Sketch Studio puts it on the board and shows you what it's doing. Hand-written
+sketches work exactly the same way — blocks are optional.
 
-> **Who is this for?** Anyone who wants to write Arduino code in VS Code and have the build/upload toolchain a click away — without a heavyweight, all-in-one Arduino IDE. If you can install one command-line tool, you're ready.
+> **Not a replacement for the Arduino IDE.** The Arduino IDE is the full,
+> all-in-one desktop app for developing sketches. This extension doesn't compete
+> with it: it's a thin wrapper over the very same [`arduino-cli`](https://github.com/arduino/arduino-cli)
+> the Arduino IDE uses under the hood, for people who'd rather drive that tool from
+> the VS Code they already live in — with their own editor, extensions, themes and
+> keybindings.
+
+It's "just another Arduino CLI" by design. Arduino ships official command-line
+tools — `arduino-cli` for sketches, `arduino-app-cli` for UNO Q apps — and this
+extension gives the sketch one a native VS Code face, the same way its sibling
+**[Arduino App CLI](https://marketplace.visualstudio.com/items?itemName=linucs.vscode-arduino-app-cli-ide)**
+does for UNO Q apps. The CLI does the real work; VS Code does what it's already
+great at.
 
 ## Why you'll like it
 
-- 🪶 **Lightweight** — a thin layer over `arduino-cli`. It talks to the official tool, so your builds behave exactly like the Arduino IDE's.
+- 🧩 **The other half of Blocks Editor** — design a sketch with blocks, then
+  compile and upload it here; no GUI round-trip, no leaving VS Code.
+- 🪶 **Thin** — talks to the official `arduino-cli` daemon over local gRPC, so your
+  builds behave exactly like the Arduino IDE's; no heavyweight runtime, no second IDE.
 - 🧰 **Everything in the editor** — Compile, Upload, Serial Monitor, and Debug buttons sit right in the editor toolbar for any `.ino` file.
 - 🔌 **Knows your board** — pick a board once; it's remembered, and it can auto-install the core you need.
 - 📦 **Manage cores & libraries visually** — install, update, downgrade, and remove platforms and libraries from a sidebar — no memorizing commands.
 - 📈 **Serial monitor _and_ plotter** — read text from your board, or graph live numbers as they stream in.
 - 🐞 **Real debugging** — set breakpoints and step through code on supported boards.
-- 🧩 **Plays nicely with [Blocks Editor](https://marketplace.visualstudio.com/items?itemName=linucs.blocks-editor)** — its drag-and-drop blocks can use this extension's buttons to build and upload. See [Works great with Blocks Editor](#works-great-with-blocks-editor).
 
 ## Getting started
 
@@ -34,13 +53,13 @@ To check it worked, open a terminal and run `arduino-cli version`.
 
 ### Step 2 — Install this extension
 
-Search for **"Arduino CLI IDE"** in the VS Code Extensions view, or install from [Open VSX](https://open-vsx.org) on VSCodium / Cursor / Windsurf.
+Search for **"Arduino Sketch Studio"** in the VS Code Extensions view, or install from [Open VSX](https://open-vsx.org) on VSCodium / Cursor / Windsurf.
 
 ### Step 3 — Build your first sketch
 
-1. Open a folder containing a sketch — an `.ino` file inside a folder of the same name (e.g. `Blink/Blink.ino`). Don't have one? Run **Arduino CLI: New Sketch…** from the Command Palette (`Ctrl/Cmd+Shift+P`).
+1. Open a folder containing a sketch — an `.ino` file inside a folder of the same name (e.g. `Blink/Blink.ino`). Don't have one? Run **Arduino Sketch Studio: New Sketch…** from the Command Palette (`Ctrl/Cmd+Shift+P`).
 2. Open the `.ino` file. You'll see **Compile**, **Upload**, **Serial Monitor**, and **Debug** buttons in the top-right editor toolbar.
-3. Click **Select Board** (Command Palette → **Arduino CLI: Select Board**) and pick your board. If its core isn't installed yet, the extension offers to install it for you.
+3. Click **Select Board** (Command Palette → **Arduino Sketch Studio: Select Board**) and pick your board. If its core isn't installed yet, the extension offers to install it for you.
 4. Plug in your board and click **Upload** (the ⬆ button). Watch progress in the output panel.
 5. Click the **Serial Monitor** (🔌) button to see what your board prints back.
 
@@ -62,69 +81,69 @@ Everything below is available from the **Command Palette** (`Ctrl/Cmd+Shift+P`),
 
 | Command | What it does |
 |---------|-------------|
-| Arduino CLI: Select Board | Choose the board (FQBN) for the current sketch |
-| Arduino CLI: Compile | Compile the active sketch |
-| Arduino CLI: Upload | Upload the compiled sketch to the board |
-| Arduino CLI: Upload Using Programmer | Upload via a hardware programmer |
-| Arduino CLI: Burn Bootloader | Write the bootloader to the board |
-| Arduino CLI: Board Details | Show the selected board's capabilities |
+| Arduino Sketch Studio: Select Board | Choose the board (FQBN) for the current sketch |
+| Arduino Sketch Studio: Compile | Compile the active sketch |
+| Arduino Sketch Studio: Upload | Upload the compiled sketch to the board |
+| Arduino Sketch Studio: Upload Using Programmer | Upload via a hardware programmer |
+| Arduino Sketch Studio: Burn Bootloader | Write the bootloader to the board |
+| Arduino Sketch Studio: Board Details | Show the selected board's capabilities |
 
 **Serial**
 
 | Command | What it does |
 |---------|-------------|
-| Arduino CLI: Open Serial Monitor | Read text from the board's serial port |
-| Arduino CLI: Open Serial Plotter | Graph live numeric data streaming over serial |
-| Arduino CLI: Save Serial Log… | Save the captured serial output to a file |
-| Arduino CLI: Set Serial Line Ending | Choose what line ending is appended when sending to the board (None / NL / CR / NL+CR) |
+| Arduino Sketch Studio: Open Serial Monitor | Read text from the board's serial port |
+| Arduino Sketch Studio: Open Serial Plotter | Graph live numeric data streaming over serial |
+| Arduino Sketch Studio: Save Serial Log… | Save the captured serial output to a file |
+| Arduino Sketch Studio: Set Serial Line Ending | Choose what line ending is appended when sending to the board (None / NL / CR / NL+CR) |
 
 **Platforms / cores**
 
 | Command | What it does |
 |---------|-------------|
-| Arduino CLI: Install / Uninstall / Upgrade Platform | Manage a single core |
-| Arduino CLI: Upgrade All Platforms | Update every installed core |
-| Arduino CLI: Download Platform (cache only)… | Pre-download a core without installing |
-| Arduino CLI: Update Package Index | Refresh the list of available cores |
+| Arduino Sketch Studio: Install / Uninstall / Upgrade Platform | Manage a single core |
+| Arduino Sketch Studio: Upgrade All Platforms | Update every installed core |
+| Arduino Sketch Studio: Download Platform (cache only)… | Pre-download a core without installing |
+| Arduino Sketch Studio: Update Package Index | Refresh the list of available cores |
 
 **Libraries**
 
 | Command | What it does |
 |---------|-------------|
-| Arduino CLI: Add Library… | Search and install a library |
-| Arduino CLI: Install Library from ZIP… / from Git URL… | Install from a local archive or a repository |
-| Arduino CLI: Download Library Archive (cache only)… | Pre-download a library without installing |
-| Arduino CLI: Upgrade All Libraries | Update every installed library |
-| Arduino CLI: Update Libraries Index | Refresh the list of available libraries |
-| Arduino CLI: Open Library Example… | Open an example sketch from an installed library (read-only) |
-| Arduino CLI: Open Library Website… | Open the home page for an installed library |
+| Arduino Sketch Studio: Add Library… | Search and install a library |
+| Arduino Sketch Studio: Install Library from ZIP… / from Git URL… | Install from a local archive or a repository |
+| Arduino Sketch Studio: Download Library Archive (cache only)… | Pre-download a library without installing |
+| Arduino Sketch Studio: Upgrade All Libraries | Update every installed library |
+| Arduino Sketch Studio: Update Libraries Index | Refresh the list of available libraries |
+| Arduino Sketch Studio: Open Library Example… | Open an example sketch from an installed library (read-only) |
+| Arduino Sketch Studio: Open Library Website… | Open the home page for an installed library |
 
 **Build profiles** (`sketch.yaml`)
 
 | Command | What it does |
 |---------|-------------|
-| Arduino CLI: Create Build Profile… | Create a reproducible build profile |
-| Arduino CLI: Set Default Profile… | Choose the profile used by default |
-| Arduino CLI: Add / Remove Library to Profile… | Pin libraries to a profile |
-| Arduino CLI: List Profile Libraries | Show the active profile's libraries |
+| Arduino Sketch Studio: Create Build Profile… | Create a reproducible build profile |
+| Arduino Sketch Studio: Set Default Profile… | Choose the profile used by default |
+| Arduino Sketch Studio: Add / Remove Library to Profile… | Pin libraries to a profile |
+| Arduino Sketch Studio: List Profile Libraries | Show the active profile's libraries |
 
 **Debug & IntelliSense**
 
 | Command | What it does |
 |---------|-------------|
-| Arduino CLI: Debug | Start a debug session on a supported board |
-| Arduino CLI: Show Debug Configuration | Inspect the generated debug config |
-| Arduino CLI: Configure IntelliSense | Regenerate `c_cpp_properties.json` for the current board |
+| Arduino Sketch Studio: Debug | Start a debug session on a supported board |
+| Arduino Sketch Studio: Show Debug Configuration | Inspect the generated debug config |
+| Arduino Sketch Studio: Configure IntelliSense | Regenerate `c_cpp_properties.json` for the current board |
 
 **Sketch & maintenance**
 
 | Command | What it does |
 |---------|-------------|
-| Arduino CLI: New Sketch… | Scaffold a new sketch |
-| Arduino CLI: Archive Sketch… | Zip up the sketch for sharing |
-| Arduino CLI: Check for CLI Updates | See if a newer `arduino-cli` is available |
-| Arduino CLI: Clean Download Cache | Free up cached downloads |
-| Arduino CLI: Show Daemon Version / Restart Daemon | Diagnose the background daemon |
+| Arduino Sketch Studio: New Sketch… | Scaffold a new sketch |
+| Arduino Sketch Studio: Archive Sketch… | Zip up the sketch for sharing |
+| Arduino Sketch Studio: Check for CLI Updates | See if a newer `arduino-cli` is available |
+| Arduino Sketch Studio: Clean Download Cache | Free up cached downloads |
+| Arduino Sketch Studio: Show Daemon Version / Restart Daemon | Diagnose the background daemon |
 
 ## Plotting serial data
 
@@ -232,7 +251,7 @@ On boards with debug support (and an installed debug adapter such as **Cortex-De
 
 ## Settings
 
-You can leave everything at its defaults. To tweak, open Settings and search for **"Arduino CLI"**:
+You can leave everything at its defaults. To tweak, open Settings and search for **"Arduino Sketch Studio"**:
 
 | Setting | Default | What it does |
 |---------|---------|--------------|
@@ -252,7 +271,17 @@ You can leave everything at its defaults. To tweak, open Settings and search for
 
 ## Works great with Blocks Editor
 
-If you'd rather build programs by **dragging blocks** than typing C++, install the sister extension **[Blocks Editor](https://marketplace.visualstudio.com/items?itemName=linucs.blocks-editor)** (`linucs.blocks-editor`). It's a visual, Scratch-like editor that generates real Arduino code — and it uses *this* extension's Compile and Upload buttons to build and flash your board. The two are designed to work side by side, but each is fully standalone: use one, the other, or both.
+**[Blocks Editor](https://marketplace.visualstudio.com/items?itemName=linucs.blocks-editor)** (`linucs.blocks-editor`) is the other half of the story. It's a visual, Scratch-like editor that lets you build programs by **dragging blocks** instead of typing C++, and it generates real Arduino code under the hood.
+
+But generated code is just a file until something runs it — and that's where this extension comes in. Blocks Editor hands the sketch to *this* extension's **Compile** and **Upload** buttons, which build it and flash it to your board. Together they're a complete loop: drag blocks → compile → upload → watch the serial output. Drawn as a picture:
+
+```
+Blocks Editor              Arduino Sketch Studio           Your board
+  drag blocks  ──►  generates .ino  ──►  compile + upload  ──►  runs
+                                          serial monitor   ◄──  prints
+```
+
+Each one is fully standalone, so you can use either alone — but they're designed to be two halves of one workflow: **Blocks Editor builds, this extension runs.**
 
 ## Requirements
 
